@@ -500,7 +500,7 @@
 .mk-usecase-icon {
   display: inline-flex;
   margin-bottom: 14px;
-  color: var(--mk-accent);
+  color: var(--mk-acc);
   line-height: 1;
 }
 .mk-usecase-icon svg {
