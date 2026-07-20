@@ -5,6 +5,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* Map Tailwind's font theme vars to the brand stacks (same values
+   _share.css resolves locally), so the compiled CSS never carries the
+   framework defaults (ui-serif/Cambria etc.) as the :root fallback. */
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "Instrument Serif", "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
 @import "./salad_ui.css";
 @import "./_typster_ui.css";
 @import "./_editor_topbar.css";
