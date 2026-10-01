@@ -1,4 +1,4 @@
-FROM elixir:1.19-alpine AS builder
+FROM elixir:1.20-alpine AS builder
 
 ENV BUN_INSTALL="/root/.bun"
 ENV PATH="$BUN_INSTALL/bin:$PATH"
@@ -34,7 +34,7 @@ COPY assets ./assets
 RUN mix assets.deploy
 RUN mix release
 
-FROM alpine:3.23.4 AS runner
+FROM alpine:3.24.2 AS runner
 
 RUN apk add --no-cache \
     openssl \

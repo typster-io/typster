@@ -1,4 +1,4 @@
-FROM elixir:1.19
+FROM elixir:1.20
 
 RUN apt-get update && apt-get install -y \
     build-essential \
