@@ -218,7 +218,7 @@
    them readable instead of dimmed like an unsupported file. */
 .ts-tree__item.is-asset { cursor: default; }
 .ts-tree__item.is-asset:hover { background: none; }
-.ts-tree__item.is-asset[data-asset-insert] { cursor: grab; }
+.ts-tree__item.is-asset[data-insert] { cursor: grab; }
 .ts-tree__pill { margin-left: auto; font: 500 10px 'JetBrains Mono', ui-monospace, monospace; color: var(--fg4); }
 .ts-tree__dir { color: var(--fg); font-weight: 500; user-select: none; }
 .ts-tree__dir > span:nth-child(-n+2) { color: var(--fg3); }

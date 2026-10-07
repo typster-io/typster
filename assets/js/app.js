@@ -55,7 +55,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
     Clipboard: Hooks.Clipboard,
     CompileDelay: Hooks.CompileDelay,
     FileTreeDnD: Hooks.FileTreeDnD,
-    AssetDrag: Hooks.AssetDrag
+    InsertDrag: Hooks.InsertDrag
   },
 })
 

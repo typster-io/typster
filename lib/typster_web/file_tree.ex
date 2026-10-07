@@ -17,8 +17,11 @@ defmodule TypsterWeb.FileTree do
   def mode("flat"), do: :flat
   def mode(_), do: :tree
 
-  @doc "Build render nodes for the file list in the given mode."
-  def file_nodes(files, mode) do
+  @doc """
+  Build render nodes for the file list in the given mode. `current_path` is the
+  open file's path: dragged rows insert references relative to it.
+  """
+  def file_nodes(files, mode, current_path \\ nil) do
     files
     |> Enum.map(fn f ->
       %{
@@ -26,7 +29,8 @@ defmodule TypsterWeb.FileTree do
         id: f.id,
         editable: Typster.Files.editable_file?(f),
         asset?: false,
-        pinned: Map.get(f, :pinned, false)
+        pinned: Map.get(f, :pinned, false),
+        insert: if(f.path != current_path, do: insert_snippet(f.path, current_path))
       }
     end)
     |> by_mode(mode)
@@ -39,7 +43,7 @@ defmodule TypsterWeb.FileTree do
   family names the preview compiler detected; a font row shows those instead
   of its size so the writer knows what to put in `#set text(font: …)`.
   """
-  def asset_nodes(assets, mode, font_families \\ %{}) do
+  def asset_nodes(assets, mode, font_families \\ %{}, current_path \\ nil) do
     assets
     |> Enum.map(fn a ->
       kind = Typster.Assets.kind(a)
@@ -52,7 +56,7 @@ defmodule TypsterWeb.FileTree do
         kind: asset_chip_kind(kind),
         meta: asset_meta(a, kind, font_families),
         meta_title: asset_meta_title(a, kind, font_families),
-        insert: asset_insert(a, kind, font_families)
+        insert: asset_insert(a, kind, font_families, current_path)
       }
     end)
     |> by_mode(mode)
@@ -86,36 +90,46 @@ defmodule TypsterWeb.FileTree do
   @doc """
   The Typst snippet dropped into the editor when an asset row is dragged there,
   or `nil` when the asset has nothing to insert (an unreadable web font, or a
-  font whose family the preview has not reported yet). Paths are project-root
-  absolute (`/assets/…`) so they resolve from files in subdirectories too.
+  font whose family the preview has not reported yet).
   """
-  def asset_insert(a, kind, families \\ %{})
+  def asset_insert(a, kind, families \\ %{}, current_path \\ nil)
 
-  def asset_insert(a, :image, _families),
-    do: ~s|#image(#{typst_string("/assets/" <> a.filename)})|
-
-  def asset_insert(a, :font, families) do
+  def asset_insert(a, :font, families, _current_path) do
     case Map.get(families, Typster.Assets.reference_path(a), []) do
       [family | _] -> ~s|#set text(font: #{typst_string(family)})|
       [] -> nil
     end
   end
 
-  def asset_insert(_a, :web_font, _families), do: nil
+  def asset_insert(_a, :web_font, _families, _current_path), do: nil
 
-  def asset_insert(a, _kind, _families) do
-    path = typst_string("/assets/" <> a.filename)
+  def asset_insert(a, _kind, _families, current_path),
+    do: insert_snippet(Typster.Assets.reference_path(a), current_path)
 
-    case a.filename |> Path.extname() |> String.downcase() do
-      ".bib" -> "#bibliography(#{path})"
-      ".csv" -> "#csv(#{path})"
-      ".json" -> "#json(#{path})"
-      ext when ext in ~w(.yaml .yml) -> "#yaml(#{path})"
-      ".toml" -> "#toml(#{path})"
-      ".xml" -> "#xml(#{path})"
-      _ -> "#read(#{path})"
+  @doc """
+  The Typst snippet that references the project file at `path` from the file at
+  `current_path`, with the path written relative to that file's directory.
+  """
+  def insert_snippet(path, current_path \\ nil) do
+    ref = typst_string(relative_path(path, current_path))
+
+    case path |> Path.extname() |> String.downcase() do
+      ".typ" -> "#include #{ref}"
+      ext when ext in ~w(.png .jpg .jpeg .gif .svg .webp) -> "#image(#{ref})"
+      ".bib" -> "#bibliography(#{ref})"
+      ".csv" -> "#csv(#{ref})"
+      ".json" -> "#json(#{ref})"
+      ext when ext in ~w(.yaml .yml) -> "#yaml(#{ref})"
+      ".toml" -> "#toml(#{ref})"
+      ".xml" -> "#xml(#{ref})"
+      _ -> "#read(#{ref})"
     end
   end
+
+  defp relative_path(path, nil), do: path
+
+  defp relative_path(path, current_path),
+    do: Path.relative_to(path, Path.dirname(current_path), force: true)
 
   defp typst_string(text) do
     ~s|"| <> (text |> String.replace("\\", "\\\\") |> String.replace(~s|"|, ~s|\\"|)) <> ~s|"|
@@ -257,7 +271,7 @@ defmodule TypsterWeb.FileTree do
           phx-value-file-id={node.id}
           draggable={(can_drag or Map.get(node, :insert) != nil) && "true"}
           data-dnd-file={if can_drag, do: node.id}
-          data-asset-insert={Map.get(node, :insert)}
+          data-insert={Map.get(node, :insert)}
           title={Map.get(node, :insert) && gettext("editor.assets.drag_hint")}
           class={[
             "ts-tree__item",
