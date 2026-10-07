@@ -121,6 +121,34 @@ defmodule Typster.Assets do
     end
   end
 
+  @doc """
+  The MIME type to serve an asset's bytes with, from a fixed table keyed by
+  extension — never the client-supplied `content_type` stored on upload.
+  """
+  @serve_content_types %{
+    ".ttf" => "font/ttf",
+    ".otf" => "font/otf",
+    ".ttc" => "font/collection",
+    ".otc" => "font/collection",
+    ".woff" => "font/woff",
+    ".woff2" => "font/woff2",
+    ".png" => "image/png",
+    ".jpg" => "image/jpeg",
+    ".jpeg" => "image/jpeg",
+    ".gif" => "image/gif",
+    ".svg" => "image/svg+xml",
+    ".webp" => "image/webp",
+    ".pdf" => "application/pdf"
+  }
+
+  @spec serve_content_type(Asset.t() | String.t()) :: String.t()
+  def serve_content_type(%Asset{filename: filename}), do: serve_content_type(filename)
+
+  def serve_content_type(filename) when is_binary(filename) do
+    ext = filename |> Path.extname() |> String.downcase()
+    Map.get(@serve_content_types, ext, "application/octet-stream")
+  end
+
   @doc "True for a font Typst can register (TTF/OTF/TTC/OTC)."
   @spec font?(Asset.t() | String.t()) :: boolean()
   def font?(asset_or_name), do: kind(asset_or_name) == :font

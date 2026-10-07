@@ -38,14 +38,20 @@ defmodule TypsterWeb.AssetController do
     end
   end
 
+  # The content type comes from a fixed table keyed by the file's extension
+  # (never from the stored, client-supplied MIME string), the body is binary
+  # font/image data, and `nosniff` keeps the browser from guessing otherwise.
   defp send_asset(conn, asset) do
     case Assets.fetch_object(asset) do
       {:ok, body} ->
         conn
-        |> put_resp_content_type(asset.content_type || "application/octet-stream", nil)
         |> put_resp_header("cache-control", "private, max-age=86400")
-        |> put_resp_header("content-disposition", "inline")
-        |> send_resp(200, body)
+        |> put_resp_header("x-content-type-options", "nosniff")
+        |> send_download({:binary, body},
+          filename: asset.filename,
+          content_type: Assets.serve_content_type(asset),
+          disposition: :inline
+        )
 
       {:error, _reason} ->
         not_found(conn)
