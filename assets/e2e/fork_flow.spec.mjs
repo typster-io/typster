@@ -93,10 +93,15 @@ test.describe('Fork flow — make a copy on /p/:slug', () => {
     await nameInput.fill('')
     await page.locator('#shared-fork-form button[type="submit"]').click()
     await expect(page.locator('#shared-fork-error')).toBeVisible()
+    await expect(nameInput).toHaveClass(/invalid/)
     await expect(page.locator('.fk-modal')).toBeVisible()
 
-    // Real name → redirect into the copy's editor with the success flash.
+    // Typing clears the inline error and the red ring right away.
     await nameInput.fill('fork-me (e2e copy)')
+    await expect(page.locator('#shared-fork-error')).toBeHidden()
+    await expect(nameInput).not.toHaveClass(/invalid/)
+
+    // Real name → redirect into the copy's editor with the success flash.
     await page.locator('#shared-fork-form button[type="submit"]').click()
     await expect(page).toHaveURL(/\/projects\/.+\/edit/, { timeout: 15_000 })
     await expect(page.locator('#flash-info')).toContainText('yours now')
