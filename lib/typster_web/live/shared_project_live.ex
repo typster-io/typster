@@ -230,6 +230,7 @@ defmodule TypsterWeb.SharedProjectLive do
                     type="text"
                     class={if(@fork_error, do: "w-full input invalid", else: "w-full input")}
                     aria-invalid={to_string(@fork_error != nil)}
+                    phx-hook="SelectOnMount"
                     autofocus
                   />
                   <div :if={@fork_error} id="shared-fork-error" class="fk-err">

@@ -118,6 +118,9 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       assert has_element?(view, "#shared-fork-open")
       view |> element("#shared-fork-open") |> render_click()
 
+      # The prefilled "(copy)" name is focused + selected by the hook on open.
+      assert has_element?(view, ~s|#shared-fork-form input[phx-hook="SelectOnMount"]|)
+
       view
       |> form("#shared-fork-form", fork: %{name: "Fork of the century"})
       |> render_submit()

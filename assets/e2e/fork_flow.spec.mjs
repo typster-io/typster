@@ -61,6 +61,11 @@ test.describe('Fork flow — make a copy on /p/:slug', () => {
     await openBtn.click()
     const nameInput = page.locator('#shared-fork-form input[name="fork[name]"]')
     await expect(nameInput).toHaveValue(/fork-me/)
+    // Prefilled name is focused and fully selected, so typing replaces it.
+    await expect(nameInput).toBeFocused()
+    expect(
+      await nameInput.evaluate((el) => el.selectionStart === 0 && el.selectionEnd === el.value.length)
+    ).toBe(true)
     await expect(page.locator('.fk-meta')).toBeVisible()
     await nameInput.fill('')
     await page.locator('#shared-fork-form button[type="submit"]').click()

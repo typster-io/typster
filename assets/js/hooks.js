@@ -330,6 +330,15 @@ export const SlashFocus = {
   }
 }
 
+// Focus an input and select its prefilled text once, when it mounts (the copy
+// modal's "{Project} (copy)" name, so typing replaces it outright).
+export const SelectOnMount = {
+  mounted() {
+    this.el.focus()
+    this.el.select()
+  }
+}
+
 // Command palette keyboard navigation. Mounted only while the palette is open;
 // owns active-item highlighting and Enter-to-activate (clicks the focused row,
 // triggering whatever phx-click / JS.dispatch it carries).
