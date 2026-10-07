@@ -116,22 +116,24 @@ defmodule Typster.Projects do
     if changeset.valid? do
       fork_id = Ecto.Changeset.get_field(changeset, :id)
       :ok = Typster.Assets.schedule_fork_cleanup(fork_id, source.id)
-
-      Repo.transaction(fn ->
-        Typster.Assets.lock_fork!(fork_id)
-
-        case Repo.insert(changeset) do
-          {:ok, fork} -> copy_project_contents!(source.id, fork, on_progress)
-          {:error, changeset} -> Repo.rollback(changeset)
-        end
-      end)
+      Repo.transaction(fn -> insert_fork!(changeset, fork_id, source.id, on_progress) end)
     else
       {:error, %{changeset | action: :insert}}
     end
   end
 
-  # Inside the fork transaction: copy files, then assets; a failed S3 copy
-  # rolls the whole fork back.
+  # Inside the fork transaction, holding the fork's advisory lock so the
+  # cleanup job waits until the copy commits or rolls back.
+  defp insert_fork!(changeset, fork_id, source_id, on_progress) do
+    Typster.Assets.lock_fork!(fork_id)
+
+    case Repo.insert(changeset) do
+      {:ok, fork} -> copy_project_contents!(source_id, fork, on_progress)
+      {:error, changeset} -> Repo.rollback(changeset)
+    end
+  end
+
+  # Copy files, then assets; a failed S3 copy rolls the whole fork back.
   defp copy_project_contents!(source_id, fork, on_progress) do
     copy_files!(source_id, fork.id)
     on_progress.({:files})
