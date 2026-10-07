@@ -1,6 +1,8 @@
 import { setImportWasmModule as setCompilerWasmModule } from "@myriaddreamin/typst-ts-web-compiler"
 import { setImportWasmModule as setRendererWasmModule } from "@myriaddreamin/typst-ts-renderer"
 import { $typst } from "@myriaddreamin/typst.ts/contrib/snippet"
+import { createTypstFontBuilder } from "@myriaddreamin/typst.ts/compiler"
+import { loadFonts } from "@myriaddreamin/typst.ts/options.init"
 
 // Both the compiler and renderer have independent WASM loaders that throw by default.
 // Override both to fetch from the known static path instead of relying on import.meta.url,
@@ -80,6 +82,134 @@ async function ensureInitialized() {
   await $typst.svg({ mainContent: "" }).catch(() => {})
 }
 
+// ── Project fonts ──────────────────────────────────────────────────────────
+//
+// Fonts uploaded as project assets arrive in `project.assets` with
+// `kind: "font"` and a presigned `url`. The compiler's `set_fonts` replaces
+// its font resolver wholesale, so each time the project's font set changes we
+// build a fresh resolver holding Typst's default text fonts (re-added through
+// the same `loadFonts` loader the compiler used at init; the browser caches
+// those files) plus every project font, then swap it in. Font bytes are
+// cached by reference path + size, so a re-signed URL never refetches.
+
+const fontBytesCache = new Map()
+let registeredFontSet = ""
+
+function projectFonts(project) {
+  const assets = Array.isArray(project && project.assets) ? project.assets : []
+  return assets.filter(
+    (a) => a && a.kind === "font" && typeof a.url === "string" && typeof a.reference_path === "string"
+  )
+}
+
+function fontCacheKey(asset) {
+  return `${asset.reference_path}|${asset.size || 0}`
+}
+
+async function fetchFontBytes(asset) {
+  const key = fontCacheKey(asset)
+  if (fontBytesCache.has(key)) return fontBytesCache.get(key)
+
+  const response = await fetch(asset.url)
+  if (!response.ok) throw new Error(`Failed to fetch font ${asset.reference_path}: ${response.status}`)
+  const bytes = new Uint8Array(await response.arrayBuffer())
+  fontBytesCache.set(key, bytes)
+  return bytes
+}
+
+// typst.ts returns the font's info cache; its exact shape has moved between
+// versions, so collect every `family` string up to two levels deep rather
+// than depending on one layout.
+function familiesFromInfo(info) {
+  const out = new Set()
+  const visit = (value, depth) => {
+    if (!value || depth > 2) return
+    if (Array.isArray(value)) return value.forEach((v) => visit(v, depth + 1))
+    if (typeof value !== "object") return
+    if (typeof value.family === "string" && value.family) out.add(value.family)
+    for (const k of Object.keys(value)) if (k !== "family") visit(value[k], depth + 1)
+  }
+  visit(info, 0)
+  return [...out]
+}
+
+// Returns a per-font report when the resolver was rebuilt, or null when the
+// project's font set is unchanged since the last registration. Jobs run one
+// at a time (see the queue in onmessage), so there is never a second sync in
+// flight: the wasm compiler must not be touched from two interleaved tasks.
+async function syncProjectFonts(project) {
+  const fonts = projectFonts(project)
+  const fontSet = fonts.map(fontCacheKey).sort().join("\n")
+  if (fontSet === registeredFontSet) return null
+
+  const loaded = []
+  for (const asset of fonts) {
+    try {
+      loaded.push({ asset, bytes: await fetchFontBytes(asset), error: null })
+    } catch (error) {
+      console.error("typst font fetch failed:", error)
+      loaded.push({ asset, bytes: null, error: formatError(error) })
+    }
+  }
+
+  const fontBuilder = createTypstFontBuilder()
+  await fontBuilder.init()
+
+  // The loader hands `fonts` (our buffers first, then the default assets'
+  // URLs) to `ref.loadFonts(builder, fonts)`; feed them all into the builder.
+  const ref = {
+    setFetcher() {},
+    async loadFonts(builder, entries) {
+      for (const entry of entries) {
+        if (entry instanceof Uint8Array) {
+          await builder.addFontData(entry)
+        } else if (typeof entry === "string") {
+          const response = await fetch(entry)
+          if (!response.ok) throw new Error(`Failed to fetch default font ${entry}: ${response.status}`)
+          await builder.addFontData(new Uint8Array(await response.arrayBuffer()))
+        }
+      }
+    }
+  }
+  const userBytes = loaded.filter((l) => l.bytes).map((l) => l.bytes)
+  await loadFonts(userBytes, { assets: ["text"] })(undefined, { ref, builder: fontBuilder })
+
+  // Read family names before build(): the wasm builder is spent afterwards.
+  const report = []
+  for (const { asset, bytes, error } of loaded) {
+    let families = []
+    if (bytes) {
+      try {
+        families = familiesFromInfo(await fontBuilder.getFontInfo(bytes))
+      } catch (infoError) {
+        console.error("typst font info failed:", infoError)
+      }
+    }
+    report.push({ reference_path: asset.reference_path, families, error })
+  }
+
+  const compiler = await $typst.getCompiler()
+  await fontBuilder.build(async (resolver) => compiler.setFonts(resolver))
+  registeredFontSet = fontSet
+  return report
+}
+
+// Register fonts without ever failing the compile: a broken font file or an
+// unreachable URL is reported, and the document still renders with the
+// fonts the compiler already has.
+async function registerFonts(project) {
+  try {
+    const report = await syncProjectFonts(project)
+    if (report) self.postMessage({ type: "fonts", data: { fonts: report } })
+  } catch (error) {
+    console.error("typst font registration failed:", error)
+    self.postMessage({
+      type: "fonts",
+      data: { fonts: projectFonts(project).map((a) => ({ reference_path: a.reference_path, families: [], error: formatError(error) })) }
+    })
+  }
+}
+
 // Map a project-relative path ("chapters/ch1.typ") to the compiler's rooted VFS
 // path. Collapsing leading slashes keeps "/x.typ" and "x.typ" in agreement, and
 // the fallback is the conventional entrypoint when no path is supplied.
@@ -110,13 +240,32 @@ async function loadSources(content, project) {
   return main
 }
 
-self.onmessage = async function (event) {
+// Jobs run strictly one after another. typst.ts wraps a single wasm compiler
+// and wasm-bindgen refuses re-entrant access ("recursive use of an object
+// detected which would lead to unsafe aliasing"): a compile that is still
+// awaiting a font fetch or `setFonts` must not be interleaved with the next
+// keystroke's compile. Stale compiles still bail out early via latestCompileId.
+let jobQueue = Promise.resolve()
+
+self.onmessage = function (event) {
+  if (event.data && event.data.type === "compile") latestCompileId++
+  const myId = latestCompileId
+  jobQueue = jobQueue.then(() => handleMessage(event, myId)).catch((error) => {
+    console.error("typst worker job failed:", error)
+  })
+}
+
+async function handleMessage(event, myId) {
   const { type, content, project, requestId } = event.data
 
   if (type === "compile") {
-    const myId = ++latestCompileId
+    // Superseded while queued: a newer keystroke is already waiting.
+    if (myId !== latestCompileId) return
     try {
       await ensureInitialized()
+      if (myId !== latestCompileId) return
+
+      await registerFonts(project)
       if (myId !== latestCompileId) return
 
       const main = await loadSources(content, project)
@@ -154,6 +303,7 @@ self.onmessage = async function (event) {
     // not be cancelled by a concurrent live-preview compile.
     try {
       await ensureInitialized()
+      await registerFonts(project)
       const main = await loadSources(content, project)
 
       const pdf = await $typst.pdf({ mainFilePath: main })

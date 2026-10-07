@@ -214,6 +214,10 @@
 .ts-tree__item.is-active { background: var(--pri-50); color: var(--pri-h); }
 .ts-tree__item.is-disabled { opacity: .5; cursor: not-allowed; }
 .ts-tree__item.is-disabled:hover { background: none; }
+/* Assets are real project members, just not openable in the editor: keep
+   them readable instead of dimmed like an unsupported file. */
+.ts-tree__item.is-asset { cursor: default; }
+.ts-tree__item.is-asset:hover { background: none; }
 .ts-tree__pill { margin-left: auto; font: 500 10px 'JetBrains Mono', ui-monospace, monospace; color: var(--fg4); }
 .ts-tree__dir { color: var(--fg); font-weight: 500; user-select: none; }
 .ts-tree__dir > span:nth-child(-n+2) { color: var(--fg3); }
@@ -266,6 +270,8 @@
 .ts-filechip--cls { background: color-mix(in oklab, var(--mk-info) 16%, transparent); color: var(--mk-info-h); }
 .ts-filechip--md { background: color-mix(in oklab, var(--fg) 8%, transparent); color: var(--fg3); }
 .ts-filechip--csv { background: color-mix(in oklab, var(--mk-info) 16%, transparent); color: var(--mk-info-h); }
+.ts-filechip--font { background: color-mix(in oklab, var(--mk-success) 16%, transparent); color: var(--mk-success-h); font-style: italic; }
+.ts-tree__pill--font { color: var(--mk-success-h); max-width: 11rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ts-filechip--img { background: color-mix(in oklab, var(--mk-success) 16%, transparent); color: var(--mk-success-h); }
 .ts-filechip--data { background: color-mix(in oklab, var(--mk-warning) 12%, transparent); color: var(--mk-warning-h); }
 .ts-filechip--file { background: var(--bd2); color: var(--fg3); }

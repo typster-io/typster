@@ -32,14 +32,55 @@ defmodule TypsterWeb.FileTree do
     |> by_mode(mode)
   end
 
-  @doc "Build render nodes for the assets list in the given mode."
-  def asset_nodes(assets, mode) do
+  @doc """
+  Build render nodes for the assets list in the given mode.
+
+  `font_families` maps a font's reference path (`assets/Foo.ttf`) to the
+  family names the preview compiler detected; a font row shows those instead
+  of its size so the writer knows what to put in `#set text(font: …)`.
+  """
+  def asset_nodes(assets, mode, font_families \\ %{}) do
     assets
     |> Enum.map(fn a ->
-      %{path: a.filename, id: a.id, asset?: true, editable: false, meta: human_size(a.size)}
+      kind = Typster.Assets.kind(a)
+
+      %{
+        path: a.filename,
+        id: a.id,
+        asset?: true,
+        editable: false,
+        kind: asset_chip_kind(kind),
+        meta: asset_meta(a, kind, font_families),
+        meta_title: asset_meta_title(a, kind, font_families)
+      }
     end)
     |> by_mode(mode)
   end
+
+  defp asset_chip_kind(:font), do: "font"
+  defp asset_chip_kind(:web_font), do: "font"
+  defp asset_chip_kind(:image), do: "img"
+  defp asset_chip_kind(_), do: "file"
+
+  defp asset_meta(a, :font, families) do
+    case Map.get(families, Typster.Assets.reference_path(a), []) do
+      [] -> human_size(a.size)
+      names -> Enum.join(names, ", ")
+    end
+  end
+
+  defp asset_meta(_a, :web_font, _families), do: gettext("editor.assets.font_unsupported")
+  defp asset_meta(a, _kind, _families), do: human_size(a.size)
+
+  defp asset_meta_title(a, :font, families) do
+    case Map.get(families, Typster.Assets.reference_path(a), []) do
+      [family | _] -> gettext("editor.assets.font_hint", family: family)
+      [] -> nil
+    end
+  end
+
+  defp asset_meta_title(_a, :web_font, _), do: gettext("editor.assets.font_unsupported_title")
+  defp asset_meta_title(_a, _kind, _), do: nil
 
   defp by_mode(items, :flat), do: Enum.map(items, &Map.merge(&1, %{type: :leaf, name: &1.path}))
   defp by_mode(items, :smart), do: items |> build_tree() |> smart_collapse()
@@ -122,6 +163,7 @@ defmodule TypsterWeb.FileTree do
   def chip_glyph("md"), do: "M"
   def chip_glyph("csv"), do: "≡"
   def chip_glyph("img"), do: "▢"
+  def chip_glyph("font"), do: "F"
   def chip_glyph("data"), do: "{}"
   def chip_glyph(_), do: "·"
 
@@ -178,16 +220,23 @@ defmodule TypsterWeb.FileTree do
           data-dnd-file={if can_drag, do: node.id}
           class={[
             "ts-tree__item",
-            (node.asset? or not node.editable) && "is-disabled",
+            node.asset? && "is-asset",
+            (not node.asset? and not node.editable) && "is-disabled",
             (not node.asset? and @current_id == node.id) && "is-active"
           ]}
           style={"padding-left: #{6 + @depth * 14 + 14}px"}
         >
-          <% kind = if node.asset?, do: "img", else: file_chip_kind(node.name) %>
+          <% kind = if node.asset?, do: Map.get(node, :kind, "img"), else: file_chip_kind(node.name) %>
           <span class={["ts-filechip", "ts-filechip--#{kind}"]}>{chip_glyph(kind)}</span>
           <span class="truncate flex-1">{node.name}</span>
           <span :if={Map.get(node, :smart)} class="ts-tree__smart">↳</span>
-          <span :if={Map.get(node, :meta, "") != ""} class="ts-tree__pill">{node.meta}</span>
+          <span
+            :if={Map.get(node, :meta, "") != ""}
+            class={["ts-tree__pill", kind == "font" && "ts-tree__pill--font"]}
+            title={Map.get(node, :meta_title)}
+          >
+            {node.meta}
+          </span>
           <span
             :if={Map.get(node, :pinned, false)}
             class="ts-tree__pin-ind"

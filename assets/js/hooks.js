@@ -112,6 +112,11 @@ export const CodeMirror = {
     // path) can be matched back to this editor.
     this.mainPath = options.project.mainPath || "main.typ"
     this.collab = options.collab
+    // The element is `phx-update="ignore"`, so `data-project-assets` is frozen
+    // at mount. The server pushes `assets_updated` on every upload/delete;
+    // keep the latest list here and apply it whenever options are rebuilt.
+    this.projectAssets = null
+    this.currentOptions = options
 
     if (!container) return
 
@@ -136,6 +141,18 @@ export const CodeMirror = {
       }
     })
 
+    this.handleEvent("assets_updated", ({ assets }) => {
+      this.projectAssets = Array.isArray(assets) ? assets : []
+      // The editor closes over this very object, so mutate it in place and
+      // recompile: a new font registers, a deleted one drops out.
+      if (this.currentOptions && this.currentOptions.project) {
+        this.currentOptions.project.assets = this.projectAssets
+      }
+      if (this.editorInstance && typeof this.editorInstance.compile === "function") {
+        this.editorInstance.compile()
+      }
+    })
+
     this.handleEvent("file_changed", ({ file_id, content, language, path }) => {
       const newFileId = file_id || null
       const newContent = parseContent(content || "")
@@ -144,7 +161,9 @@ export const CodeMirror = {
       // The editor element is `phx-update="ignore"`, so its `data-file-name` is
       // frozen at mount — take the switched-to file's path from the event instead.
       options.project.mainPath = path || options.project.mainPath
+      if (this.projectAssets) options.project.assets = this.projectAssets
       this.mainPath = options.project.mainPath || "main.typ"
+      this.currentOptions = options
 
       this.el.style.display = newFileId ? "" : "none"
 

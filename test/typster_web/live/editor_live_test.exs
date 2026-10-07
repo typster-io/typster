@@ -519,4 +519,171 @@ defmodule TypsterWeb.EditorLiveTest do
       assert Typster.Sharing.list_collaborators(owner_scope, project.id) == before
     end
   end
+
+  describe "fonts in the assets panel" do
+    test "a font row shows the family names the preview reported", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      font = asset_fixture(project, user, %{filename: "Brand.ttf", content_type: "font/ttf"})
+      view = open_editor(conn, project)
+
+      # Before the worker reports anything the row falls back to the size.
+      assert has_element?(view, "[id$='asset-entry-#{font.id}'] .ts-filechip--font")
+      assert has_element?(view, "[id$='asset-entry-#{font.id}'] .ts-tree__pill", "128 B")
+
+      render_hook(view, "fonts_registered", %{
+        "fonts" => [
+          %{
+            "reference_path" => "assets/Brand.ttf",
+            "families" => ["Brand Sans", "Brand Sans Display"]
+          }
+        ]
+      })
+
+      assert has_element?(
+               view,
+               "[id$='asset-entry-#{font.id}'] .ts-tree__pill--font",
+               "Brand Sans, Brand Sans Display"
+             )
+
+      assert has_element?(
+               view,
+               "[id$='asset-entry-#{font.id}'] .ts-tree__pill[title*='font: \"Brand Sans\"']"
+             )
+    end
+
+    test "a WOFF upload is flagged as unreadable by Typst", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      woff = asset_fixture(project, user, %{filename: "web.woff2", content_type: "font/woff2"})
+      view = open_editor(conn, project)
+
+      assert has_element?(view, "[id$='asset-entry-#{woff.id}'] .ts-tree__pill", "needs TTF/OTF")
+    end
+
+    test "dropping a font uploads it and pushes the new asset list to the editor", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+      bytes = File.read!("assets/e2e/fixtures/NotoSansLycian-Regular.ttf")
+
+      input =
+        file_input(view, "#dropped-upload-form", :dropped, [
+          %{name: "Brand.otf", content: bytes, type: "font/otf"}
+        ])
+
+      render_upload(input, "Brand.otf")
+
+      assert has_element?(view, "[id*='asset-entry'] .ts-filechip--font")
+      assert render(view) =~ "Brand.otf"
+
+      assert_push_event(view, "assets_updated", %{
+        assets: [%{kind: "font", reference_path: "assets/Brand.otf", url: url}]
+      })
+
+      assert url =~ ~r"^/projects/#{project.id}/assets/[0-9a-f-]+/raw$"
+    end
+
+    test "a font dropped on the template zone becomes an asset, not a template", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+      bytes = File.read!("assets/e2e/fixtures/NotoSansLycian-Regular.ttf")
+
+      input =
+        file_input(view, "#template-upload-form", :template, [
+          %{name: "Espruar.otf", content: bytes, type: "font/otf"}
+        ])
+
+      render_upload(input, "Espruar.otf")
+
+      assert has_element?(view, "[id*='asset-entry'] .ts-filechip--font")
+      assert render(view) =~ "Espruar.otf"
+      assert Typster.Templates.list_templates(Typster.Accounts.Scope.for_user(user)) == []
+      assert_push_event(view, "assets_updated", %{assets: [%{kind: "font"}]})
+    end
+
+    test "binary bytes under a text extension are rejected on the template zone", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+
+      input =
+        file_input(view, "#template-upload-form", :template, [
+          %{
+            name: "not-text.typ",
+            content: <<0, 1, 2, 255, 254>>,
+            type: "application/octet-stream"
+          }
+        ])
+
+      render_upload(input, "not-text.typ")
+
+      assert Typster.Templates.list_templates(Typster.Accounts.Scope.for_user(user)) == []
+      assert render(view) =~ "Unsupported file format."
+    end
+
+    test "the upload icon and template label point at their file inputs", %{
+      conn: conn,
+      project: project
+    } do
+      view = open_editor(conn, project)
+      doc = view |> render() |> LazyHTML.from_fragment()
+      input_ids = doc |> LazyHTML.query("input[type=file]") |> LazyHTML.attribute("id")
+      label_fors = doc |> LazyHTML.query("label[for]") |> LazyHTML.attribute("for")
+
+      assert label_fors != []
+      assert Enum.all?(label_fors, &(&1 in input_ids))
+    end
+
+    test "the Upload asset button path adds the font and pushes the asset list", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+      bytes = File.read!("assets/e2e/fixtures/NotoSansLycian-Regular.ttf")
+
+      input =
+        file_input(view, "#asset-upload-form", :asset, [
+          %{name: "Button.ttf", content: bytes, type: "font/ttf"}
+        ])
+
+      render_upload(input, "Button.ttf")
+      view |> form("#asset-upload-form") |> render_submit()
+
+      row = "[id*='asset-entry']"
+      assert has_element?(view, "#{row}.is-asset .ts-filechip--font")
+      refute has_element?(view, "#{row}.is-disabled")
+      assert render(view) =~ "Button.ttf"
+      assert_push_event(view, "assets_updated", %{assets: [%{kind: "font"}]})
+    end
+
+    test "malformed font reports are ignored", %{conn: conn, user: user, project: project} do
+      font = asset_fixture(project, user, %{filename: "Brand.ttf"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "fonts_registered", %{"fonts" => "nope"})
+
+      render_hook(view, "fonts_registered", %{
+        "fonts" => [%{"reference_path" => 1, "families" => [2]}]
+      })
+
+      assert has_element?(view, "[id$='asset-entry-#{font.id}'] .ts-tree__pill", "128 B")
+    end
+  end
 end

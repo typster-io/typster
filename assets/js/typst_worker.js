@@ -184,6 +184,10 @@ export function initTypstWorker(hook) {
               pushEvent("update_preview", { ms, pages: countPages(data.svg) })
             }
           }
+        } else if (type === "fonts") {
+          // Family names the compiler read from the project's font files —
+          // the Assets panel shows them next to each font.
+          if (pushEvent) pushEvent("fonts_registered", { fonts: Array.isArray(data.fonts) ? data.fonts : [] })
         } else if (type === "error") {
           if (previewContainer) {
             let errEl = previewContainer.querySelector("#preview-error")

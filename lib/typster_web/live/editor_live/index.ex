@@ -1,6 +1,8 @@
 defmodule TypsterWeb.EditorLive.Index do
   use TypsterWeb, :live_view
 
+  require Logger
+
   alias Typster.Assets
   alias Typster.Features
   alias Typster.Files
@@ -59,7 +61,8 @@ defmodule TypsterWeb.EditorLive.Index do
      |> assign(:content, if(main_file, do: main_file.content || "", else: ""))
      |> assign(:editor_language, editor_language(main_file))
      |> assign(:project_sources, project_sources(file_tree))
-     |> assign(:project_assets, project_assets(assets))
+     |> assign(:project_assets, Assets.preview_manifest(assets, &font_url(project.id, &1)))
+     |> assign(:font_families, %{})
      |> assign(:save_status, "saved")
      |> assign(:preview_stats, nil)
      |> assign(:preview_error, nil)
@@ -708,6 +711,24 @@ defmodule TypsterWeb.EditorLive.Index do
     end
   end
 
+  # The preview worker reports the family names it read from the project's
+  # font files; the Assets panel shows them so the writer knows what to put
+  # in `#set text(font: …)`. Client data: keep only well-formed string pairs.
+  @impl true
+  def handle_event("fonts_registered", %{"fonts" => fonts}, socket) when is_list(fonts) do
+    families =
+      for %{"reference_path" => path, "families" => names} <- fonts,
+          is_binary(path),
+          is_list(names),
+          into: %{} do
+        {path, Enum.filter(names, &(is_binary(&1) and &1 != ""))}
+      end
+
+    {:noreply, assign(socket, :font_families, families)}
+  end
+
+  def handle_event("fonts_registered", _params, socket), do: {:noreply, socket}
+
   @impl true
   def handle_event("delete_asset", %{"id" => asset_id}, socket) do
     scope = socket.assigns.current_scope
@@ -717,8 +738,7 @@ defmodule TypsterWeb.EditorLive.Index do
 
     {:noreply,
      socket
-     |> assign(:assets, assets)
-     |> assign(:project_assets, project_assets(assets))
+     |> assign_assets(assets)
      |> put_flash(:info, gettext("editor.flash.asset_deleted"))}
   end
 
@@ -747,8 +767,7 @@ defmodule TypsterWeb.EditorLive.Index do
 
         {:noreply,
          socket
-         |> assign(:assets, assets)
-         |> assign(:project_assets, project_assets(assets))
+         |> assign_assets(assets)
          |> put_flash(:info, gettext("editor.flash.asset_uploaded"))}
 
       {:error, _reason} ->
@@ -864,27 +883,44 @@ defmodule TypsterWeb.EditorLive.Index do
   defp save_status_label("error"), do: gettext("editor.status.error")
   defp save_status_label(status), do: status
 
-  # Auto-save a dropped/selected template file once its bytes finish uploading.
+  # ── Uploads that may carry anything ─────────────────────────────────────
+  #
+  # Both drop zones (editor/assets and templates) take whatever lands on them:
+  # asset types (fonts, images, PDFs) go to object storage, text sources go
+  # where the zone says (a project file or a saved template) but only when
+  # they are valid UTF-8 (a binary in a text column crashed the view), and
+  # anything else is rejected with a flash.
+
   defp handle_template_progress(:template, entry, socket) do
     if entry.done? do
       scope = socket.assigns.current_scope
+      project_id = socket.assigns.project.id
 
-      consume_uploaded_entries(socket, :template, fn %{path: path}, e ->
-        {:ok,
-         Templates.create_template(scope, %{name: e.client_name, content: read_upload!(path)})}
-      end)
+      results =
+        consume_uploaded_entries(socket, :template, fn %{path: path}, e ->
+          {:ok,
+           ingest_upload(scope, project_id, path, e, fn name, content ->
+             {:ok, _} = Templates.create_template(scope, %{name: name, content: content})
+             :template
+           end)}
+        end)
 
       {:noreply,
        socket
        |> assign(:templates, Templates.list_templates(scope))
-       |> put_flash(:info, gettext("editor.flash.template_saved"))}
+       |> refresh_assets_if(:asset in results)
+       |> flash_for_uploads(results, template_zone_success(results))}
     else
       {:noreply, socket}
     end
   end
 
-  # Route a file dropped onto the editor/assets: asset types upload as assets,
-  # editable types become new files, anything else is rejected.
+  defp template_zone_success(results) do
+    if :template in results,
+      do: gettext("editor.flash.template_saved"),
+      else: gettext("editor.flash.asset_uploaded")
+  end
+
   defp handle_dropped_progress(:dropped, entry, socket) do
     if entry.done?, do: {:noreply, consume_dropped(socket)}, else: {:noreply, socket}
   end
@@ -895,41 +931,84 @@ defmodule TypsterWeb.EditorLive.Index do
 
     results =
       consume_uploaded_entries(socket, :dropped, fn %{path: tmp}, entry ->
-        name = entry.client_name
-
-        cond do
-          Files.asset_file?(name) ->
-            Assets.upload_entry(scope, project_id, %{
-              path: tmp,
-              client_name: name,
-              client_type: entry.client_type
-            })
-
-            {:ok, :asset}
-
-          Files.editable_file?(name) ->
-            Files.create_file(scope, project_id, %{path: name, content: read_upload!(tmp)})
-            {:ok, :file}
-
-          true ->
-            {:ok, {:unsupported, name}}
-        end
+        {:ok,
+         ingest_upload(scope, project_id, tmp, entry, fn name, content ->
+           Files.create_file(scope, project_id, %{path: name, content: content})
+           :file
+         end)}
       end)
 
     file_tree = Files.get_file_tree(scope, project_id)
-    assets = Assets.list_assets(scope, project_id)
-    unsupported = Enum.any?(results, &match?({:unsupported, _}, &1))
 
     socket
     |> assign(:file_tree, file_tree)
     |> assign(:project_sources, project_sources(file_tree))
+    |> assign_assets(Assets.list_assets(scope, project_id))
+    |> flash_for_uploads(results, gettext("editor.flash.dropped_added"))
+  end
+
+  # One uploaded entry → :asset | :file | :template | {:failed, name} | {:unsupported, name}
+  defp ingest_upload(scope, project_id, tmp, entry, text_fun) do
+    name = entry.client_name
+
+    cond do
+      Files.asset_file?(name) -> ingest_asset(scope, project_id, tmp, entry)
+      Files.editable_file?(name) -> ingest_text(tmp, name, text_fun)
+      true -> {:unsupported, name}
+    end
+  end
+
+  defp ingest_asset(scope, project_id, tmp, entry) do
+    attrs = %{path: tmp, client_name: entry.client_name, client_type: entry.client_type}
+
+    case Assets.upload_entry(scope, project_id, attrs) do
+      {:ok, _asset} ->
+        :asset
+
+      {:error, reason} ->
+        Logger.warning("asset upload failed: #{entry.client_name}: #{inspect(reason)}")
+        {:failed, entry.client_name}
+    end
+  end
+
+  defp ingest_text(tmp, name, text_fun) do
+    content = read_upload!(tmp)
+    if String.valid?(content), do: text_fun.(name, content), else: {:unsupported, name}
+  end
+
+  defp refresh_assets_if(socket, false), do: socket
+
+  defp refresh_assets_if(socket, true) do
+    scope = socket.assigns.current_scope
+    assign_assets(socket, Assets.list_assets(scope, socket.assigns.project.id))
+  end
+
+  # Fonts are fetched by the browser-side compiler through our own origin.
+  defp font_url(project_id, asset), do: ~p"/projects/#{project_id}/assets/#{asset.id}/raw"
+
+  # The editor element is `phx-update="ignore"`, so a changed asset list never
+  # reaches the hook through the DOM: push it, and the hook recompiles so a
+  # just-uploaded font applies to the preview without a reload.
+  defp assign_assets(socket, assets) do
+    manifest = Assets.preview_manifest(assets, &font_url(socket.assigns.project.id, &1))
+
+    socket
     |> assign(:assets, assets)
-    |> assign(:project_assets, project_assets(assets))
-    |> then(fn s ->
-      if unsupported,
-        do: put_flash(s, :error, gettext("editor.flash.unsupported_file")),
-        else: put_flash(s, :info, gettext("editor.flash.dropped_added"))
-    end)
+    |> assign(:project_assets, manifest)
+    |> push_event("assets_updated", %{assets: manifest})
+  end
+
+  defp flash_for_uploads(socket, results, success) do
+    cond do
+      Enum.any?(results, &match?({:failed, _}, &1)) ->
+        put_flash(socket, :error, gettext("editor.flash.asset_upload_failed"))
+
+      Enum.any?(results, &match?({:unsupported, _}, &1)) ->
+        put_flash(socket, :error, gettext("editor.flash.unsupported_file"))
+
+      true ->
+        put_flash(socket, :info, success)
+    end
   end
 
   # Read an upload's temp file, confined to the system temp dir where LiveView
@@ -1439,17 +1518,6 @@ defmodule TypsterWeb.EditorLive.Index do
     |> Enum.filter(&Files.editable_file?/1)
     |> Enum.map(fn file ->
       %{path: file.path, content: file.content || "", language: Files.editor_language(file.path)}
-    end)
-  end
-
-  defp project_assets(assets) do
-    Enum.map(assets, fn asset ->
-      %{
-        filename: asset.filename,
-        reference_path: Assets.reference_path(asset),
-        content_type: asset.content_type,
-        size: asset.size
-      }
     end)
   end
 end

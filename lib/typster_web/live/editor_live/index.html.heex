@@ -416,7 +416,7 @@
             <span>{gettext("editor.assets")}</span>
             <div class="ts-side__actions">
               <label
-                for="asset-file-input"
+                for={@uploads.asset.ref}
                 class="ts-btn ts-btn--ghost ts-btn--icon ts-btn--sm"
                 aria-label={gettext("editor.upload_asset")}
                 style="cursor: pointer;"
@@ -428,7 +428,7 @@
 
           <ul class="ts-tree" phx-drop-target={@uploads.dropped.ref}>
             <TypsterWeb.FileTree.tree_rows
-              nodes={TypsterWeb.FileTree.asset_nodes(@assets, @file_view_mode)}
+              nodes={TypsterWeb.FileTree.asset_nodes(@assets, @file_view_mode, @font_families)}
               collapsed={@collapsed_dirs}
             />
           </ul>
@@ -440,7 +440,7 @@
               phx-change="validate_upload"
               phx-submit="save_upload"
             >
-              <.live_file_input upload={@uploads.asset} id="asset-file-input" class="hidden" />
+              <.live_file_input upload={@uploads.asset} class="hidden" />
               <button
                 id="upload-asset-button"
                 type="submit"
@@ -488,13 +488,9 @@
             </div>
 
             <.form id="template-upload-form" for={%{}} phx-change="validate_template">
-              <.live_file_input
-                upload={@uploads.template}
-                id="template-file-input"
-                class="hidden"
-              />
+              <.live_file_input upload={@uploads.template} class="hidden" />
               <label
-                for="template-file-input"
+                for={@uploads.template.ref}
                 class="ts-tpl__drop"
                 phx-drop-target={@uploads.template.ref}
               >
