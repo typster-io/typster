@@ -140,6 +140,26 @@ function countPages(svg) {
   return matches ? matches.length : 1
 }
 
+// Word and character counts of the *compiled* document. typst.ts renders a
+// hidden text-selection layer (`.tsel` nodes inside each page's
+// foreignObject) that carries the laid-out text as real characters, so the
+// numbers reflect what the reader sees — code, comments and markup are
+// already gone. Only top-level `.tsel` nodes are read, so nested spans are
+// not counted twice. Words are runs of letters/digits, with inner
+// apostrophes and hyphens kept ("don't", "state-of-the-art" are one word).
+const WORD_RE = /[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*/gu
+
+function countText(container) {
+  const lines = []
+  for (const node of container.querySelectorAll(".tsel")) {
+    if (node.parentElement && node.parentElement.closest(".tsel")) continue
+    lines.push(node.textContent || "")
+  }
+  const text = lines.join("\n")
+  const words = text.match(WORD_RE)
+  return { words: words ? words.length : 0, chars: text.replace(/\s/g, "").length }
+}
+
 export function initTypstWorker(hook) {
   if (typeof Worker !== "undefined") {
     if (hook && typeof hook.pushEvent === "function") {
@@ -181,7 +201,8 @@ export function initTypstWorker(hook) {
 
             if (pushEvent) {
               const ms = compileStartedAt ? Math.round(performance.now() - compileStartedAt) : null
-              pushEvent("update_preview", { ms, pages: countPages(data.svg) })
+              const { words, chars } = countText(svgContainer)
+              pushEvent("update_preview", { ms, pages: countPages(data.svg), words, chars })
             }
           }
         } else if (type === "fonts") {

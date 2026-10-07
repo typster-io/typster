@@ -855,6 +855,26 @@
           <span class="ts-statusbar__item">UTF-8</span>
           <span class="ts-statusbar__sep"></span>
           <span class="ts-statusbar__item">LF</span>
+          <%!-- Word count of the compiled document (what the reader sees),
+                reported by the preview after each successful render. --%>
+          <span :if={@preview_stats && @preview_stats[:words]} class="ts-statusbar__sep"></span>
+          <span
+            :if={@preview_stats && @preview_stats[:words]}
+            id="status-words"
+            class="ts-statusbar__item"
+            title={
+              if(@preview_stats[:chars],
+                do:
+                  ngettext(
+                    "%{count} character, not counting spaces",
+                    "%{count} characters, not counting spaces",
+                    @preview_stats.chars
+                  )
+              )
+            }
+          >
+            {ngettext("%{count} word", "%{count} words", @preview_stats.words)}
+          </span>
           <span :if={@compile_history != []} class="ts-statusbar__sep"></span>
           <span
             :if={@compile_history != []}
