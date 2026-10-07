@@ -8,6 +8,12 @@ defmodule Typster.Projects.Project do
 
   @type t :: %__MODULE__{}
 
+  # `name` is a varchar(255) column; Postgres counts code points.
+  @name_max 255
+
+  @doc "The longest project name the database accepts, in code points."
+  def name_max, do: @name_max
+
   schema "projects" do
     field :name, :string
     belongs_to :user, Typster.Accounts.User
@@ -21,6 +27,7 @@ defmodule Typster.Projects.Project do
     project
     |> cast(attrs, [:name])
     |> validate_required([:name])
+    |> validate_length(:name, max: @name_max, count: :codepoints)
     |> validate_required([:user_id])
     |> assoc_constraint(:user)
   end

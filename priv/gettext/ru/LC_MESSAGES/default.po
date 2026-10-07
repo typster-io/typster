@@ -2935,7 +2935,8 @@ msgstr "Редактировать можно всем"
 msgid "share.adv.open_edit_sub"
 msgstr "Гости со ссылкой автоматически становятся редакторами. Максимум доверия — включайте осознанно."
 
-#: lib/typster_web/live/shared_project_live.ex:593
+#: lib/typster_web/live/shared_project_live.ex:596
+#: lib/typster_web/live/shared_project_live.ex:602
 #, elixir-autogen, elixir-format
 msgid "share.join.copy_of"
 msgstr "%{name} (копия)"
@@ -3041,12 +3042,12 @@ msgstr "Копируем…"
 msgid "share.fork.lock_hint"
 msgstr "Только просмотр — скопируйте проект, чтобы править"
 
-#: lib/typster_web/live/shared_project_live.ex:701
+#: lib/typster_web/live/shared_project_live.ex:716
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta"
 msgstr "%{what} — копирование займёт пару секунд"
 
-#: lib/typster_web/live/shared_project_live.ex:695
+#: lib/typster_web/live/shared_project_live.ex:710
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta_assets.one"
 msgid_plural "share.fork.meta_assets.other"
@@ -3054,7 +3055,7 @@ msgstr[0] "%{count} ассет"
 msgstr[1] "%{count} ассета"
 msgstr[2] "%{count} ассетов"
 
-#: lib/typster_web/live/shared_project_live.ex:694
+#: lib/typster_web/live/shared_project_live.ex:709
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta_files.one"
 msgid_plural "share.fork.meta_files.other"
@@ -3067,22 +3068,22 @@ msgstr[2] "%{count} файлов"
 msgid "share.fork.retry"
 msgstr "Ещё раз"
 
-#: lib/typster_web/live/shared_project_live.ex:673
+#: lib/typster_web/live/shared_project_live.ex:688
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_assets"
 msgstr "Ассеты · %{done} из %{total}"
 
-#: lib/typster_web/live/shared_project_live.ex:670
+#: lib/typster_web/live/shared_project_live.ex:685
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_assets_empty"
 msgstr "Ассеты"
 
-#: lib/typster_web/live/shared_project_live.ex:666
+#: lib/typster_web/live/shared_project_live.ex:681
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_files"
 msgstr "Файлы"
 
-#: lib/typster_web/live/shared_project_live.ex:667
+#: lib/typster_web/live/shared_project_live.ex:682
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_open"
 msgstr "Открываем"

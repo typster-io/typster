@@ -2927,7 +2927,8 @@ msgstr "Anyone can edit"
 msgid "share.adv.open_edit_sub"
 msgstr "Visitors with the link join as editors automatically. Big trust energy — enable with intent."
 
-#: lib/typster_web/live/shared_project_live.ex:593
+#: lib/typster_web/live/shared_project_live.ex:596
+#: lib/typster_web/live/shared_project_live.ex:602
 #, elixir-autogen, elixir-format
 msgid "share.join.copy_of"
 msgstr "%{name} (copy)"
@@ -3033,19 +3034,19 @@ msgstr "Copying…"
 msgid "share.fork.lock_hint"
 msgstr "View only — copy the project to edit"
 
-#: lib/typster_web/live/shared_project_live.ex:701
+#: lib/typster_web/live/shared_project_live.ex:716
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta"
 msgstr "%{what} — copying takes a few seconds"
 
-#: lib/typster_web/live/shared_project_live.ex:695
+#: lib/typster_web/live/shared_project_live.ex:710
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta_assets.one"
 msgid_plural "share.fork.meta_assets.other"
 msgstr[0] "%{count} asset"
 msgstr[1] "%{count} assets"
 
-#: lib/typster_web/live/shared_project_live.ex:694
+#: lib/typster_web/live/shared_project_live.ex:709
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta_files.one"
 msgid_plural "share.fork.meta_files.other"
@@ -3057,22 +3058,22 @@ msgstr[1] "%{count} files"
 msgid "share.fork.retry"
 msgstr "Try again"
 
-#: lib/typster_web/live/shared_project_live.ex:673
+#: lib/typster_web/live/shared_project_live.ex:688
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_assets"
 msgstr "Assets · %{done} of %{total}"
 
-#: lib/typster_web/live/shared_project_live.ex:670
+#: lib/typster_web/live/shared_project_live.ex:685
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_assets_empty"
 msgstr "Assets"
 
-#: lib/typster_web/live/shared_project_live.ex:666
+#: lib/typster_web/live/shared_project_live.ex:681
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_files"
 msgstr "Files"
 
-#: lib/typster_web/live/shared_project_live.ex:667
+#: lib/typster_web/live/shared_project_live.ex:682
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_open"
 msgstr "Open"

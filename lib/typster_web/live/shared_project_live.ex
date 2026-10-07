@@ -590,12 +590,27 @@ defmodule TypsterWeb.SharedProjectLive do
   defp entry_language(nil), do: "typst"
   defp entry_language(%{path: path}), do: Files.editor_language(path)
 
-  defp copy_name(name), do: gettext("share.join.copy_of", name: name)
+  # "{Project} (copy)", shortened with "…" when the source name is so long
+  # that the suffix would push it past the column limit.
+  defp copy_name(name) do
+    full = gettext("share.join.copy_of", name: name)
+    overflow = codepoint_count(full) - Typster.Projects.Project.name_max()
 
-  defp valid_fork_name?(name) do
-    changeset = Typster.Projects.change_project(%Typster.Projects.Project{}, %{name: name})
-    not Keyword.has_key?(changeset.errors, :name)
+    if overflow > 0 do
+      keep = codepoint_count(name) - overflow - 1
+      short = name |> String.codepoints() |> Enum.take(keep) |> Enum.join()
+      gettext("share.join.copy_of", name: short <> "…")
+    else
+      full
+    end
   end
+
+  defp codepoint_count(string), do: string |> String.codepoints() |> length()
+
+  # Only the instant check (blank) runs here, so an empty name never starts a
+  # task; every other rule (e.g. length) comes back from the copy's changeset
+  # as the same inline error.
+  defp valid_fork_name?(name), do: String.trim(name) != ""
 
   # Runs the copy in a task so the modal can show live stages and Cancel can
   # kill it. The task reports progress back to this LiveView, tagged with a

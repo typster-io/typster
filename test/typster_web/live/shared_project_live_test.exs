@@ -279,6 +279,54 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       assert has_element?(view, "#shared-fork-form")
     end
 
+    test "a name the copy's changeset rejects comes back as the inline error", %{
+      conn: conn,
+      scope: scope,
+      link: link
+    } do
+      {:ok, link} = Sharing.update_link(scope, link, %{allow_fork: true})
+      visitor = Typster.AccountsFixtures.user_fixture()
+      conn = log_in_user(conn, visitor)
+
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
+      view |> element("#shared-fork-open") |> render_click()
+
+      too_long = String.duplicate("x", 256)
+      view |> form("#shared-fork-form", fork: %{name: too_long}) |> render_submit()
+      render_async(view)
+
+      # Not the "couldn't copy, try again" slab: retrying would never help.
+      assert has_element?(view, "#shared-fork-error")
+      refute has_element?(view, "#shared-fork-failed")
+      assert Typster.Projects.list_projects(Scope.for_user(visitor)) == []
+    end
+
+    test "a near-limit project name still prefills a copy name that fits", %{
+      conn: conn,
+      scope: scope,
+      project: project,
+      link: link
+    } do
+      {:ok, _} =
+        Typster.Projects.update_project(scope, project, %{name: String.duplicate("n", 250)})
+
+      {:ok, link} = Sharing.update_link(scope, link, %{allow_fork: true})
+      conn = log_in_user(conn, Typster.AccountsFixtures.user_fixture())
+
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
+      view |> element("#shared-fork-open") |> render_click()
+
+      [value] =
+        view
+        |> render()
+        |> LazyHTML.from_fragment()
+        |> LazyHTML.query(~s|#shared-fork-form input[name="fork[name]"]|)
+        |> LazyHTML.attribute("value")
+
+      assert String.length(value) == 255
+      assert value =~ ~r/…\s*\(copy\)$/u
+    end
+
     test "the inline name error clears on the first keystroke", %{
       conn: conn,
       scope: scope,
