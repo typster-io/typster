@@ -451,9 +451,28 @@ defmodule TypsterWeb.SharedProjectLive do
     """
   end
 
+  # `?fork=1` has done its job once mount reopened the modal: once connected,
+  # patch it out of the address bar (keeping the key), so a refresh or a
+  # copied URL doesn't pop the modal open again.
+  @impl true
+  def handle_params(%{"fork" => _}, uri, %{assigns: %{embed?: false}} = socket) do
+    if connected?(socket), do: send(self(), {:drop_fork_param, uri})
+    {:noreply, socket}
+  end
+
+  def handle_params(_params, _uri, socket), do: {:noreply, socket}
+
+  # Every open starts from the prefilled "{Project} (copy)" name, whatever
+  # was typed before Cancel.
   @impl true
   def handle_event("open_fork", _params, %{assigns: %{can_fork?: true}} = socket) do
-    {:noreply, assign(socket, fork_open?: true, fork_error: nil, fork_failed?: false)}
+    {:noreply,
+     assign(socket,
+       fork_open?: true,
+       fork_error: nil,
+       fork_failed?: false,
+       fork_form: to_form(%{"name" => copy_name(socket.assigns.project.name)}, as: :fork)
+     )}
   end
 
   # Cancel, ⎋ and backdrop click all land here. While copying, the task is
@@ -524,6 +543,12 @@ defmodule TypsterWeb.SharedProjectLive do
   end
 
   def handle_info({:fork_progress, _ref, _event}, socket), do: {:noreply, socket}
+
+  def handle_info({:drop_fork_param, uri}, socket) do
+    %URI{path: path, query: query} = URI.parse(uri)
+    query = query |> URI.decode_query() |> Map.delete("fork") |> URI.encode_query()
+    {:noreply, push_patch(socket, to: path <> "?" <> query, replace: true)}
+  end
 
   # Each run is its own async task (`{:fork, ref}`), so a result from a run
   # the visitor cancelled is still delivered here — and told apart from the

@@ -394,6 +394,27 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       assert has_element?(view, "#shared-fork-form")
       assert has_element?(view, ~s|#shared-fork-form input[name="fork[name]"][value$="(copy)"]|)
       assert Typster.Projects.list_projects(Scope.for_user(visitor)) == []
+
+      # fork=1 leaves the address bar, so a refresh won't reopen the modal.
+      assert_patch(view, "/p/shared?#{URI.encode_query(%{"key" => link.token})}")
+      assert has_element?(view, "#shared-fork-form")
+    end
+
+    test "reopening the modal restores the prefilled name", %{
+      conn: conn,
+      scope: scope,
+      link: link
+    } do
+      {:ok, link} = Sharing.update_link(scope, link, %{allow_fork: true})
+      conn = log_in_user(conn, Typster.AccountsFixtures.user_fixture())
+
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
+      view |> element("#shared-fork-open") |> render_click()
+      view |> form("#shared-fork-form", fork: %{name: ""}) |> render_change()
+      view |> element("#shared-fork-form button.cancel") |> render_click()
+
+      view |> element("#shared-fork-open") |> render_click()
+      assert has_element?(view, ~s|#shared-fork-form input[name="fork[name]"][value$="(copy)"]|)
     end
 
     test "?fork=1 is ignored for anonymous visitors and when copying is off", %{

@@ -2591,17 +2591,17 @@ msgstr ""
 msgid "share.role.viewer"
 msgstr ""
 
-#: lib/typster_web/live/shared_project_live.ex:576
+#: lib/typster_web/live/shared_project_live.ex:601
 #, elixir-autogen, elixir-format
 msgid "share.scope.full"
 msgstr ""
 
-#: lib/typster_web/live/shared_project_live.ex:575
+#: lib/typster_web/live/shared_project_live.ex:600
 #, elixir-autogen, elixir-format
 msgid "share.scope.output"
 msgstr ""
 
-#: lib/typster_web/live/shared_project_live.ex:577
+#: lib/typster_web/live/shared_project_live.ex:602
 #, elixir-autogen, elixir-format
 msgid "share.scope.read"
 msgstr ""
@@ -2916,8 +2916,8 @@ msgstr ""
 msgid "share.adv.open_edit_sub"
 msgstr ""
 
-#: lib/typster_web/live/shared_project_live.ex:596
-#: lib/typster_web/live/shared_project_live.ex:602
+#: lib/typster_web/live/shared_project_live.ex:621
+#: lib/typster_web/live/shared_project_live.ex:627
 #, elixir-autogen, elixir-format
 msgid "share.join.copy_of"
 msgstr ""
@@ -2952,8 +2952,8 @@ msgstr ""
 msgid "share.join.fork_failed"
 msgstr ""
 
-#: lib/typster_web/live/shared_project_live.ex:488
-#: lib/typster_web/live/shared_project_live.ex:556
+#: lib/typster_web/live/shared_project_live.ex:507
+#: lib/typster_web/live/shared_project_live.ex:581
 #, elixir-autogen, elixir-format
 msgid "share.join.fork_invalid_name"
 msgstr ""
@@ -2973,12 +2973,12 @@ msgstr ""
 msgid "share.join.fork_title"
 msgstr ""
 
-#: lib/typster_web/live/shared_project_live.ex:549
+#: lib/typster_web/live/shared_project_live.ex:574
 #, elixir-autogen, elixir-format
 msgid "share.join.forked"
 msgstr ""
 
-#: lib/typster_web/live/shared_project_live.ex:504
+#: lib/typster_web/live/shared_project_live.ex:523
 #, elixir-autogen, elixir-format
 msgid "share.join.join_failed"
 msgstr ""
@@ -3023,19 +3023,19 @@ msgstr ""
 msgid "share.fork.lock_hint"
 msgstr ""
 
-#: lib/typster_web/live/shared_project_live.ex:716
+#: lib/typster_web/live/shared_project_live.ex:741
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta"
 msgstr ""
 
-#: lib/typster_web/live/shared_project_live.ex:710
+#: lib/typster_web/live/shared_project_live.ex:735
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta_assets.one"
 msgid_plural "share.fork.meta_assets.other"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/typster_web/live/shared_project_live.ex:709
+#: lib/typster_web/live/shared_project_live.ex:734
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta_files.one"
 msgid_plural "share.fork.meta_files.other"
@@ -3047,22 +3047,22 @@ msgstr[1] ""
 msgid "share.fork.retry"
 msgstr ""
 
-#: lib/typster_web/live/shared_project_live.ex:688
+#: lib/typster_web/live/shared_project_live.ex:713
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_assets"
 msgstr ""
 
-#: lib/typster_web/live/shared_project_live.ex:685
+#: lib/typster_web/live/shared_project_live.ex:710
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_assets_empty"
 msgstr ""
 
-#: lib/typster_web/live/shared_project_live.ex:681
+#: lib/typster_web/live/shared_project_live.ex:706
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_files"
 msgstr ""
 
-#: lib/typster_web/live/shared_project_live.ex:682
+#: lib/typster_web/live/shared_project_live.ex:707
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_open"
 msgstr ""
@@ -3077,7 +3077,7 @@ msgstr ""
 msgid "share.public.pane_source"
 msgstr ""
 
-#: lib/typster_web/live/shared_project_live.ex:539
+#: lib/typster_web/live/shared_project_live.ex:564
 #, elixir-autogen, elixir-format
 msgid "share.fork.cancel_too_late"
 msgstr ""
