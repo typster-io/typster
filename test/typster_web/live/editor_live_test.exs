@@ -554,6 +554,35 @@ defmodule TypsterWeb.EditorLiveTest do
              )
     end
 
+    test "asset rows carry the snippet dragged into the editor", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      image = asset_fixture(project, user)
+      font = asset_fixture(project, user, %{filename: "Brand.ttf", content_type: "font/ttf"})
+      woff = asset_fixture(project, user, %{filename: "web.woff2", content_type: "font/woff2"})
+      view = open_editor(conn, project)
+
+      assert has_element?(
+               view,
+               ~s|#asset-tree[phx-hook="AssetDrag"] [id$="asset-entry-#{image.id}"][draggable="true"][data-asset-insert='#image("/assets/logo.png")']|
+             )
+
+      # A font has nothing to insert until the preview reports its family.
+      refute has_element?(view, "[id$='asset-entry-#{font.id}'][data-asset-insert]")
+      refute has_element?(view, "[id$='asset-entry-#{woff.id}'][data-asset-insert]")
+
+      render_hook(view, "fonts_registered", %{
+        "fonts" => [%{"reference_path" => "assets/Brand.ttf", "families" => ["Brand Sans"]}]
+      })
+
+      assert has_element?(
+               view,
+               ~s|[id$="asset-entry-#{font.id}"][draggable="true"][data-asset-insert='#set text(font: "Brand Sans")']|
+             )
+    end
+
     test "a WOFF upload is flagged as unreadable by Typst", %{
       conn: conn,
       user: user,
