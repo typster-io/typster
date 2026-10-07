@@ -281,9 +281,57 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
       view |> element("#shared-fork-open") |> render_click()
 
+      # Idle modal: nothing to advance.
       send(view.pid, {:fork_progress, make_ref(), {:assets, 1, 2}})
       refute has_element?(view, "#shared-fork-stages")
       assert has_element?(view, "#shared-fork-form .fk-meta")
+
+      # Busy with a newer run: a foreign ref must not move its stages.
+      Typster.Repo.transaction(fn ->
+        view |> form("#shared-fork-form", fork: %{name: "Current"}) |> render_submit()
+
+        send(view.pid, {:fork_progress, make_ref(), {:files}})
+        send(view.pid, {:fork_progress, make_ref(), {:assets, 1, 2}})
+        assert has_element?(view, "#shared-fork-stages .st--cur", "Files")
+        refute has_element?(view, "#shared-fork-stages .st--done")
+        assert has_element?(view, ~s|#shared-fork-progress[style="width: 25%"]|)
+
+        view |> element("#shared-fork-form button.cancel") |> render_click()
+      end)
+    end
+
+    test "a copy that crashes shows the fail slab", %{
+      conn: conn,
+      scope: scope,
+      project: project,
+      link: link
+    } do
+      # A file whose parent lives in another project can't be re-linked in
+      # the copy: copying it raises inside the task.
+      stranger = Typster.AccountsFixtures.user_fixture()
+      stray = file_fixture(project_fixture(stranger), stranger)
+
+      Typster.Repo.insert!(%Typster.Projects.File{
+        project_id: project.id,
+        path: "orphan.typ",
+        parent_id: stray.id
+      })
+
+      {:ok, link} = Sharing.update_link(scope, link, %{allow_fork: true})
+      visitor = Typster.AccountsFixtures.user_fixture()
+      conn = log_in_user(conn, visitor)
+
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
+      view |> element("#shared-fork-open") |> render_click()
+
+      ExUnit.CaptureLog.capture_log(fn ->
+        view |> form("#shared-fork-form", fork: %{name: "Crash"}) |> render_submit()
+        render_async(view)
+      end)
+
+      assert has_element?(view, "#shared-fork-failed")
+      refute has_element?(view, "#shared-fork-stages")
+      assert Typster.Projects.list_projects(Scope.for_user(visitor)) == []
     end
 
     test "an empty name shows the inline error and keeps the modal open", %{
