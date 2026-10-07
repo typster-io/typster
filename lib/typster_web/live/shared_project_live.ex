@@ -525,37 +525,46 @@ defmodule TypsterWeb.SharedProjectLive do
 
   def handle_info({:fork_progress, _ref, _event}, socket), do: {:noreply, socket}
 
+  # Each run is its own async task (`{:fork, ref}`), so a result from a run
+  # the visitor cancelled is still delivered here — and told apart from the
+  # current run by its ref.
   @impl true
-  def handle_async(:fork, {:ok, {:ok, project}}, socket) do
-    {:noreply,
-     socket
-     |> assign(:fork_busy, nil)
-     |> put_flash(:info, gettext("share.join.forked", name: project.name))
-     |> push_navigate(to: ~p"/projects/#{project.id}/edit")}
+  def handle_async({:fork, ref}, result, %{assigns: %{fork_busy: %{ref: ref}}} = socket) do
+    {:noreply, finish_fork(socket, result)}
   end
 
-  def handle_async(:fork, {:ok, {:error, %Ecto.Changeset{}}}, socket) do
-    {:noreply,
-     assign(socket,
-       fork_busy: nil,
-       fork_error: gettext("share.join.fork_invalid_name"),
-       fork_failed?: false
-     )}
+  # Cancel came after the copy had committed: don't jump into a copy the
+  # visitor walked away from, but say it exists.
+  def handle_async({:fork, _ref}, {:ok, {:ok, project}}, socket) do
+    {:noreply, assign(socket, :notice, gettext("share.fork.cancel_too_late", name: project.name))}
   end
 
-  # Cancelled by the visitor: nothing to show.
-  def handle_async(:fork, {:exit, _reason}, %{assigns: %{fork_busy: nil}} = socket) do
-    {:noreply, socket}
+  # A cancelled run's failure or exit: nothing was created, nothing to show.
+  def handle_async({:fork, _ref}, _result, socket), do: {:noreply, socket}
+
+  # ── helpers ──────────────────────────────────────────────────────────────
+  defp finish_fork(socket, {:ok, {:ok, project}}) do
+    socket
+    |> assign(:fork_busy, nil)
+    |> put_flash(:info, gettext("share.join.forked", name: project.name))
+    |> push_navigate(to: ~p"/projects/#{project.id}/edit")
+  end
+
+  defp finish_fork(socket, {:ok, {:error, %Ecto.Changeset{}}}) do
+    assign(socket,
+      fork_busy: nil,
+      fork_error: gettext("share.join.fork_invalid_name"),
+      fork_failed?: false
+    )
   end
 
   # Stay in the modal: the fail slab explains, the CTA becomes "Try again".
   # Nothing was created, the original is untouched (copied objects are
   # removed by the ForkCleanup safety net).
-  def handle_async(:fork, _result, socket) do
-    {:noreply, assign(socket, fork_busy: nil, fork_error: nil, fork_failed?: true)}
+  defp finish_fork(socket, _error_or_exit) do
+    assign(socket, fork_busy: nil, fork_error: nil, fork_failed?: true)
   end
 
-  # ── helpers ──────────────────────────────────────────────────────────────
   defp pane_switch?(assigns) do
     not assigns.embed? and assigns.show_preview? and show_source?(assigns.scope_kind)
   end
@@ -605,7 +614,7 @@ defmodule TypsterWeb.SharedProjectLive do
       done_bytes: 0,
       total_bytes: (stats && stats.bytes) || 0
     })
-    |> start_async(:fork, fn ->
+    |> start_async({:fork, ref}, fn ->
       result = Sharing.fork_via_link(scope, link.token, %{name: name}, on_progress: progress)
       if match?({:ok, _}, result), do: progress.(:open)
       result
@@ -614,9 +623,9 @@ defmodule TypsterWeb.SharedProjectLive do
 
   defp cancel_fork(%{assigns: %{fork_busy: nil}} = socket), do: socket
 
-  defp cancel_fork(socket) do
+  defp cancel_fork(%{assigns: %{fork_busy: %{ref: ref}}} = socket) do
     socket
-    |> cancel_async(:fork, {:shutdown, :cancel})
+    |> cancel_async({:fork, ref}, {:shutdown, :cancel})
     |> assign(:fork_busy, nil)
   end
 

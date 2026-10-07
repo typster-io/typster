@@ -210,6 +210,37 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       assert Typster.Projects.list_projects(Scope.for_user(visitor)) == []
     end
 
+    test "a copy that commits after Cancel doesn't navigate, it says so", %{
+      conn: conn,
+      scope: scope,
+      link: link
+    } do
+      {:ok, link} = Sharing.update_link(scope, link, %{allow_fork: true})
+      visitor = Typster.AccountsFixtures.user_fixture()
+      conn = log_in_user(conn, visitor)
+
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
+      view |> element("#shared-fork-open") |> render_click()
+
+      Typster.Repo.transaction(fn ->
+        view |> form("#shared-fork-form", fork: %{name: "Too late"}) |> render_submit()
+
+        # Cancel lands after the copy committed but before its result is
+        # processed: the run is no longer current, yet its task finishes.
+        :sys.replace_state(view.pid, fn state ->
+          update_in(
+            state.socket,
+            &Phoenix.Component.assign(&1, fork_busy: nil, fork_open?: false)
+          )
+        end)
+      end)
+
+      render_async(view)
+      assert has_element?(view, "#shared-notice", "Too late")
+      refute has_element?(view, "#shared-fork-overlay")
+      assert [%{name: "Too late"}] = Typster.Projects.list_projects(Scope.for_user(visitor))
+    end
+
     test "late progress from a cancelled run is ignored", %{
       conn: conn,
       scope: scope,
