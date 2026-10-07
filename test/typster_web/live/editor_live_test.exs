@@ -591,6 +591,51 @@ defmodule TypsterWeb.EditorLiveTest do
       assert url =~ ~r"^/projects/#{project.id}/assets/[0-9a-f-]+/raw$"
     end
 
+    test "a font dropped on the template zone becomes an asset, not a template", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+      bytes = File.read!("assets/e2e/fixtures/NotoSansLycian-Regular.ttf")
+
+      input =
+        file_input(view, "#template-upload-form", :template, [
+          %{name: "Espruar.otf", content: bytes, type: "font/otf"}
+        ])
+
+      render_upload(input, "Espruar.otf")
+
+      assert has_element?(view, "[id*='asset-entry'] .ts-filechip--font")
+      assert render(view) =~ "Espruar.otf"
+      assert Typster.Templates.list_templates(Typster.Accounts.Scope.for_user(user)) == []
+      assert_push_event(view, "assets_updated", %{assets: [%{kind: "font"}]})
+    end
+
+    test "binary bytes under a text extension are rejected on the template zone", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+
+      input =
+        file_input(view, "#template-upload-form", :template, [
+          %{
+            name: "not-text.typ",
+            content: <<0, 1, 2, 255, 254>>,
+            type: "application/octet-stream"
+          }
+        ])
+
+      render_upload(input, "not-text.typ")
+
+      assert Typster.Templates.list_templates(Typster.Accounts.Scope.for_user(user)) == []
+      assert render(view) =~ "Unsupported file format."
+    end
+
     test "malformed font reports are ignored", %{conn: conn, user: user, project: project} do
       font = asset_fixture(project, user, %{filename: "Brand.ttf"})
       view = open_editor(conn, project)

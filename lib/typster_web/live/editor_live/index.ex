@@ -884,19 +884,73 @@ defmodule TypsterWeb.EditorLive.Index do
   defp save_status_label(status), do: status
 
   # Auto-save a dropped/selected template file once its bytes finish uploading.
+  # The template drop zone takes whatever lands on it: text sources become
+  # templates, asset types (fonts, images, PDFs) go to the project's assets
+  # instead of being read as text — a binary file in a text column crashed
+  # the view — and anything else is rejected.
   defp handle_template_progress(:template, entry, socket) do
     if entry.done? do
       scope = socket.assigns.current_scope
+      project_id = socket.assigns.project.id
 
-      consume_uploaded_entries(socket, :template, fn %{path: path}, e ->
-        {:ok,
-         Templates.create_template(scope, %{name: e.client_name, content: read_upload!(path)})}
-      end)
+      results =
+        consume_uploaded_entries(socket, :template, fn %{path: path}, e ->
+          name = e.client_name
+
+          cond do
+            Files.asset_file?(name) ->
+              case Assets.upload_entry(scope, project_id, %{
+                     path: path,
+                     client_name: name,
+                     client_type: e.client_type
+                   }) do
+                {:ok, _asset} -> {:ok, :asset}
+                {:error, reason} -> {:ok, {:failed, name, reason}}
+              end
+
+            Files.editable_file?(name) ->
+              content = read_upload!(path)
+
+              if String.valid?(content) do
+                {:ok, _} = Templates.create_template(scope, %{name: name, content: content})
+                {:ok, :template}
+              else
+                {:ok, {:unsupported, name}}
+              end
+
+            true ->
+              {:ok, {:unsupported, name}}
+          end
+        end)
+
+      for {:failed, name, reason} <- results do
+        Logger.warning("template-zone asset upload failed: #{name}: #{inspect(reason)}")
+      end
+
+      socket =
+        if Enum.any?(results, &(&1 == :asset)),
+          do: assign_assets(socket, Assets.list_assets(scope, project_id)),
+          else: socket
+
+      flash =
+        cond do
+          Enum.any?(results, &match?({:failed, _, _}, &1)) ->
+            {:error, gettext("editor.flash.asset_upload_failed")}
+
+          Enum.any?(results, &match?({:unsupported, _}, &1)) ->
+            {:error, gettext("editor.flash.unsupported_file")}
+
+          Enum.any?(results, &(&1 == :asset)) and not Enum.any?(results, &(&1 == :template)) ->
+            {:info, gettext("editor.flash.asset_uploaded")}
+
+          true ->
+            {:info, gettext("editor.flash.template_saved")}
+        end
 
       {:noreply,
        socket
        |> assign(:templates, Templates.list_templates(scope))
-       |> put_flash(:info, gettext("editor.flash.template_saved"))}
+       |> put_flash(elem(flash, 0), elem(flash, 1))}
     else
       {:noreply, socket}
     end
