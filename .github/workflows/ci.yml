@@ -259,6 +259,20 @@ jobs:
         working-directory: assets
         run: pixi run bun run playwright install --with-deps chromium
 
+      # The drag-to-insert specs upload real assets, so the app needs S3.
+      - name: Start RustFS
+        run: |
+          docker run -d --name rustfs -p 9000:9000 \
+            -e RUSTFS_ACCESS_KEY=rustfsadmin -e RUSTFS_SECRET_KEY=rustfsadmin \
+            rustfs/rustfs:1.0.1@sha256:1803faef57627e2d9c2e7d89d655d712ddded5389040054987163043fecb6a3c
+          for i in $(seq 1 30); do
+            curl -fs http://localhost:9000/health && exit 0
+            sleep 1
+          done
+          echo "RustFS did not become healthy" >&2
+          docker logs rustfs >&2
+          exit 1
+
       - name: Run browser tests
         working-directory: assets
         run: pixi run bun run test:e2e
