@@ -180,6 +180,7 @@ Configuration: `assets/playwright.config.mjs`
 - Playwright auto-starts `mix phx.server` on the first local run (reuses an existing server if one is running).
 - In CI, the server is always started fresh.
 - Traces are saved on failure for debugging.
+- `typst_packages.spec.mjs` downloads Typst Universe packages from `packages.typst.org`, so it needs network access, and an outage there fails it.
 
 ```bash
 # run all e2e tests
