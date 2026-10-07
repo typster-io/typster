@@ -220,7 +220,8 @@ defmodule TypsterWeb.FileTree do
           data-dnd-file={if can_drag, do: node.id}
           class={[
             "ts-tree__item",
-            (node.asset? or not node.editable) && "is-disabled",
+            node.asset? && "is-asset",
+            (not node.asset? and not node.editable) && "is-disabled",
             (not node.asset? and @current_id == node.id) && "is-active"
           ]}
           style={"padding-left: #{6 + @depth * 14 + 14}px"}

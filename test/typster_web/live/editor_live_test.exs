@@ -636,6 +636,43 @@ defmodule TypsterWeb.EditorLiveTest do
       assert render(view) =~ "Unsupported file format."
     end
 
+    test "the upload icon and template label point at their file inputs", %{
+      conn: conn,
+      project: project
+    } do
+      view = open_editor(conn, project)
+      doc = view |> render() |> LazyHTML.from_fragment()
+      input_ids = doc |> LazyHTML.query("input[type=file]") |> LazyHTML.attribute("id")
+      label_fors = doc |> LazyHTML.query("label[for]") |> LazyHTML.attribute("for")
+
+      assert label_fors != []
+      assert Enum.all?(label_fors, &(&1 in input_ids))
+    end
+
+    test "the Upload asset button path adds the font and pushes the asset list", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+      bytes = File.read!("assets/e2e/fixtures/NotoSansLycian-Regular.ttf")
+
+      input =
+        file_input(view, "#asset-upload-form", :asset, [
+          %{name: "Button.ttf", content: bytes, type: "font/ttf"}
+        ])
+
+      render_upload(input, "Button.ttf")
+      view |> form("#asset-upload-form") |> render_submit()
+
+      row = "[id*='asset-entry']"
+      assert has_element?(view, "#{row}.is-asset .ts-filechip--font")
+      refute has_element?(view, "#{row}.is-disabled")
+      assert render(view) =~ "Button.ttf"
+      assert_push_event(view, "assets_updated", %{assets: [%{kind: "font"}]})
+    end
+
     test "malformed font reports are ignored", %{conn: conn, user: user, project: project} do
       font = asset_fixture(project, user, %{filename: "Brand.ttf"})
       view = open_editor(conn, project)

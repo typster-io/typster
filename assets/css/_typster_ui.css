@@ -214,6 +214,10 @@
 .ts-tree__item.is-active { background: var(--pri-50); color: var(--pri-h); }
 .ts-tree__item.is-disabled { opacity: .5; cursor: not-allowed; }
 .ts-tree__item.is-disabled:hover { background: none; }
+/* Assets are real project members, just not openable in the editor: keep
+   them readable instead of dimmed like an unsupported file. */
+.ts-tree__item.is-asset { cursor: default; }
+.ts-tree__item.is-asset:hover { background: none; }
 .ts-tree__pill { margin-left: auto; font: 500 10px 'JetBrains Mono', ui-monospace, monospace; color: var(--fg4); }
 .ts-tree__dir { color: var(--fg); font-weight: 500; user-select: none; }
 .ts-tree__dir > span:nth-child(-n+2) { color: var(--fg3); }
