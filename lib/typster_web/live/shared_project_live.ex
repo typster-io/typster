@@ -709,9 +709,24 @@ defmodule TypsterWeb.SharedProjectLive do
   defp fork_stage_label(:assets, %{total_bytes: total}) when total <= 0,
     do: gettext("share.fork.stage_assets_empty")
 
-  defp fork_stage_label(:assets, %{done_bytes: done, total_bytes: total}) do
-    gettext("share.fork.stage_assets", done: format_size(done), total: format_size(total))
+  # "Assets · 2.1 of 3.4 MB": both figures in the total's unit, the unit once
+  # (and localized). Below 1 MB the unit is KB, so no bare "B" ever shows.
+  defp fork_stage_label(:assets, %{done_bytes: done, total_bytes: total})
+       when total >= 1_048_576 do
+    gettext("share.fork.stage_assets_mb",
+      done: one_decimal(done / 1_048_576),
+      total: one_decimal(total / 1_048_576)
+    )
   end
+
+  defp fork_stage_label(:assets, %{done_bytes: done, total_bytes: total}) do
+    gettext("share.fork.stage_assets_kb",
+      done: one_decimal(done / 1024),
+      total: one_decimal(total / 1024)
+    )
+  end
+
+  defp one_decimal(number), do: :erlang.float_to_binary(number / 1, decimals: 1)
 
   # `?fork=1` (the post-sign-in return target) reopens the copy form — for a
   # signed-in visitor on a link that allows copying, never anyone else.
@@ -744,8 +759,6 @@ defmodule TypsterWeb.SharedProjectLive do
   defp format_bytes(bytes) when bytes >= 1_048_576, do: "#{Float.round(bytes / 1_048_576, 1)} MB"
   defp format_bytes(bytes) when bytes >= 1024, do: "#{Float.round(bytes / 1024, 1)} KB"
   defp format_bytes(_), do: nil
-
-  defp format_size(bytes), do: format_bytes(bytes) || "#{bytes} B"
 
   defp project_sources(files) do
     files

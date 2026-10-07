@@ -241,6 +241,35 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       assert [%{name: "Too late"}] = Typster.Projects.list_projects(Scope.for_user(visitor))
     end
 
+    test "the assets stage shows bytes in one unit and drives the bar", %{
+      conn: conn,
+      scope: scope,
+      link: link
+    } do
+      {:ok, link} = Sharing.update_link(scope, link, %{allow_fork: true})
+      conn = log_in_user(conn, Typster.AccountsFixtures.user_fixture())
+
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
+      view |> element("#shared-fork-open") |> render_click()
+
+      Typster.Repo.transaction(fn ->
+        view |> form("#shared-fork-form", fork: %{name: "Bytes"}) |> render_submit()
+        ref = fork_ref(view)
+
+        send(view.pid, {:fork_progress, ref, {:files}})
+        send(view.pid, {:fork_progress, ref, {:assets, 1_048_576, 4_194_304}})
+        assert has_element?(view, "#shared-fork-stages .st--done", "Files")
+        assert has_element?(view, "#shared-fork-stages .st--cur", "Assets · 1.0 of 4.0 MB")
+        # 25% + 65% × ¼ of the bytes.
+        assert has_element?(view, ~s|#shared-fork-progress[style="width: 41%"]|)
+
+        send(view.pid, {:fork_progress, ref, {:assets, 512, 2048}})
+        assert has_element?(view, "#shared-fork-stages .st--cur", "Assets · 0.5 of 2.0 KB")
+
+        view |> element("#shared-fork-form button.cancel") |> render_click()
+      end)
+    end
+
     test "late progress from a cancelled run is ignored", %{
       conn: conn,
       scope: scope,
@@ -444,4 +473,7 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       refute has_element?(view, "#shared-fork-login")
     end
   end
+
+  # The current copy run's ref, as the LiveView tags its progress messages.
+  defp fork_ref(view), do: :sys.get_state(view.pid).socket.assigns.fork_busy.ref
 end

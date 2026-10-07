@@ -3042,12 +3042,12 @@ msgstr "Копируем…"
 msgid "share.fork.lock_hint"
 msgstr "Только просмотр — скопируйте проект, чтобы править"
 
-#: lib/typster_web/live/shared_project_live.ex:741
+#: lib/typster_web/live/shared_project_live.ex:756
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta"
 msgstr "%{what} — копирование займёт пару секунд"
 
-#: lib/typster_web/live/shared_project_live.ex:735
+#: lib/typster_web/live/shared_project_live.ex:750
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta_assets.one"
 msgid_plural "share.fork.meta_assets.other"
@@ -3055,7 +3055,7 @@ msgstr[0] "%{count} ассет"
 msgstr[1] "%{count} ассета"
 msgstr[2] "%{count} ассетов"
 
-#: lib/typster_web/live/shared_project_live.ex:734
+#: lib/typster_web/live/shared_project_live.ex:749
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta_files.one"
 msgid_plural "share.fork.meta_files.other"
@@ -3067,11 +3067,6 @@ msgstr[2] "%{count} файлов"
 #, elixir-autogen, elixir-format
 msgid "share.fork.retry"
 msgstr "Ещё раз"
-
-#: lib/typster_web/live/shared_project_live.ex:713
-#, elixir-autogen, elixir-format
-msgid "share.fork.stage_assets"
-msgstr "Ассеты · %{done} из %{total}"
 
 #: lib/typster_web/live/shared_project_live.ex:710
 #, elixir-autogen, elixir-format
@@ -3102,3 +3097,13 @@ msgstr "Исходник"
 #, elixir-autogen, elixir-format
 msgid "share.fork.cancel_too_late"
 msgstr "Отменить не успели: «%{name}» уже скопирован. Он ждёт вас в проектах."
+
+#: lib/typster_web/live/shared_project_live.ex:723
+#, elixir-autogen, elixir-format
+msgid "share.fork.stage_assets_kb"
+msgstr "Ассеты · %{done} из %{total} КБ"
+
+#: lib/typster_web/live/shared_project_live.ex:716
+#, elixir-autogen, elixir-format
+msgid "share.fork.stage_assets_mb"
+msgstr "Ассеты · %{done} из %{total} МБ"
