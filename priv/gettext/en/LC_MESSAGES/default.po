@@ -204,7 +204,7 @@ msgid "editor.preview"
 msgstr "Preview"
 
 #: lib/typster_web/live/editor_live/index.html.heex:743
-#: lib/typster_web/live/shared_project_live.ex:379
+#: lib/typster_web/live/shared_project_live.ex:404
 #, elixir-autogen, elixir-format
 msgid "editor.preview_placeholder"
 msgstr "Preview appears here after Typst does the math"
@@ -2548,7 +2548,7 @@ msgstr "Free"
 msgid "share.plan.pro"
 msgstr "Pro"
 
-#: lib/typster_web/live/shared_project_live.ex:104
+#: lib/typster_web/live/shared_project_live.ex:105
 #, elixir-autogen, elixir-format
 msgid "share.public.home"
 msgstr "Go to Typster"
@@ -2558,17 +2558,17 @@ msgstr "Go to Typster"
 msgid "share.public.invalid"
 msgstr "Invalid link"
 
-#: lib/typster_web/live/shared_project_live.ex:103
+#: lib/typster_web/live/shared_project_live.ex:104
 #, elixir-autogen, elixir-format
 msgid "share.public.invalid_sub"
 msgstr "The share link may have been rotated or revoked."
 
-#: lib/typster_web/live/shared_project_live.ex:102
+#: lib/typster_web/live/shared_project_live.ex:103
 #, elixir-autogen, elixir-format
 msgid "share.public.invalid_title"
 msgstr "This link isn't valid"
 
-#: lib/typster_web/live/shared_project_live.ex:419
+#: lib/typster_web/live/shared_project_live.ex:444
 #, elixir-autogen, elixir-format
 msgid "share.public.open_in_typster"
 msgstr "Open in Typster ↗"
@@ -2591,17 +2591,17 @@ msgstr "Owner"
 msgid "share.role.viewer"
 msgstr "Viewer"
 
-#: lib/typster_web/live/shared_project_live.ex:533
+#: lib/typster_web/live/shared_project_live.ex:566
 #, elixir-autogen, elixir-format
 msgid "share.scope.full"
 msgstr "Full access"
 
-#: lib/typster_web/live/shared_project_live.ex:532
+#: lib/typster_web/live/shared_project_live.ex:565
 #, elixir-autogen, elixir-format
 msgid "share.scope.output"
 msgstr "Compiled output"
 
-#: lib/typster_web/live/shared_project_live.ex:534
+#: lib/typster_web/live/shared_project_live.ex:567
 #, elixir-autogen, elixir-format
 msgid "share.scope.read"
 msgstr "Read-only"
@@ -2691,7 +2691,7 @@ msgstr "You're in — welcome to the project."
 msgid "share.invite.invalid"
 msgstr "That invite link is invalid or has expired."
 
-#: lib/typster_web/live/shared_project_live.ex:386
+#: lib/typster_web/live/shared_project_live.ex:411
 #, elixir-autogen, elixir-format
 msgid "share.public.powered_by"
 msgstr "Powered by"
@@ -2772,18 +2772,18 @@ msgstr "Plot twist — this invite's addressed to a different email. Log in as t
 msgid "editor.share_owner_only"
 msgstr "Owner-only — sharing is their call."
 
-#: lib/typster_web/live/shared_project_live.ex:418
+#: lib/typster_web/live/shared_project_live.ex:443
 #, elixir-autogen, elixir-format
 msgid "share.embed.cta_fork"
 msgstr "Fork in Typster"
 
-#: lib/typster_web/live/shared_project_live.ex:402
+#: lib/typster_web/live/shared_project_live.ex:427
 #, elixir-autogen, elixir-format
 msgid "share.embed.cta_signup"
 msgstr "Make your own"
 
-#: lib/typster_web/live/shared_project_live.ex:180
-#: lib/typster_web/live/shared_project_live.ex:187
+#: lib/typster_web/live/shared_project_live.ex:182
+#: lib/typster_web/live/shared_project_live.ex:189
 #, elixir-autogen, elixir-format
 msgid "share.scope.sandbox"
 msgstr "Sandbox"
@@ -2927,68 +2927,68 @@ msgstr "Anyone can edit"
 msgid "share.adv.open_edit_sub"
 msgstr "Visitors with the link join as editors automatically. Big trust energy — enable with intent."
 
-#: lib/typster_web/live/shared_project_live.ex:550
+#: lib/typster_web/live/shared_project_live.ex:583
 #, elixir-autogen, elixir-format
 msgid "share.join.copy_of"
 msgstr "%{name} (copy)"
 
-#: lib/typster_web/live/shared_project_live.ex:153
-#: lib/typster_web/live/shared_project_live.ex:157
-#: lib/typster_web/live/shared_project_live.ex:164
-#: lib/typster_web/live/shared_project_live.ex:167
+#: lib/typster_web/live/shared_project_live.ex:155
+#: lib/typster_web/live/shared_project_live.ex:159
+#: lib/typster_web/live/shared_project_live.ex:166
+#: lib/typster_web/live/shared_project_live.ex:169
 #, elixir-autogen, elixir-format
 msgid "share.join.edit"
 msgstr "Edit this project"
 
-#: lib/typster_web/live/shared_project_live.ex:141
-#: lib/typster_web/live/shared_project_live.ex:145
+#: lib/typster_web/live/shared_project_live.ex:143
+#: lib/typster_web/live/shared_project_live.ex:147
 #, elixir-autogen, elixir-format
 msgid "share.join.fork"
 msgstr "Make a copy"
 
-#: lib/typster_web/live/shared_project_live.ex:228
-#: lib/typster_web/live/shared_project_live.ex:281
+#: lib/typster_web/live/shared_project_live.ex:253
+#: lib/typster_web/live/shared_project_live.ex:306
 #, elixir-autogen, elixir-format
 msgid "share.join.fork_cancel"
 msgstr "Cancel"
 
-#: lib/typster_web/live/shared_project_live.ex:297
+#: lib/typster_web/live/shared_project_live.ex:322
 #, elixir-autogen, elixir-format
 msgid "share.join.fork_confirm"
 msgstr "Copy it"
 
-#: lib/typster_web/live/shared_project_live.ex:276
+#: lib/typster_web/live/shared_project_live.ex:301
 #, elixir-autogen, elixir-format
 msgid "share.join.fork_failed"
 msgstr "That didn’t work. Nothing was copied — the original is untouched. Give it another try."
 
-#: lib/typster_web/live/shared_project_live.ex:462
-#: lib/typster_web/live/shared_project_live.ex:511
+#: lib/typster_web/live/shared_project_live.ex:487
+#: lib/typster_web/live/shared_project_live.ex:540
 #, elixir-autogen, elixir-format
 msgid "share.join.fork_invalid_name"
 msgstr "It needs a name — even “Untitled” will do."
 
-#: lib/typster_web/live/shared_project_live.ex:242
+#: lib/typster_web/live/shared_project_live.ex:267
 #, elixir-autogen, elixir-format
 msgid "share.join.fork_name"
 msgstr "Name your copy"
 
-#: lib/typster_web/live/shared_project_live.ex:221
+#: lib/typster_web/live/shared_project_live.ex:246
 #, elixir-autogen, elixir-format
 msgid "share.join.fork_sub"
 msgstr "The whole thing — files, folders, assets — lands in your projects, yours to edit."
 
-#: lib/typster_web/live/shared_project_live.ex:219
+#: lib/typster_web/live/shared_project_live.ex:244
 #, elixir-autogen, elixir-format
 msgid "share.join.fork_title"
 msgstr "Copy this project"
 
-#: lib/typster_web/live/shared_project_live.ex:503
+#: lib/typster_web/live/shared_project_live.ex:532
 #, elixir-autogen, elixir-format
 msgid "share.join.forked"
 msgstr "“%{name}” is yours now. Saved to your projects — happy typesetting."
 
-#: lib/typster_web/live/shared_project_live.ex:474
+#: lib/typster_web/live/shared_project_live.ex:503
 #, elixir-autogen, elixir-format
 msgid "share.join.join_failed"
 msgstr "Couldn't add you to the project — the link's policy may have changed."
@@ -2998,81 +2998,91 @@ msgstr "Couldn't add you to the project — the link's policy may have changed."
 msgid "editor.project_unavailable"
 msgstr "That project isn't here — or isn't yours to edit."
 
-#: lib/typster_web/live/shared_project_live.ex:328
+#: lib/typster_web/live/shared_project_live.ex:353
 #, elixir-autogen, elixir-format
 msgid "share.fork.anon_alt"
 msgstr "New here? Create an account"
 
-#: lib/typster_web/live/shared_project_live.ex:309
+#: lib/typster_web/live/shared_project_live.ex:334
 #, elixir-autogen, elixir-format
 msgid "share.fork.anon_body"
 msgstr "Sign in and we’ll copy “%{name}” straight into your projects."
 
-#: lib/typster_web/live/shared_project_live.ex:321
+#: lib/typster_web/live/shared_project_live.ex:346
 #, elixir-autogen, elixir-format
 msgid "share.fork.anon_cta"
 msgstr "Sign in to copy"
 
-#: lib/typster_web/live/shared_project_live.ex:331
+#: lib/typster_web/live/shared_project_live.ex:356
 #, elixir-autogen, elixir-format
 msgid "share.fork.anon_note"
 msgstr "Free plan is plenty — no card, no catch."
 
-#: lib/typster_web/live/shared_project_live.ex:307
+#: lib/typster_web/live/shared_project_live.ex:332
 #, elixir-autogen, elixir-format
 msgid "share.fork.anon_title"
 msgstr "Almost yours"
 
-#: lib/typster_web/live/shared_project_live.ex:291
+#: lib/typster_web/live/shared_project_live.ex:316
 #, elixir-autogen, elixir-format
 msgid "share.fork.busy"
 msgstr "Copying…"
 
-#: lib/typster_web/live/shared_project_live.ex:351
+#: lib/typster_web/live/shared_project_live.ex:376
 #, elixir-autogen, elixir-format
 msgid "share.fork.lock_hint"
 msgstr "View only — copy the project to edit"
 
-#: lib/typster_web/live/shared_project_live.ex:664
+#: lib/typster_web/live/shared_project_live.ex:699
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta"
 msgstr "%{what} — copying takes a few seconds"
 
-#: lib/typster_web/live/shared_project_live.ex:658
+#: lib/typster_web/live/shared_project_live.ex:693
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta_assets.one"
 msgid_plural "share.fork.meta_assets.other"
 msgstr[0] "%{count} asset"
 msgstr[1] "%{count} assets"
 
-#: lib/typster_web/live/shared_project_live.ex:657
+#: lib/typster_web/live/shared_project_live.ex:692
 #, elixir-autogen, elixir-format
 msgid "share.fork.meta_files.one"
 msgid_plural "share.fork.meta_files.other"
 msgstr[0] "%{count} file"
 msgstr[1] "%{count} files"
 
-#: lib/typster_web/live/shared_project_live.ex:295
+#: lib/typster_web/live/shared_project_live.ex:320
 #, elixir-autogen, elixir-format
 msgid "share.fork.retry"
 msgstr "Try again"
 
-#: lib/typster_web/live/shared_project_live.ex:638
+#: lib/typster_web/live/shared_project_live.ex:673
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_assets"
 msgstr "Assets · %{done} of %{total}"
 
-#: lib/typster_web/live/shared_project_live.ex:635
+#: lib/typster_web/live/shared_project_live.ex:670
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_assets_empty"
 msgstr "Assets"
 
-#: lib/typster_web/live/shared_project_live.ex:631
+#: lib/typster_web/live/shared_project_live.ex:666
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_files"
 msgstr "Files"
 
-#: lib/typster_web/live/shared_project_live.ex:632
+#: lib/typster_web/live/shared_project_live.ex:667
 #, elixir-autogen, elixir-format
 msgid "share.fork.stage_open"
 msgstr "Open"
+
+#: lib/typster_web/live/shared_project_live.ex:206
+#, elixir-autogen, elixir-format
+msgid "share.public.pane_preview"
+msgstr "Preview"
+
+#: lib/typster_web/live/shared_project_live.ex:207
+#, elixir-autogen, elixir-format
+msgid "share.public.pane_source"
+msgstr "Source"

@@ -40,6 +40,18 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       # everyone but the owner.
       refute has_element?(view, ".embed-foot__cta")
     end
+
+    test "the mobile Preview | Source switch picks the visible pane", %{conn: conn, link: link} do
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
+
+      # Preview is the default pane (CSS shows the switch below 640px only).
+      assert has_element?(view, ~s|#shared-pane-preview.on[aria-selected="true"]|)
+      assert has_element?(view, ".embed-comp.embed-comp--pane-preview")
+
+      view |> element("#shared-pane-source") |> render_click()
+      assert has_element?(view, ~s|#shared-pane-source.on[aria-selected="true"]|)
+      assert has_element?(view, ".embed-comp.embed-comp--pane-source")
+    end
   end
 
   describe ":output scope via /p" do
@@ -58,6 +70,8 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       refute has_element?(view, ".embed-source #editor-container")
       # Preview is still rendered.
       assert has_element?(view, ".embed-preview #preview-container")
+      # Nothing to switch to on mobile.
+      refute has_element?(view, "#shared-pane-switch")
     end
   end
 
@@ -76,6 +90,8 @@ defmodule TypsterWeb.SharedProjectLiveTest do
 
       assert has_element?(view, ".share-public--embed")
       assert has_element?(view, ".embed-comp")
+      # No socket-driven pane switch inside third-party iframes.
+      refute has_element?(view, "#shared-pane-switch")
 
       # The CTA must escape the host iframe to a new top-level window on our
       # site — onto the public share page (the editor would bounce anyone

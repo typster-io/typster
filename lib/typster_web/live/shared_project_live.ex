@@ -63,6 +63,7 @@ defmodule TypsterWeb.SharedProjectLive do
      |> assign(:embed?, embed?)
      |> assign(:embed_theme, embed_theme(params["theme"]))
      |> assign(:show_preview?, params["preview"] != "0")
+     |> assign(:mobile_pane, "preview")
      |> assign(:editable?, policy.editable)
      |> assign(:unbranded?, policy.unbranded)
      |> assign(:cta_mode, policy.cta.mode)
@@ -117,7 +118,8 @@ defmodule TypsterWeb.SharedProjectLive do
     >
       <div class={[
         "embed-comp",
-        (show_source?(@scope_kind) and @show_preview?) && "embed-comp--split"
+        (show_source?(@scope_kind) and @show_preview?) && "embed-comp--split",
+        pane_switch?(assigns) && "embed-comp--pane-#{@mobile_pane}"
       ]}>
         <div class="embed-bar">
           <span class="t-glyph ts-serif">T</span>
@@ -192,6 +194,29 @@ defmodule TypsterWeb.SharedProjectLive do
         <div :if={@notice} id="shared-notice" class="embed-bar" role="alert">
           <.icon name="hero-exclamation-triangle" class="size-3.5" />
           <span class="truncate">{@notice}</span>
+        </div>
+
+        <%!-- Below 640px only one pane fits: a Preview | Source switch picks
+              it (CSS hides the switch on wider screens). Not on the embed,
+              which has no LiveView socket to push the click over. --%>
+        <div :if={pane_switch?(assigns)} id="shared-pane-switch" class="shv-seg" role="tablist">
+          <button
+            :for={
+              {pane, label} <- [
+                {"preview", gettext("share.public.pane_preview")},
+                {"source", gettext("share.public.pane_source")}
+              ]
+            }
+            type="button"
+            id={"shared-pane-#{pane}"}
+            role="tab"
+            aria-selected={to_string(@mobile_pane == pane)}
+            class={["opt", @mobile_pane == pane && "on"]}
+            phx-click="set_pane"
+            phx-value-pane={pane}
+          >
+            {label}
+          </button>
         </div>
 
         <%!-- Copy modal — one modal, four internal states (form / invalid /
@@ -463,6 +488,10 @@ defmodule TypsterWeb.SharedProjectLive do
     end
   end
 
+  def handle_event("set_pane", %{"pane" => pane}, socket) when pane in ~w(preview source) do
+    {:noreply, assign(socket, :mobile_pane, pane)}
+  end
+
   def handle_event("join", _params, %{assigns: %{can_join?: true}} = socket) do
     scope = socket.assigns.current_scope
 
@@ -526,6 +555,10 @@ defmodule TypsterWeb.SharedProjectLive do
   end
 
   # ── helpers ──────────────────────────────────────────────────────────────
+  defp pane_switch?(assigns) do
+    not assigns.embed? and assigns.show_preview? and show_source?(assigns.scope_kind)
+  end
+
   defp show_source?(:output), do: false
   defp show_source?(_), do: true
 

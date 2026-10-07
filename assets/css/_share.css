@@ -30,6 +30,7 @@
   --accent-text: #fff;
   --surface: var(--mk-bg);
   --surface-2: var(--mk-bg2);
+  --surface-3: var(--mk-bg3);
   --border: var(--mk-bd);
   --border-strong: color-mix(in oklab, var(--mk-bd) 45%, var(--mk-fg4));
   --text: var(--mk-fg);
@@ -2061,6 +2062,43 @@
   .fk-foot { flex-direction: column-reverse; align-items: stretch; gap: 6px; padding-bottom: 12px; }
   .fk-foot .ts-btn { justify-content: center; padding: 11px 14px; }
   .fk-foot .cancel { text-align: center; padding: 10px; }
+}
+
+/* mobile Preview | Source switch: hidden on wide screens; below 640px it
+   sits under the bar and only the chosen pane is shown */
+.share-public .shv-seg { display: none; }
+@media (max-width: 640px) {
+  .share-public .embed-comp.embed-comp--split {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr auto;
+  }
+  .share-public .shv-seg {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 2px;
+    margin: 8px 10px;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--surface-3);
+  }
+  .share-public .shv-seg .opt {
+    flex: 1;
+    padding: 5px 10px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    font: 500 12px var(--font-sans);
+    color: var(--text-dim);
+    cursor: pointer;
+  }
+  .share-public .shv-seg .opt.on {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--mk-sh-sm);
+  }
+  .share-public .embed-comp--pane-preview .embed-source,
+  .share-public .embed-comp--pane-source .embed-preview { display: none; }
+  .share-public .embed-comp--split .embed-source { border-right: 0; }
 }
 
 /* invalid / expired link panel */

@@ -58,7 +58,20 @@ test.describe('Fork flow — make a copy on /p/:slug', () => {
     await expect(page.locator('.embed-bar .file')).toBeHidden()
     await expect(openBtn.locator('.lbl')).toBeHidden()
     await expect(openBtn).toHaveAttribute('title', /\S/)
+
+    // Phone width: one pane at a time, picked by the Preview | Source switch.
+    await page.setViewportSize({ width: 390, height: wide.height })
+    await expect(page.locator('#shared-pane-switch')).toBeVisible()
+    await expect(page.locator('.embed-preview')).toBeVisible()
+    await expect(page.locator('.embed-source')).toBeHidden()
+    await page.locator('#shared-pane-source').click()
+    await expect(page.locator('.embed-source')).toBeVisible()
+    await expect(page.locator('.embed-preview')).toBeHidden()
+    await page.locator('#shared-pane-preview').click()
+    await expect(page.locator('.embed-preview')).toBeVisible()
+
     await page.setViewportSize(wide)
+    await expect(page.locator('#shared-pane-switch')).toBeHidden()
     await expect(openBtn.locator('.lbl')).toBeVisible()
 
     // Escape closes the modal.
