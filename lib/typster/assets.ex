@@ -244,7 +244,7 @@ defmodule Typster.Assets do
     end
 
     case put.() do
-      # Bucket missing (e.g. a fresh MinIO): create it once, then retry.
+      # Bucket missing (e.g. a fresh RustFS): create it once, then retry.
       {:error, {:http_error, 404, _}} ->
         region = Application.get_env(:ex_aws, :region, "us-east-1")
         _ = ExAws.S3.put_bucket(bucket, region) |> ExAws.request()

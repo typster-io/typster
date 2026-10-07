@@ -393,7 +393,7 @@ And **never** do this:
 ## Typster project context
 
 - Typster is a Phoenix 1.8 + LiveView 1.1 app on Elixir 1.19 and Erlang/OTP 28
-- Core stack: PostgreSQL 16 through Ecto, MinIO/S3-compatible object storage, Oban background jobs, Bun-managed frontend assets, Tailwind CSS, salad_ui, CodeMirror, Playwright E2E tests, Pixi, prek, and Docker Compose
+- Core stack: PostgreSQL 16 through Ecto, RustFS (S3-compatible) object storage, Oban background jobs, Bun-managed frontend assets, Tailwind CSS, salad_ui, CodeMirror, Playwright E2E tests, Pixi, prek, and Docker Compose
 - Project overview lives in [README.md](README.md). Contributor workflow lives in [CONTRIBUTING.md](CONTRIBUTING.md). Design guidance lives in [docs/landing-style.md](docs/landing-style.md) and [docs/landing-redesign-guide.md](docs/landing-redesign-guide.md)
 - Main code layout:
   - `lib/typster/` contains business logic contexts such as Accounts, Projects, Files, Assets, and Revisions
@@ -410,7 +410,7 @@ And **never** do this:
 - Do not make commands harder just to use Pixi. If Elixir, Bun, prek, or other required tools are already globally available, raw commands such as `mix test`, `mix precommit`, `mix phx.server`, `prek run --all-files`, or `cd assets && bun run test:e2e` are fine
 - If Pixi is available and many commands are needed, it is fine to enter `pixi shell` once, then run normal `mix`, `bun`, and `prek` commands inside that shell
 - If Pixi is unavailable, use the manual workflow in [CONTRIBUTING.md](CONTRIBUTING.md): start backing services, then use regular `mix` and `bun` commands
-- `docker-compose.yaml` defines `db`, `minio`, and `app`. Use Docker Compose for backing services or for the full app stack when helpful
+- `docker-compose.yaml` defines `db`, `rustfs`, and `app`. Use Docker Compose for backing services or for the full app stack when helpful
 - `prek` hooks are configured in [.pre-commit-config.yaml](.pre-commit-config.yaml). Pre-commit and pre-push checks must pass before finishing change work
 - `ast-index` is available for fast, structured code search across the codebase. Configuration lives in [.ast-index.yaml](.ast-index.yaml). Use `ast-index search MyModule.function_name` for symbol lookup and `ast-index map` for a project map when structured navigation is useful
 
@@ -428,7 +428,7 @@ And **never** do this:
 
 - Backend data access uses Ecto with PostgreSQL. Migrations and seeds live in `priv/repo/`
 - Development defaults to the `typster_dev` database. Tests use `typster_test`
-- Local object storage is MinIO with S3-compatible APIs. Keep credentials, private endpoints, and bucket-specific secrets in environment variables
+- Local object storage is RustFS with S3-compatible APIs. Keep credentials, private endpoints, and bucket-specific secrets in environment variables
 - Oban is used for background jobs. Test config disables queues/plugins and uses manual testing mode
 - Backend changes must update or add Elixir tests for the changed behavior. Prefer focused test files first, then broader `mix test` or `mix precommit` when ready
 

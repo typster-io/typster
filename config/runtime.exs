@@ -134,7 +134,7 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 
-  # Configure MinIO/S3 for production
+  # Configure S3 (AWS or any S3-compatible store) for production
   config :ex_aws,
     access_key_id:
       System.get_env("AWS_ACCESS_KEY_ID") ||
@@ -150,11 +150,11 @@ if config_env() == :prod do
         raise("environment variable S3_BUCKET is missing"),
     s3_endpoint: System.get_env("S3_ENDPOINT")
 
-  # Configure S3 endpoint - handle both custom endpoints (MinIO) and standard AWS S3
+  # Configure S3 endpoint - handle both custom endpoints (RustFS, MinIO, …) and standard AWS S3
   s3_endpoint = System.get_env("S3_ENDPOINT")
 
   if s3_endpoint do
-    # Custom S3-compatible endpoint (e.g., MinIO)
+    # Custom S3-compatible endpoint (e.g., RustFS)
     parsed = URI.parse(s3_endpoint)
     scheme = parsed.scheme || "https"
     host = parsed.host || parsed.authority || s3_endpoint
@@ -175,11 +175,11 @@ if config_env() == :prod do
   end
 end
 
-# Configure MinIO/S3 for all environments (with defaults for dev/test)
+# Configure S3 for all environments (defaults match the RustFS service in docker-compose)
 if config_env() != :prod do
   config :ex_aws,
-    access_key_id: System.get_env("AWS_ACCESS_KEY_ID") || "minioadmin",
-    secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY") || "minioadmin",
+    access_key_id: System.get_env("AWS_ACCESS_KEY_ID") || "rustfsadmin",
+    secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY") || "rustfsadmin",
     region: System.get_env("AWS_REGION") || "us-east-1"
 
   s3_endpoint = System.get_env("S3_ENDPOINT") || "http://localhost:9000"
