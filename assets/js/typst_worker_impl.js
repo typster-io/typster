@@ -134,7 +134,9 @@ function familiesFromInfo(info) {
 }
 
 // Returns a per-font report when the resolver was rebuilt, or null when the
-// project's font set is unchanged since the last registration.
+// project's font set is unchanged since the last registration. Jobs run one
+// at a time (see the queue in onmessage), so there is never a second sync in
+// flight: the wasm compiler must not be touched from two interleaved tasks.
 async function syncProjectFonts(project) {
   const fonts = projectFonts(project)
   const fontSet = fonts.map(fontCacheKey).sort().join("\n")
@@ -238,11 +240,27 @@ async function loadSources(content, project) {
   return main
 }
 
-self.onmessage = async function (event) {
+// Jobs run strictly one after another. typst.ts wraps a single wasm compiler
+// and wasm-bindgen refuses re-entrant access ("recursive use of an object
+// detected which would lead to unsafe aliasing"): a compile that is still
+// awaiting a font fetch or `setFonts` must not be interleaved with the next
+// keystroke's compile. Stale compiles still bail out early via latestCompileId.
+let jobQueue = Promise.resolve()
+
+self.onmessage = function (event) {
+  if (event.data && event.data.type === "compile") latestCompileId++
+  const myId = latestCompileId
+  jobQueue = jobQueue.then(() => handleMessage(event, myId)).catch((error) => {
+    console.error("typst worker job failed:", error)
+  })
+}
+
+async function handleMessage(event, myId) {
   const { type, content, project, requestId } = event.data
 
   if (type === "compile") {
-    const myId = ++latestCompileId
+    // Superseded while queued: a newer keystroke is already waiting.
+    if (myId !== latestCompileId) return
     try {
       await ensureInitialized()
       if (myId !== latestCompileId) return

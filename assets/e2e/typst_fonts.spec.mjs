@@ -106,6 +106,42 @@ test.describe("Project fonts in the preview", () => {
     expect(result.fonts[0].error).toMatch(/404|Failed to fetch/)
   })
 
+  test("back-to-back compiles while a font registers do not alias the compiler", async ({ page }) => {
+    test.setTimeout(90_000)
+    const project = {
+      mainPath: "main.typ",
+      sources: [],
+      assets: [{ filename: "NotoSansLycian-Regular.ttf", reference_path: "assets/NotoSansLycian-Regular.ttf", kind: "font", size: 4556, url: fontUrl }]
+    }
+    // Five compile messages in one tick, like a burst of keystrokes right
+    // after dropping a font. Only the last one must render; none may error.
+    const result = await page.evaluate(
+      ([project]) =>
+        new Promise((resolve) => {
+          const worker = new Worker("/assets/js/typst_worker_impl.js", { type: "module" })
+          const out = { renders: 0, errors: [], fonts: 0 }
+          const timer = setTimeout(() => { worker.terminate(); resolve({ ...out, timeout: true }) }, 60_000)
+          worker.onmessage = (event) => {
+            const { type, data } = event.data
+            if (type === "render") out.renders++
+            if (type === "fonts") out.fonts++
+            if (type === "error") out.errors.push(data && data.message)
+            if (out.renders + out.errors.length >= 1 && type !== "fonts") {
+              // Give any stray late messages a moment to arrive.
+              setTimeout(() => { clearTimeout(timer); worker.terminate(); resolve(out) }, 1500)
+            }
+          }
+          for (let i = 0; i < 5; i++) {
+            worker.postMessage({ type: "compile", content: `#set text(font: "Noto Sans Lycian")\n= Draft ${i}`, project })
+          }
+        }),
+      [project]
+    )
+    expect(result.errors).toEqual([])
+    expect(result.renders).toBe(1)
+    expect(result.fonts).toBe(1)
+  })
+
   test("a project without fonts keeps the default fonts and reports nothing", async ({ page }) => {
     test.setTimeout(60_000)
     const result = await compileWithFonts(page, { mainPath: "main.typ", sources: [], assets: [] }, "= Hi")
