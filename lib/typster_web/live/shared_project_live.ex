@@ -134,29 +134,36 @@ defmodule TypsterWeb.SharedProjectLive do
             class={[
               "ts-btn",
               "ts-btn--sm",
+              "bar-act",
               if(@can_join?, do: "ts-btn--ghost", else: "ts-btn--primary")
             ]}
+            title={gettext("share.join.fork")}
             phx-click="open_fork"
           >
-            <.icon name="hero-document-duplicate" class="size-3.5" /> {gettext("share.join.fork")}
+            <.icon name="hero-document-duplicate" class="size-3.5" />
+            <span class="lbl">{gettext("share.join.fork")}</span>
           </button>
           <%= if @can_join? do %>
             <%= if @current_scope && @current_scope.user do %>
               <button
                 type="button"
                 id="shared-join"
-                class="ts-btn ts-btn--primary ts-btn--sm"
+                class="ts-btn ts-btn--primary ts-btn--sm bar-act"
+                title={gettext("share.join.edit")}
                 phx-click="join"
               >
-                <.icon name="hero-pencil-square" class="size-3.5" /> {gettext("share.join.edit")}
+                <.icon name="hero-pencil-square" class="size-3.5" />
+                <span class="lbl">{gettext("share.join.edit")}</span>
               </button>
             <% else %>
               <.link
                 navigate={~p"/users/log-in"}
                 id="shared-join-login"
-                class="ts-btn ts-btn--primary ts-btn--sm"
+                class="ts-btn ts-btn--primary ts-btn--sm bar-act"
+                title={gettext("share.join.edit")}
               >
-                <.icon name="hero-pencil-square" class="size-3.5" /> {gettext("share.join.edit")}
+                <.icon name="hero-pencil-square" class="size-3.5" />
+                <span class="lbl">{gettext("share.join.edit")}</span>
               </.link>
             <% end %>
           <% end %>

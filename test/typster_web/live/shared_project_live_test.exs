@@ -116,6 +116,9 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
 
       assert has_element?(view, "#shared-fork-open")
+      # The label sits in its own span (hidden below 720px) and the title
+      # carries it as a tooltip.
+      assert has_element?(view, "#shared-fork-open[title] .lbl")
       view |> element("#shared-fork-open") |> render_click()
 
       # The prefilled "(copy)" name is focused + selected by the hook on open.

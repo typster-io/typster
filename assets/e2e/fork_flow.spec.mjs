@@ -51,6 +51,16 @@ test.describe('Fork flow — make a copy on /p/:slug', () => {
     await expect(page.locator('.ro-pill--compact')).toBeVisible()
     await expect(page.locator('.fk-lock-hint')).toBeVisible()
 
+    // Below 720px the file name hides and the copy button goes icon-only,
+    // its label moving into the tooltip.
+    const wide = page.viewportSize()
+    await page.setViewportSize({ width: 700, height: wide.height })
+    await expect(page.locator('.embed-bar .file')).toBeHidden()
+    await expect(openBtn.locator('.lbl')).toBeHidden()
+    await expect(openBtn).toHaveAttribute('title', /\S/)
+    await page.setViewportSize(wide)
+    await expect(openBtn.locator('.lbl')).toBeVisible()
+
     // Escape closes the modal.
     await openBtn.click()
     await expect(page.locator('.fk-modal')).toBeVisible()

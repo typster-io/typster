@@ -1991,6 +1991,14 @@
 /* icon-only read-only pill when action buttons sit alongside it */
 .share-public .embed-bar .ro-pill--compact { padding: 2px 6px; }
 
+/* narrow bar below 720px: the pill is already icon-only, so the file name
+   hides first and the action buttons drop their labels into tooltips */
+@media (max-width: 720px) {
+  .share-public .embed-bar .file { display: none; }
+  .share-public .embed-bar .bar-act { width: 30px; padding: 0; justify-content: center; }
+  .share-public .embed-bar .bar-act .lbl { display: none; }
+}
+
 /* "view only" hint pinned to the source pane */
 .share-public .embed-source { position: relative; }
 .fk-lock-hint {
