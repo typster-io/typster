@@ -51,7 +51,8 @@ defmodule TypsterWeb.FileTree do
         editable: false,
         kind: asset_chip_kind(kind),
         meta: asset_meta(a, kind, font_families),
-        meta_title: asset_meta_title(a, kind, font_families)
+        meta_title: asset_meta_title(a, kind, font_families),
+        insert: asset_insert(a, kind, font_families)
       }
     end)
     |> by_mode(mode)
@@ -81,6 +82,44 @@ defmodule TypsterWeb.FileTree do
 
   defp asset_meta_title(_a, :web_font, _), do: gettext("editor.assets.font_unsupported_title")
   defp asset_meta_title(_a, _kind, _), do: nil
+
+  @doc """
+  The Typst snippet dropped into the editor when an asset row is dragged there,
+  or `nil` when the asset has nothing to insert (an unreadable web font, or a
+  font whose family the preview has not reported yet). Paths are project-root
+  absolute (`/assets/…`) so they resolve from files in subdirectories too.
+  """
+  def asset_insert(a, kind, families \\ %{})
+
+  def asset_insert(a, :image, _families),
+    do: ~s|#image(#{typst_string("/assets/" <> a.filename)})|
+
+  def asset_insert(a, :font, families) do
+    case Map.get(families, Typster.Assets.reference_path(a), []) do
+      [family | _] -> ~s|#set text(font: #{typst_string(family)})|
+      [] -> nil
+    end
+  end
+
+  def asset_insert(_a, :web_font, _families), do: nil
+
+  def asset_insert(a, _kind, _families) do
+    path = typst_string("/assets/" <> a.filename)
+
+    case a.filename |> Path.extname() |> String.downcase() do
+      ".bib" -> "#bibliography(#{path})"
+      ".csv" -> "#csv(#{path})"
+      ".json" -> "#json(#{path})"
+      ext when ext in ~w(.yaml .yml) -> "#yaml(#{path})"
+      ".toml" -> "#toml(#{path})"
+      ".xml" -> "#xml(#{path})"
+      _ -> "#read(#{path})"
+    end
+  end
+
+  defp typst_string(text) do
+    ~s|"| <> (text |> String.replace("\\", "\\\\") |> String.replace(~s|"|, ~s|\\"|)) <> ~s|"|
+  end
 
   defp by_mode(items, :flat), do: Enum.map(items, &Map.merge(&1, %{type: :leaf, name: &1.path}))
   defp by_mode(items, :smart), do: items |> build_tree() |> smart_collapse()
@@ -216,8 +255,10 @@ defmodule TypsterWeb.FileTree do
           id={leaf_dom_id(node, @id_prefix)}
           phx-click={if not node.asset? and node.editable, do: "select_file"}
           phx-value-file-id={node.id}
-          draggable={can_drag && "true"}
+          draggable={(can_drag or Map.get(node, :insert) != nil) && "true"}
           data-dnd-file={if can_drag, do: node.id}
+          data-asset-insert={Map.get(node, :insert)}
+          title={Map.get(node, :insert) && gettext("editor.assets.drag_hint")}
           class={[
             "ts-tree__item",
             node.asset? && "is-asset",

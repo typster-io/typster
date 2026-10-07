@@ -526,3 +526,22 @@ export const FileTreeDnD = {
     })
   }
 }
+
+// Drag an asset row into the editor to insert its Typst snippet (#97). The row
+// carries the snippet in `data-asset-insert`; CodeMirror's built-in drop
+// handler inserts dropped `text/plain` at the drop position. Delegated on the
+// <ul>, so rows LiveView re-renders need no re-binding.
+export const AssetDrag = {
+  mounted() {
+    this.el.addEventListener("dragstart", (e) => {
+      const li = e.target.closest("[data-asset-insert]")
+      if (!li) return
+      e.dataTransfer.effectAllowed = "copy"
+      e.dataTransfer.setData("text/plain", li.dataset.assetInsert)
+      li.classList.add("is-dnd-dragging")
+    })
+    this.el.addEventListener("dragend", () => {
+      this.el.querySelectorAll(".is-dnd-dragging").forEach((n) => n.classList.remove("is-dnd-dragging"))
+    })
+  }
+}
