@@ -18,6 +18,16 @@ defmodule Typster.ProjectsTest do
       assert project.user_id == user.id
     end
 
+    test "create_project/2 rejects names longer than the column" do
+      scope = Scope.for_user(user_fixture())
+
+      assert {:error, changeset} =
+               Projects.create_project(scope, %{name: String.duplicate("é", 256)})
+
+      assert %{name: [_]} = errors_on(changeset)
+      assert {:ok, _} = Projects.create_project(scope, %{name: String.duplicate("é", 255)})
+    end
+
     test "list_projects/1 only returns projects for the current scope user" do
       user = user_fixture()
       other_user = user_fixture()

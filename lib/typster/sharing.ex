@@ -116,6 +116,43 @@ defmodule Typster.Sharing do
     |> Repo.all()
   end
 
+  @doc """
+  URL slug for a project's public share page (`/p/:slug`). Cosmetic only —
+  the `key` query param is what authorizes the view.
+  """
+  def slug(%{name: name}) do
+    name
+    |> String.downcase()
+    |> String.replace(~r/[^a-z0-9]+/, "-")
+    |> String.trim("-")
+    |> case do
+      "" -> "project"
+      slug -> slug
+    end
+  end
+
+  @doc """
+  PUBLIC: what a fork of the link's project would copy — file and asset counts
+  plus total asset bytes. Powers the copy modal's "what you get" meta line.
+  """
+  def fork_stats(%ShareLink{project_id: project_id}) do
+    files =
+      Repo.aggregate(
+        from(f in Typster.Projects.File, where: f.project_id == ^project_id),
+        :count
+      )
+
+    {assets, bytes} =
+      Repo.one(
+        from(a in Typster.Assets.Asset,
+          where: a.project_id == ^project_id,
+          select: {count(a.id), coalesce(sum(a.size), 0)}
+        )
+      )
+
+    %{files: files, assets: assets, bytes: bytes}
+  end
+
   ## Link-authorized fork & join
 
   @doc """
@@ -127,17 +164,25 @@ defmodule Typster.Sharing do
 
   Returns `{:ok, project}`, `{:error, changeset}` for a bad name,
   `{:error, :forbidden}` when the owner has not enabled copying,
-  `{:error, :not_found}` for an unknown token or anonymous visitor.
+  `{:error, :not_found}` for an unknown token or anonymous visitor. `opts` are
+  passed to `Typster.Projects.fork_project/4` (e.g. `:on_progress`).
   """
-  def fork_via_link(%Scope{user: %User{}} = scope, token, attrs) when is_binary(token) do
+  def fork_via_link(scope, token, attrs, opts \\ [])
+
+  def fork_via_link(%Scope{user: %User{}} = scope, token, attrs, opts) when is_binary(token) do
     case get_link_by_token(token) do
-      nil -> {:error, :not_found}
-      %ShareLink{allow_fork: true} = link -> Projects.fork_project(scope, link.project, attrs)
-      %ShareLink{} -> {:error, :forbidden}
+      nil ->
+        {:error, :not_found}
+
+      %ShareLink{allow_fork: true} = link ->
+        Projects.fork_project(scope, link.project, attrs, opts)
+
+      %ShareLink{} ->
+        {:error, :forbidden}
     end
   end
 
-  def fork_via_link(_scope, _token, _attrs), do: {:error, :not_found}
+  def fork_via_link(_scope, _token, _attrs, _opts), do: {:error, :not_found}
 
   @doc """
   PUBLIC (token): joins the signed-in visitor as an accepted collaborator on

@@ -47,3 +47,13 @@ npm-debug.log
 
 # Playwright MCP screenshot/snapshot artifacts
 .playwright-mcp/
+
+# design-sync (machine state, regenerated)
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
+assets/.ds-css/
+.design-sync/
+assets/ds-entry.mjs

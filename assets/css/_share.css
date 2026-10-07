@@ -30,6 +30,7 @@
   --accent-text: #fff;
   --surface: var(--mk-bg);
   --surface-2: var(--mk-bg2);
+  --surface-3: var(--mk-bg3);
   --border: var(--mk-bd);
   --border-strong: color-mix(in oklab, var(--mk-bd) 45%, var(--mk-fg4));
   --text: var(--mk-fg);
@@ -1884,25 +1885,226 @@
   background: var(--surface);
 }
 
-/* fork-a-copy modal on the public shared view */
-.share-public__fork-overlay {
+/* ── Fork flow — "Make a copy" modal on the public shared view ──────────────
+   Port of fork-flow.css: one modal, four internal states (form / invalid /
+   busy / failed) + the anonymous sign-in step. Below 640px it becomes a
+   bottom sheet. */
+.fk-overlay {
   position: fixed;
   inset: 0;
   z-index: 60;
   display: grid;
   place-items: center;
-  background: color-mix(in srgb, var(--mk-ink, #0b0b0f) 45%, transparent);
+  padding: 32px;
+  background: color-mix(in oklab, #0b1020 52%, transparent);
   backdrop-filter: blur(2px);
 }
-.share-public__fork-overlay .share-public__panel {
-  text-align: left;
-  justify-items: stretch;
-  width: min(380px, calc(100vw - 32px));
+.fk-modal {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--mk-sh-md);
+  overflow: hidden;
+  position: relative;
 }
-.share-public__fork-overlay h2 {
-  font: 600 16px var(--font-sans);
-  color: var(--text);
-  margin: 0;
+.fk-head { padding: 18px 20px 0; display: flex; align-items: flex-start; gap: 12px; }
+.fk-head .t { flex: 1; min-width: 0; }
+.fk-head .ttl { font: 600 16px var(--font-sans); color: var(--text); letter-spacing: -0.01em; }
+.fk-head .sub { font: 12.5px/1.5 var(--font-sans); color: var(--text-dim); margin-top: 4px; text-wrap: pretty; }
+.fk-head .x {
+  width: 26px; height: 26px; flex: none;
+  display: grid; place-items: center;
+  background: transparent; border: 0; border-radius: 6px;
+  color: var(--text-mute); cursor: pointer;
+}
+.fk-head .x:hover { background: var(--surface-2); color: var(--text); }
+
+.fk-body { padding: 16px 20px 4px; }
+.fk-label {
+  font: 500 10.5px var(--font-sans);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-mute);
+  margin-bottom: 7px;
+}
+/* invalid name: red border + soft 4px ring until the first keystroke */
+.fk-body .input.invalid,
+.fk-body .input.invalid:focus {
+  border-color: var(--red-500);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--red-500) 16%, transparent);
+  outline: none;
+}
+.fk-err {
+  display: flex; align-items: center; gap: 6px;
+  font: 12px var(--font-sans); color: var(--red-500);
+  margin-top: 7px;
+}
+.fk-meta {
+  display: flex; align-items: center; gap: 7px;
+  font: 12px var(--font-sans); color: var(--text-mute);
+  margin-top: 10px;
+  min-height: 18px;
+}
+/* copying: 2px progress bar on the modal's top edge + the stage row */
+.fk-progressbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  height: 2px;
+  background: var(--accent);
+  transition: width 300ms ease;
+}
+.fk-stages {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  font: 12px var(--font-sans); color: var(--text-mute);
+  margin-top: 10px;
+  min-height: 18px;
+}
+.fk-stages .st { display: inline-flex; align-items: center; gap: 4px; }
+.fk-stages .st--done { color: var(--green-500); }
+.fk-stages .st--cur { color: var(--text); font-weight: 500; }
+.fk-stages .st--todo { opacity: 0.7; }
+.fk-body .input:disabled { opacity: 0.7; cursor: default; }
+.fk-fail {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin-top: 12px;
+  padding: 11px 12px;
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--red-500) 7%, var(--surface));
+  border: 1px solid color-mix(in oklab, var(--red-500) 26%, transparent);
+}
+.fk-fail > .hero-exclamation-triangle { color: var(--red-500); flex: none; margin-top: 1px; }
+.fk-fail .m { font: 12.5px/1.5 var(--font-sans); color: var(--text); text-wrap: pretty; }
+
+.fk-foot {
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  padding: 16px 20px 18px;
+}
+.fk-foot .cancel {
+  background: transparent; border: 0; cursor: pointer;
+  font: 500 13px var(--font-sans); color: var(--text-dim);
+  padding: 8px 10px; border-radius: 8px;
+}
+.fk-foot .cancel:hover { background: var(--surface-2); color: var(--text); }
+.fk-foot .ts-btn[disabled] { opacity: 0.6; cursor: default; }
+
+/* anonymous sign-in step */
+.fk-anon { padding: 4px 20px 0; text-align: center; }
+.fk-anon .badge {
+  width: 44px; height: 44px; margin: 10px auto 12px;
+  border-radius: 12px;
+  background: var(--accent-soft); color: var(--accent);
+  display: grid; place-items: center;
+}
+.fk-anon .h { font: 600 15px var(--font-sans); color: var(--text); }
+.fk-anon .p {
+  font: 12.5px/1.55 var(--font-sans); color: var(--text-dim);
+  margin: 6px auto 0; max-width: 300px; text-wrap: pretty;
+}
+.fk-anon-foot { padding: 16px 20px 14px; display: grid; gap: 8px; }
+.fk-anon-foot .ts-btn { justify-content: center; }
+.fk-anon-note {
+  text-align: center; padding: 0 20px 16px;
+  font: 11.5px var(--font-sans); color: var(--text-mute);
+}
+
+/* icon-only read-only pill when action buttons sit alongside it */
+.share-public .embed-bar .ro-pill--compact { padding: 2px 6px; }
+
+/* narrow bar below 720px: the pill is already icon-only, so the file name
+   hides first and the action buttons drop their labels into tooltips */
+@media (max-width: 720px) {
+  .share-public .embed-bar .file { display: none; }
+  .share-public .embed-bar .bar-act { flex: none; width: 30px; padding: 0; justify-content: center; }
+  .share-public .embed-bar .bar-act .lbl { display: none; }
+}
+
+/* "view only" hint pinned to the source pane */
+.share-public .embed-source { position: relative; }
+.fk-lock-hint {
+  position: absolute;
+  bottom: 10px;
+  left: 14px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
+  backdrop-filter: blur(3px);
+  font: 11px var(--font-sans);
+  color: var(--text-mute);
+  pointer-events: none;
+}
+
+/* bottom sheet below 640px: swap the centered card for an edge-to-edge
+   sheet with a grab handle; footer actions stack, primary on top */
+@media (max-width: 640px) {
+  .fk-overlay { padding: 0; align-items: end; }
+  .fk-modal {
+    max-width: none;
+    align-self: end;
+    border-radius: 16px 16px 0 0;
+    border-bottom: 0;
+    padding-bottom: 10px;
+  }
+  .fk-modal::before {
+    content: "";
+    display: block;
+    width: 36px; height: 4px;
+    border-radius: 999px;
+    background: var(--border-strong);
+    margin: 8px auto 2px;
+  }
+  .fk-foot { flex-direction: column-reverse; align-items: stretch; gap: 6px; padding-bottom: 12px; }
+  .fk-foot .ts-btn { justify-content: center; padding: 11px 14px; }
+  .fk-foot .cancel { text-align: center; padding: 10px; }
+}
+
+/* mobile Preview | Source switch: hidden on wide screens; below 640px it
+   sits under the bar and only the chosen pane is shown. Scoped to the pane
+   classes (never on /embed, which keeps its split), and laid out as a flex
+   column so an optional notice row can't push the switch into the
+   stretching track. */
+.share-public .shv-seg { display: none; }
+@media (max-width: 640px) {
+  .share-public .embed-comp--pane-preview,
+  .share-public .embed-comp--pane-source {
+    display: flex;
+    flex-direction: column;
+  }
+  .share-public .embed-comp--pane-preview > .embed-preview,
+  .share-public .embed-comp--pane-source > .embed-source { flex: 1; }
+  .share-public .shv-seg {
+    flex: none;
+    display: flex;
+    gap: 2px;
+    margin: 8px 10px;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--surface-3);
+  }
+  .share-public .shv-seg .opt {
+    flex: 1;
+    padding: 5px 10px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    font: 500 12px var(--font-sans);
+    color: var(--text-dim);
+    cursor: pointer;
+  }
+  .share-public .shv-seg .opt.on {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--mk-sh-sm);
+  }
+  .share-public .embed-comp--pane-preview .embed-source,
+  .share-public .embed-comp--pane-source .embed-preview { display: none; }
+  .share-public .embed-comp--pane-source > .embed-source { border-right: 0; }
 }
 
 /* invalid / expired link panel */

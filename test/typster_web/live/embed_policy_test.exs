@@ -34,11 +34,19 @@ defmodule TypsterWeb.EmbedPolicyTest do
       refute has_element?(view, ".ro-pill--edit")
     end
 
-    test "stays branded and ignores a smart-CTA request", %{conn: conn, link: link} do
+    test "stays branded and ignores a smart-CTA request", %{
+      conn: conn,
+      link: link,
+      project: project
+    } do
       {:ok, view, _html} = live(conn, ~p"/embed/#{link.token}?#{[cta: "signup"]}")
 
+      # The fixed free CTA opens the public share page (keyed by the link),
+      # never the editor — that URL only works for people with edit access.
+      share_href = "/p/#{Sharing.slug(project)}?key=#{link.token}"
+
       assert has_element?(view, ".embed-foot .powered")
-      assert has_element?(view, ~s|a.embed-foot__cta[href="/projects/#{link.project_id}/edit"]|)
+      assert has_element?(view, ~s|a.embed-foot__cta[href="#{share_href}"]|)
       refute has_element?(view, ~s|a.embed-foot__cta[href="/users/register"]|)
     end
   end

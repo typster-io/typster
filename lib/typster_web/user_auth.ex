@@ -42,7 +42,7 @@ defmodule TypsterWeb.UserAuth do
 
     conn
     |> create_or_extend_session(user, params)
-    |> redirect(to: user_return_to || signed_in_path(conn))
+    |> redirect(to: safe_return_to(user_return_to) || signed_in_path(conn))
   end
 
   @doc """
@@ -314,8 +314,63 @@ defmodule TypsterWeb.UserAuth do
     end
   end
 
+  @doc """
+  Plug: on `GET /users/log-in` and `GET /users/register`, remembers a
+  `?return_to=` query param as the post-login destination (`:user_return_to`)
+  — e.g. the share page's copy modal, so an anonymous visitor lands back on it.
+
+  Only a local path passes `safe_return_to/1`; anything else is ignored, so it
+  can never become an open redirect.
+
+  A target stored this way is marked (`:user_return_to_param`): it may carry
+  a share link's secret key, so a later visit to the auth pages without a
+  valid `return_to` drops it — on a shared browser, the next person to sign
+  in must not land on the previous visitor's private link. A target stored
+  by `require_authenticated_user/2` is unmarked and survives that visit.
+  """
+  def store_return_to_param(%{method: "GET", request_path: path} = conn, _opts)
+      when path in ["/users/log-in", "/users/register"] do
+    case safe_return_to(conn.params["return_to"]) do
+      nil ->
+        if get_session(conn, :user_return_to_param) do
+          conn
+          |> delete_session(:user_return_to)
+          |> delete_session(:user_return_to_param)
+        else
+          conn
+        end
+
+      return_to ->
+        conn
+        |> put_session(:user_return_to, return_to)
+        |> put_session(:user_return_to_param, true)
+    end
+  end
+
+  def store_return_to_param(conn, _opts), do: conn
+
+  @doc """
+  Returns `path` when it is a safe local redirect target, otherwise `nil`.
+
+  Safe means: a single leading `/` (not `//` or `/\\`, which browsers treat as
+  protocol-relative), no scheme or host, no backslashes or control characters
+  (browsers strip tabs/newlines, which could turn `/\\t/evil` into `//evil`).
+  """
+  def safe_return_to("/" <> rest = path) when byte_size(path) <= 2048 do
+    cond do
+      String.starts_with?(rest, ["/", "\\"]) -> nil
+      String.match?(path, ~r/[\x00-\x1f\x7f\\]/) -> nil
+      match?(%URI{scheme: nil, host: nil}, URI.parse(path)) -> path
+      true -> nil
+    end
+  end
+
+  def safe_return_to(_path), do: nil
+
   defp maybe_store_return_to(%{method: "GET"} = conn) do
-    put_session(conn, :user_return_to, current_path(conn))
+    conn
+    |> put_session(:user_return_to, current_path(conn))
+    |> delete_session(:user_return_to_param)
   end
 
   defp maybe_store_return_to(conn), do: conn

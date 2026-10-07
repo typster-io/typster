@@ -1117,19 +1117,10 @@ defmodule TypsterWeb.EditorLive.Index do
   defp invite_role(_), do: :editor
 
   # Full public share URL for the project's link (for display + copy).
-  defp share_url(project, %{token: token}), do: url(~p"/p/#{share_slug(project)}?#{[key: token]}")
-  defp share_url(_project, _link), do: "#"
+  defp share_url(project, %{token: token}),
+    do: url(~p"/p/#{Sharing.slug(project)}?#{[key: token]}")
 
-  defp share_slug(%{name: name}) do
-    name
-    |> String.downcase()
-    |> String.replace(~r/[^a-z0-9]+/, "-")
-    |> String.trim("-")
-    |> case do
-      "" -> "project"
-      slug -> slug
-    end
-  end
+  defp share_url(_project, _link), do: "#"
 
   # Role label + avatar colour for the People list. Accepted collaborators have a
   # user id, so they share the exact colour of their presence avatar and cursor;

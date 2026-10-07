@@ -53,11 +53,19 @@ defmodule TypsterWeb.EmbedProTest do
     refute has_element?(view, ".embed-foot .powered")
   end
 
-  test "?cta=signup swaps the footer CTA for the sign-up funnel", %{conn: conn, link: link} do
+  test "?cta=signup swaps the footer CTA for the sign-up funnel", %{
+    conn: conn,
+    link: link,
+    project: project
+  } do
     {:ok, view, _html} = live(conn, ~p"/embed/#{link.token}?#{[cta: "signup"]}")
 
     assert has_element?(view, ~s|a.embed-foot__cta[href="/users/register"]|)
-    refute has_element?(view, ~s|a.embed-foot__cta[href="/projects/#{link.project_id}/edit"]|)
+
+    refute has_element?(
+             view,
+             ~s|a.embed-foot__cta[href="/p/#{Sharing.slug(project)}?key=#{link.token}"]|
+           )
   end
 
   test "?cta=none removes the footer CTA entirely", %{conn: conn, link: link} do

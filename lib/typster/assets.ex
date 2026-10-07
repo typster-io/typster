@@ -6,6 +6,7 @@ defmodule Typster.Assets do
   import Ecto.Query, warn: false
   alias Typster.Accounts.Scope
   alias Typster.Assets.Asset
+  alias Typster.Jobs.ForkCleanup
   alias Typster.Repo
   alias Typster.Sharing.Collaborator
 
@@ -98,19 +99,25 @@ defmodule Typster.Assets do
   @doc """
   Copies every asset of `source_project_id` into `target_project_id`,
   duplicating each S3 object under a fresh key (forks must not share objects —
-  deleting the original would break the copy).
+  deleting the original would break the copy). Target keys are derived from
+  the target project and source asset ids (`fork_object_key/2`), so the
+  cleanup safety net can list them before the copy starts.
 
-  No scope: authorization is the caller's job (`Typster.Projects.fork_project/3`
+  `on_progress` is called with `{:assets, copied_bytes, total_bytes}` after
+  each object lands.
+
+  No scope: authorization is the caller's job (`Typster.Projects.fork_project/4`
   runs this inside its transaction). Returns `:ok`, or `{:error, reason}` on
   the first failed S3 copy so the caller can roll the fork back.
   """
-  def copy_project_assets(source_project_id, target_project_id) do
-    bucket = Application.get_env(:typster, :s3_bucket, "typster-assets")
+  def copy_project_assets(source_project_id, target_project_id, on_progress \\ fn _ -> :ok end) do
+    bucket = bucket()
+    assets = source_assets(source_project_id)
+    total = Enum.sum_by(assets, &(&1.size || 0))
 
-    from(a in Asset, where: a.project_id == ^source_project_id)
-    |> Repo.all()
-    |> Enum.reduce_while(:ok, fn asset, :ok ->
-      new_key = object_key(target_project_id, asset.filename)
+    assets
+    |> Enum.reduce_while({:ok, 0}, fn asset, {:ok, done} ->
+      new_key = fork_object_key(target_project_id, asset)
 
       case ExAws.S3.put_object_copy(bucket, new_key, bucket, asset.object_key)
            |> ExAws.request() do
@@ -124,13 +131,86 @@ defmodule Typster.Assets do
             inserted_at: DateTime.utc_now(:second)
           })
 
-          {:cont, :ok}
+          done = done + (asset.size || 0)
+          on_progress.({:assets, done, total})
+          {:cont, {:ok, done}}
 
         {:error, reason} ->
           {:halt, {:error, reason}}
       end
     end)
+    |> case do
+      {:ok, _done} -> :ok
+      error -> error
+    end
   end
+
+  @doc """
+  Enqueues the `Typster.Jobs.ForkCleanup` safety net for a fork of
+  `source_project_id` into `fork_id`, *before* the copy starts and outside
+  its transaction (so a rollback, a crash or a killed caller can't undo it).
+
+  The job args carry the exact keys the copy may write, snapshotted now from
+  the source's assets — so source assets deleted or renamed meanwhile (or a
+  deleted source project) can't hide an orphaned object from the cleanup.
+  No job when the source has no assets: there is nothing to orphan.
+  """
+  def schedule_fork_cleanup(fork_id, source_project_id, delay_seconds \\ 60) do
+    case Enum.map(source_assets(source_project_id), &fork_object_key(fork_id, &1)) do
+      [] ->
+        :ok
+
+      keys ->
+        %{"fork_id" => fork_id, "object_keys" => keys}
+        |> ForkCleanup.new(schedule_in: delay_seconds)
+        |> Oban.insert!()
+
+        :ok
+    end
+  end
+
+  @doc """
+  Takes the fork's transaction-scoped advisory lock. `fork_project/4` holds
+  it for the whole copy; `try_lock_fork/1` tells the cleanup job whether a
+  copy is still in flight.
+  """
+  def lock_fork!(fork_id) do
+    Repo.query!("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [fork_id])
+    :ok
+  end
+
+  @doc "Non-blocking `lock_fork!/1`: `true` when no copy holds the lock. Call inside a transaction."
+  def try_lock_fork(fork_id) do
+    %{rows: [[locked?]]} =
+      Repo.query!("SELECT pg_try_advisory_xact_lock(hashtextextended($1, 0))", [fork_id])
+
+    locked?
+  end
+
+  @doc """
+  Best-effort delete of the given fork object keys. Missing keys are fine
+  (S3 deletes are idempotent). Returns `:ok` or the first `{:error, reason}`.
+  """
+  def delete_fork_objects(object_keys) do
+    bucket = bucket()
+
+    object_keys
+    |> Enum.map(&(ExAws.S3.delete_object(bucket, &1) |> ExAws.request()))
+    |> Enum.find(:ok, &match?({:error, _}, &1))
+  end
+
+  # Deterministic per (fork, source asset): asset ids are unique, so keys never
+  # collide inside a fork, and the cleanup can recompute them.
+  defp fork_object_key(target_project_id, %Asset{} = asset) do
+    "projects/#{target_project_id}/assets/#{asset.id}-#{safe_name(asset.filename)}"
+  end
+
+  defp source_assets(project_id) do
+    from(a in Asset, where: a.project_id == ^project_id, order_by: [asc: a.inserted_at])
+    |> Repo.all()
+  end
+
+  defp bucket, do: Application.get_env(:typster, :s3_bucket, "typster-assets")
 
   def reference_path(%Asset{} = asset), do: "assets/#{asset.filename}"
 
@@ -146,12 +226,13 @@ defmodule Typster.Assets do
   end
 
   defp object_key(project_id, filename) do
-    safe_name =
-      filename
-      |> Path.basename()
-      |> String.replace(~r/[^A-Za-z0-9._-]/, "-")
+    "projects/#{project_id}/assets/#{System.unique_integer([:positive])}-#{safe_name(filename)}"
+  end
 
-    "projects/#{project_id}/assets/#{System.unique_integer([:positive])}-#{safe_name}"
+  defp safe_name(filename) do
+    filename
+    |> Path.basename()
+    |> String.replace(~r/[^A-Za-z0-9._-]/, "-")
   end
 
   defp put_object(object_key, body, content_type) do
