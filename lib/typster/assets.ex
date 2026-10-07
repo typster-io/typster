@@ -128,13 +128,15 @@ defmodule Typster.Assets do
   @doc """
   What the client-side preview needs to know about a project's assets.
 
-  Every asset is listed with its kind; fonts additionally carry a presigned
-  `url` so the preview worker can fetch the bytes and register them with the
-  compiler. The URL is valid for an hour, which covers the worker's one-time
-  fetch — it caches the bytes afterwards.
+  Every asset is listed with its kind; fonts additionally carry a `url` the
+  preview worker fetches to register the bytes with the compiler. The caller
+  supplies `font_url`, a function from asset to URL, so each view points at
+  its own same-origin route (`TypsterWeb.AssetController`) — fetching from
+  object storage directly would hinge on the bucket's CORS setup. Without a
+  builder, fonts are listed but not registrable.
   """
-  @spec preview_manifest([Asset.t()]) :: [map()]
-  def preview_manifest(assets) do
+  @spec preview_manifest([Asset.t()], (Asset.t() -> String.t() | nil)) :: [map()]
+  def preview_manifest(assets, font_url \\ fn _asset -> nil end) do
     Enum.map(assets, fn %Asset{} = asset ->
       kind = kind(asset)
 
@@ -146,12 +148,30 @@ defmodule Typster.Assets do
         kind: Atom.to_string(kind)
       }
 
-      with :font <- kind, {:ok, url} <- get_asset_url(asset) do
+      with :font <- kind, url when is_binary(url) <- font_url.(asset) do
         Map.put(entry, :url, url)
       else
         _ -> entry
       end
     end)
+  end
+
+  @doc "PUBLIC (token-authorized caller): one font of a project, or nil."
+  @spec get_project_font(Ecto.UUID.t(), Ecto.UUID.t()) :: Asset.t() | nil
+  def get_project_font(project_id, id) do
+    case Repo.get_by(Asset, id: id, project_id: project_id) do
+      %Asset{} = asset -> if font?(asset), do: asset
+      nil -> nil
+    end
+  end
+
+  @doc "Read an asset's bytes from object storage."
+  @spec fetch_object(Asset.t()) :: {:ok, binary()} | {:error, term()}
+  def fetch_object(%Asset{object_key: key}) do
+    case ExAws.S3.get_object(bucket(), key) |> ExAws.request() do
+      {:ok, %{body: body}} -> {:ok, body}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """

@@ -565,6 +565,32 @@ defmodule TypsterWeb.EditorLiveTest do
       assert has_element?(view, "[id$='asset-entry-#{woff.id}'] .ts-tree__pill", "needs TTF/OTF")
     end
 
+    test "dropping a font uploads it and pushes the new asset list to the editor", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+      bytes = File.read!("assets/e2e/fixtures/NotoSansLycian-Regular.ttf")
+
+      input =
+        file_input(view, "#dropped-upload-form", :dropped, [
+          %{name: "Brand.otf", content: bytes, type: "font/otf"}
+        ])
+
+      render_upload(input, "Brand.otf")
+
+      assert has_element?(view, "[id*='asset-entry'] .ts-filechip--font")
+      assert render(view) =~ "Brand.otf"
+
+      assert_push_event(view, "assets_updated", %{
+        assets: [%{kind: "font", reference_path: "assets/Brand.otf", url: url}]
+      })
+
+      assert url =~ ~r"^/projects/#{project.id}/assets/[0-9a-f-]+/raw$"
+    end
+
     test "malformed font reports are ignored", %{conn: conn, user: user, project: project} do
       font = asset_fixture(project, user, %{filename: "Brand.ttf"})
       view = open_editor(conn, project)

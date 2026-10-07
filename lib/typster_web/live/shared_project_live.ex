@@ -74,7 +74,10 @@ defmodule TypsterWeb.SharedProjectLive do
      |> assign(:project_sources, project_sources(files))
      |> assign(
        :project_assets,
-       Assets.preview_manifest(Assets.list_project_fonts(link.project_id))
+       Assets.preview_manifest(
+         Assets.list_project_fonts(link.project_id),
+         &~p"/p/#{Sharing.slug(link.project)}/assets/#{&1.id}?#{[key: link.token]}"
+       )
      )
      |> assign(:can_join?, can_join?)
      |> assign(:can_fork?, can_fork?)

@@ -550,7 +550,7 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       assert [%{"kind" => "font", "reference_path" => "assets/Brand.ttf", "url" => url}] =
                manifest
 
-      assert url =~ font.object_key
+      assert url == "/p/#{Typster.Sharing.slug(project)}/assets/#{font.id}?key=#{link.token}"
     end
   end
 end

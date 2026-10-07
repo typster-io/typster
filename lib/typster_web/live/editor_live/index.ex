@@ -1,6 +1,8 @@
 defmodule TypsterWeb.EditorLive.Index do
   use TypsterWeb, :live_view
 
+  require Logger
+
   alias Typster.Assets
   alias Typster.Features
   alias Typster.Files
@@ -59,7 +61,7 @@ defmodule TypsterWeb.EditorLive.Index do
      |> assign(:content, if(main_file, do: main_file.content || "", else: ""))
      |> assign(:editor_language, editor_language(main_file))
      |> assign(:project_sources, project_sources(file_tree))
-     |> assign(:project_assets, Assets.preview_manifest(assets))
+     |> assign(:project_assets, Assets.preview_manifest(assets, &font_url(project.id, &1)))
      |> assign(:font_families, %{})
      |> assign(:save_status, "saved")
      |> assign(:preview_stats, nil)
@@ -736,8 +738,7 @@ defmodule TypsterWeb.EditorLive.Index do
 
     {:noreply,
      socket
-     |> assign(:assets, assets)
-     |> assign(:project_assets, Assets.preview_manifest(assets))
+     |> assign_assets(assets)
      |> put_flash(:info, gettext("editor.flash.asset_deleted"))}
   end
 
@@ -766,8 +767,7 @@ defmodule TypsterWeb.EditorLive.Index do
 
         {:noreply,
          socket
-         |> assign(:assets, assets)
-         |> assign(:project_assets, Assets.preview_manifest(assets))
+         |> assign_assets(assets)
          |> put_flash(:info, gettext("editor.flash.asset_uploaded"))}
 
       {:error, _reason} ->
@@ -918,13 +918,17 @@ defmodule TypsterWeb.EditorLive.Index do
 
         cond do
           Files.asset_file?(name) ->
-            Assets.upload_entry(scope, project_id, %{
-              path: tmp,
-              client_name: name,
-              client_type: entry.client_type
-            })
+            upload =
+              Assets.upload_entry(scope, project_id, %{
+                path: tmp,
+                client_name: name,
+                client_type: entry.client_type
+              })
 
-            {:ok, :asset}
+            case upload do
+              {:ok, _asset} -> {:ok, :asset}
+              {:error, reason} -> {:ok, {:failed, name, reason}}
+            end
 
           Files.editable_file?(name) ->
             Files.create_file(scope, project_id, %{path: name, content: read_upload!(tmp)})
@@ -938,17 +942,38 @@ defmodule TypsterWeb.EditorLive.Index do
     file_tree = Files.get_file_tree(scope, project_id)
     assets = Assets.list_assets(scope, project_id)
     unsupported = Enum.any?(results, &match?({:unsupported, _}, &1))
+    failed = Enum.filter(results, &match?({:failed, _, _}, &1))
+
+    for {:failed, name, reason} <- failed do
+      Logger.warning("dropped asset upload failed: #{name}: #{inspect(reason)}")
+    end
 
     socket
     |> assign(:file_tree, file_tree)
     |> assign(:project_sources, project_sources(file_tree))
-    |> assign(:assets, assets)
-    |> assign(:project_assets, Assets.preview_manifest(assets))
+    |> assign_assets(assets)
     |> then(fn s ->
-      if unsupported,
-        do: put_flash(s, :error, gettext("editor.flash.unsupported_file")),
-        else: put_flash(s, :info, gettext("editor.flash.dropped_added"))
+      cond do
+        failed != [] -> put_flash(s, :error, gettext("editor.flash.asset_upload_failed"))
+        unsupported -> put_flash(s, :error, gettext("editor.flash.unsupported_file"))
+        true -> put_flash(s, :info, gettext("editor.flash.dropped_added"))
+      end
     end)
+  end
+
+  # Fonts are fetched by the browser-side compiler through our own origin.
+  defp font_url(project_id, asset), do: ~p"/projects/#{project_id}/assets/#{asset.id}/raw"
+
+  # The editor element is `phx-update="ignore"`, so a changed asset list never
+  # reaches the hook through the DOM: push it, and the hook recompiles so a
+  # just-uploaded font applies to the preview without a reload.
+  defp assign_assets(socket, assets) do
+    manifest = Assets.preview_manifest(assets, &font_url(socket.assigns.project.id, &1))
+
+    socket
+    |> assign(:assets, assets)
+    |> assign(:project_assets, manifest)
+    |> push_event("assets_updated", %{assets: manifest})
   end
 
   # Read an upload's temp file, confined to the system temp dir where LiveView

@@ -135,6 +135,10 @@ defmodule TypsterWeb.Router do
     # unregistered invitee is sent to log-in/registration first, then returned
     # here (via :user_return_to) to link the invite to their account.
     get "/invites/:id", InviteController, :show
+
+    # Raw asset bytes for the browser-side compiler (fonts). Same origin as
+    # the app, so no bucket CORS is involved; owner or accepted collaborator.
+    get "/projects/:project_id/assets/:id/raw", AssetController, :show
   end
 
   scope "/", TypsterWeb do
@@ -158,6 +162,9 @@ defmodule TypsterWeb.Router do
 
     post "/users/log-in", UserSessionController, :create
     delete "/users/log-out", UserSessionController, :delete
+
+    # Font bytes for the shared view and the embed; the link token authorizes.
+    get "/p/:slug/assets/:id", AssetController, :shared
   end
 
   # The embed view is identical to the shared view but framable cross-origin, so
