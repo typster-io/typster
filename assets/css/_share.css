@@ -2065,15 +2065,21 @@
 }
 
 /* mobile Preview | Source switch: hidden on wide screens; below 640px it
-   sits under the bar and only the chosen pane is shown */
+   sits under the bar and only the chosen pane is shown. Scoped to the pane
+   classes (never on /embed, which keeps its split), and laid out as a flex
+   column so an optional notice row can't push the switch into the
+   stretching track. */
 .share-public .shv-seg { display: none; }
 @media (max-width: 640px) {
-  .share-public .embed-comp.embed-comp--split {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto 1fr auto;
+  .share-public .embed-comp--pane-preview,
+  .share-public .embed-comp--pane-source {
+    display: flex;
+    flex-direction: column;
   }
+  .share-public .embed-comp--pane-preview > .embed-preview,
+  .share-public .embed-comp--pane-source > .embed-source { flex: 1; }
   .share-public .shv-seg {
-    grid-column: 1 / -1;
+    flex: none;
     display: flex;
     gap: 2px;
     margin: 8px 10px;
@@ -2098,7 +2104,7 @@
   }
   .share-public .embed-comp--pane-preview .embed-source,
   .share-public .embed-comp--pane-source .embed-preview { display: none; }
-  .share-public .embed-comp--split .embed-source { border-right: 0; }
+  .share-public .embed-comp--pane-source > .embed-source { border-right: 0; }
 }
 
 /* invalid / expired link panel */
