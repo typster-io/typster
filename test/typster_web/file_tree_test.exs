@@ -4,25 +4,43 @@ defmodule TypsterWeb.FileTreeTest do
   alias Typster.Assets.Asset
   alias TypsterWeb.FileTree
 
-  defp insert(filename, families \\ %{}) do
+  defp insert(filename, families \\ %{}, current_path \\ "main.typ") do
     asset = %Asset{filename: filename}
-    FileTree.asset_insert(asset, Typster.Assets.kind(asset), families)
+    FileTree.asset_insert(asset, Typster.Assets.kind(asset), families, current_path)
   end
 
-  describe "asset_insert/3" do
-    test "an image becomes a root-absolute image() call" do
-      assert insert("logo.png") == ~s|#image("/assets/logo.png")|
-      assert insert("figs/Plot.SVG") == ~s|#image("/assets/figs/Plot.SVG")|
+  describe "insert_snippet/2" do
+    test "paths are relative to the open file's directory" do
+      assert FileTree.insert_snippet("figs/plot.png", "main.typ") == ~s|#image("figs/plot.png")|
+
+      assert FileTree.insert_snippet("figs/plot.png", "chapters/intro.typ") ==
+               ~s|#image("../figs/plot.png")|
+
+      assert FileTree.insert_snippet("chapters/b.typ", "chapters/a.typ") == ~s|#include "b.typ"|
+      assert FileTree.insert_snippet("refs.bib", nil) == ~s|#bibliography("refs.bib")|
     end
 
-    test "data files use the matching Typst loader" do
-      assert insert("refs.bib") == ~s|#bibliography("/assets/refs.bib")|
-      assert insert("table.csv") == ~s|#csv("/assets/table.csv")|
-      assert insert("data.json") == ~s|#json("/assets/data.json")|
-      assert insert("conf.yml") == ~s|#yaml("/assets/conf.yml")|
-      assert insert("conf.toml") == ~s|#toml("/assets/conf.toml")|
-      assert insert("feed.xml") == ~s|#xml("/assets/feed.xml")|
-      assert insert("notes.txt") == ~s|#read("/assets/notes.txt")|
+    test "each file type gets the matching Typst call" do
+      assert FileTree.insert_snippet("ch.typ") == ~s|#include "ch.typ"|
+      assert FileTree.insert_snippet("Plot.SVG") == ~s|#image("Plot.SVG")|
+      assert FileTree.insert_snippet("table.csv") == ~s|#csv("table.csv")|
+      assert FileTree.insert_snippet("data.json") == ~s|#json("data.json")|
+      assert FileTree.insert_snippet("conf.yml") == ~s|#yaml("conf.yml")|
+      assert FileTree.insert_snippet("conf.toml") == ~s|#toml("conf.toml")|
+      assert FileTree.insert_snippet("feed.xml") == ~s|#xml("feed.xml")|
+      assert FileTree.insert_snippet("notes.txt") == ~s|#read("notes.txt")|
+    end
+
+    test "quotes and backslashes are escaped inside the Typst string" do
+      assert FileTree.insert_snippet(~S|a"b\c.png|) == ~S|#image("a\"b\\c.png")|
+    end
+  end
+
+  describe "asset_insert/4" do
+    test "an asset is referenced under assets/, relative to the open file" do
+      assert insert("logo.png") == ~s|#image("assets/logo.png")|
+      assert insert("logo.png", %{}, "chapters/intro.typ") == ~s|#image("../assets/logo.png")|
+      assert insert("refs.bib") == ~s|#bibliography("assets/refs.bib")|
     end
 
     test "a font inserts a set rule once its family is known" do
@@ -35,9 +53,26 @@ defmodule TypsterWeb.FileTreeTest do
     test "a web font has nothing to insert" do
       assert insert("web.woff2") == nil
     end
+  end
 
-    test "quotes and backslashes are escaped inside the Typst string" do
-      assert insert(~S|a"b\c.png|) == ~S|#image("/assets/a\"b\\c.png")|
+  describe "file_nodes/3" do
+    test "rows carry a relative snippet, except the open file itself" do
+      files = [
+        %{id: 1, path: "chapters/intro.typ"},
+        %{id: 2, path: "chapters/outro.typ"},
+        %{id: 3, path: "main.typ"}
+      ]
+
+      inserts =
+        files
+        |> FileTree.file_nodes(:flat, "chapters/intro.typ")
+        |> Map.new(&{&1.path, &1.insert})
+
+      assert inserts == %{
+               "chapters/intro.typ" => nil,
+               "chapters/outro.typ" => ~s|#include "outro.typ"|,
+               "main.typ" => ~s|#include "../main.typ"|
+             }
     end
   end
 end

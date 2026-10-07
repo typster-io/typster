@@ -566,12 +566,12 @@ defmodule TypsterWeb.EditorLiveTest do
 
       assert has_element?(
                view,
-               ~s|#asset-tree[phx-hook="AssetDrag"] [id$="asset-entry-#{image.id}"][draggable="true"][data-asset-insert='#image("/assets/logo.png")']|
+               ~s|#asset-tree[phx-hook="InsertDrag"] [id$="asset-entry-#{image.id}"][draggable="true"][data-insert='#image("assets/logo.png")']|
              )
 
       # A font has nothing to insert until the preview reports its family.
-      refute has_element?(view, "[id$='asset-entry-#{font.id}'][data-asset-insert]")
-      refute has_element?(view, "[id$='asset-entry-#{woff.id}'][data-asset-insert]")
+      refute has_element?(view, "[id$='asset-entry-#{font.id}'][data-insert]")
+      refute has_element?(view, "[id$='asset-entry-#{woff.id}'][data-insert]")
 
       render_hook(view, "fonts_registered", %{
         "fonts" => [%{"reference_path" => "assets/Brand.ttf", "families" => ["Brand Sans"]}]
@@ -579,8 +579,32 @@ defmodule TypsterWeb.EditorLiveTest do
 
       assert has_element?(
                view,
-               ~s|[id$="asset-entry-#{font.id}"][draggable="true"][data-asset-insert='#set text(font: "Brand Sans")']|
+               ~s|[id$="asset-entry-#{font.id}"][draggable="true"][data-insert='#set text(font: "Brand Sans")']|
              )
+    end
+
+    test "file rows insert a path relative to the open file, never an id", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      main = file_fixture(project, user, %{path: "main.typ"})
+      intro = file_fixture(project, user, %{path: "chapters/intro.typ", content: "= Intro"})
+      asset_fixture(project, user)
+      view = open_editor(conn, project)
+
+      view
+      |> element("[phx-click='select_file'][phx-value-file-id='#{intro.id}']")
+      |> render_click()
+
+      assert has_element?(
+               view,
+               ~s|#file-tree-main #select-file-#{main.id}[draggable="true"][data-insert='#include "../main.typ"']|
+             )
+
+      # The open file can't include itself.
+      refute has_element?(view, "#select-file-#{intro.id}[data-insert]")
+      assert has_element?(view, ~s|#asset-tree [data-insert='#image("../assets/logo.png")']|)
     end
 
     test "a WOFF upload is flagged as unreadable by Typst", %{
