@@ -174,7 +174,8 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
       view |> element("#shared-fork-open") |> render_click()
       view |> form("#shared-fork-form", fork: %{name: "Unlucky"}) |> render_submit()
-      render_async(view)
+      # The copy fails on a missing S3 object; give the client's retries room.
+      render_async(view, 5_000)
 
       assert has_element?(view, "#shared-fork-failed")
       assert has_element?(view, "#shared-fork-submit:not([disabled])")
