@@ -23,6 +23,7 @@ defmodule TypsterWeb.FileTreeTest do
     test "each file type gets the matching Typst call" do
       assert FileTree.insert_snippet("ch.typ") == ~s|#include "ch.typ"|
       assert FileTree.insert_snippet("Plot.SVG") == ~s|#image("Plot.SVG")|
+      assert FileTree.insert_snippet("paper.pdf") == ~s|#image("paper.pdf")|
       assert FileTree.insert_snippet("table.csv") == ~s|#csv("table.csv")|
       assert FileTree.insert_snippet("data.json") == ~s|#json("data.json")|
       assert FileTree.insert_snippet("conf.yml") == ~s|#yaml("conf.yml")|

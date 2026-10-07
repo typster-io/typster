@@ -115,6 +115,7 @@ defmodule TypsterWeb.FileTree do
     ".gif" => "image",
     ".svg" => "image",
     ".webp" => "image",
+    ".pdf" => "image",
     ".bib" => "bibliography",
     ".csv" => "csv",
     ".json" => "json",
