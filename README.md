@@ -31,7 +31,7 @@ Typst is a modern LaTeX alternative — a markup-based language for producing be
 | Frontend | Bun 1.3 · Tailwind CSS · salad_ui components |
 | Database | PostgreSQL 16 (Ecto) |
 | Object storage | RustFS (S3-compatible) |
-| Background jobs | Oban 2.22 |
+| Background jobs | Oban 2.24 |
 | Testing | ExUnit · Playwright (browser E2E) |
 | Dev environment | Pixi · prek · Docker Compose |
 
