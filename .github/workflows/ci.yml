@@ -163,6 +163,24 @@ jobs:
         if: steps.edition.outputs.run == 'true'
         run: pixi run mix compile --warnings-as-errors
 
+      # The fork tests copy real objects, so the suite needs an S3 endpoint.
+      # Service containers can't pass a command, and minio/minio needs
+      # `server /data`, so start it as a plain container on the defaults the
+      # test config already assumes (minioadmin / localhost:9000).
+      - name: Start MinIO
+        if: steps.edition.outputs.run == 'true'
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
+            minio/minio:latest server /data
+          for i in $(seq 1 30); do
+            curl -fs http://localhost:9000/minio/health/live && exit 0
+            sleep 1
+          done
+          echo "MinIO did not become healthy" >&2
+          docker logs minio >&2
+          exit 1
+
       - name: Run tests
         if: steps.edition.outputs.run == 'true'
         run: |
