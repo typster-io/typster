@@ -519,4 +519,63 @@ defmodule TypsterWeb.EditorLiveTest do
       assert Typster.Sharing.list_collaborators(owner_scope, project.id) == before
     end
   end
+
+  describe "fonts in the assets panel" do
+    test "a font row shows the family names the preview reported", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      font = asset_fixture(project, user, %{filename: "Brand.ttf", content_type: "font/ttf"})
+      view = open_editor(conn, project)
+
+      # Before the worker reports anything the row falls back to the size.
+      assert has_element?(view, "[id$='asset-entry-#{font.id}'] .ts-filechip--font")
+      assert has_element?(view, "[id$='asset-entry-#{font.id}'] .ts-tree__pill", "128 B")
+
+      render_hook(view, "fonts_registered", %{
+        "fonts" => [
+          %{
+            "reference_path" => "assets/Brand.ttf",
+            "families" => ["Brand Sans", "Brand Sans Display"]
+          }
+        ]
+      })
+
+      assert has_element?(
+               view,
+               "[id$='asset-entry-#{font.id}'] .ts-tree__pill--font",
+               "Brand Sans, Brand Sans Display"
+             )
+
+      assert has_element?(
+               view,
+               "[id$='asset-entry-#{font.id}'] .ts-tree__pill[title*='font: \"Brand Sans\"']"
+             )
+    end
+
+    test "a WOFF upload is flagged as unreadable by Typst", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      woff = asset_fixture(project, user, %{filename: "web.woff2", content_type: "font/woff2"})
+      view = open_editor(conn, project)
+
+      assert has_element?(view, "[id$='asset-entry-#{woff.id}'] .ts-tree__pill", "needs TTF/OTF")
+    end
+
+    test "malformed font reports are ignored", %{conn: conn, user: user, project: project} do
+      font = asset_fixture(project, user, %{filename: "Brand.ttf"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "fonts_registered", %{"fonts" => "nope"})
+
+      render_hook(view, "fonts_registered", %{
+        "fonts" => [%{"reference_path" => 1, "families" => [2]}]
+      })
+
+      assert has_element?(view, "[id$='asset-entry-#{font.id}'] .ts-tree__pill", "128 B")
+    end
+  end
 end

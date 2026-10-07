@@ -266,6 +266,8 @@
 .ts-filechip--cls { background: color-mix(in oklab, var(--mk-info) 16%, transparent); color: var(--mk-info-h); }
 .ts-filechip--md { background: color-mix(in oklab, var(--fg) 8%, transparent); color: var(--fg3); }
 .ts-filechip--csv { background: color-mix(in oklab, var(--mk-info) 16%, transparent); color: var(--mk-info-h); }
+.ts-filechip--font { background: color-mix(in oklab, var(--mk-success) 16%, transparent); color: var(--mk-success-h); font-style: italic; }
+.ts-tree__pill--font { color: var(--mk-success-h); max-width: 11rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ts-filechip--img { background: color-mix(in oklab, var(--mk-success) 16%, transparent); color: var(--mk-success-h); }
 .ts-filechip--data { background: color-mix(in oklab, var(--mk-warning) 12%, transparent); color: var(--mk-warning-h); }
 .ts-filechip--file { background: var(--bd2); color: var(--fg3); }

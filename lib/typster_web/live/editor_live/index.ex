@@ -59,7 +59,8 @@ defmodule TypsterWeb.EditorLive.Index do
      |> assign(:content, if(main_file, do: main_file.content || "", else: ""))
      |> assign(:editor_language, editor_language(main_file))
      |> assign(:project_sources, project_sources(file_tree))
-     |> assign(:project_assets, project_assets(assets))
+     |> assign(:project_assets, Assets.preview_manifest(assets))
+     |> assign(:font_families, %{})
      |> assign(:save_status, "saved")
      |> assign(:preview_stats, nil)
      |> assign(:preview_error, nil)
@@ -708,6 +709,24 @@ defmodule TypsterWeb.EditorLive.Index do
     end
   end
 
+  # The preview worker reports the family names it read from the project's
+  # font files; the Assets panel shows them so the writer knows what to put
+  # in `#set text(font: …)`. Client data: keep only well-formed string pairs.
+  @impl true
+  def handle_event("fonts_registered", %{"fonts" => fonts}, socket) when is_list(fonts) do
+    families =
+      for %{"reference_path" => path, "families" => names} <- fonts,
+          is_binary(path),
+          is_list(names),
+          into: %{} do
+        {path, Enum.filter(names, &(is_binary(&1) and &1 != ""))}
+      end
+
+    {:noreply, assign(socket, :font_families, families)}
+  end
+
+  def handle_event("fonts_registered", _params, socket), do: {:noreply, socket}
+
   @impl true
   def handle_event("delete_asset", %{"id" => asset_id}, socket) do
     scope = socket.assigns.current_scope
@@ -718,7 +737,7 @@ defmodule TypsterWeb.EditorLive.Index do
     {:noreply,
      socket
      |> assign(:assets, assets)
-     |> assign(:project_assets, project_assets(assets))
+     |> assign(:project_assets, Assets.preview_manifest(assets))
      |> put_flash(:info, gettext("editor.flash.asset_deleted"))}
   end
 
@@ -748,7 +767,7 @@ defmodule TypsterWeb.EditorLive.Index do
         {:noreply,
          socket
          |> assign(:assets, assets)
-         |> assign(:project_assets, project_assets(assets))
+         |> assign(:project_assets, Assets.preview_manifest(assets))
          |> put_flash(:info, gettext("editor.flash.asset_uploaded"))}
 
       {:error, _reason} ->
@@ -924,7 +943,7 @@ defmodule TypsterWeb.EditorLive.Index do
     |> assign(:file_tree, file_tree)
     |> assign(:project_sources, project_sources(file_tree))
     |> assign(:assets, assets)
-    |> assign(:project_assets, project_assets(assets))
+    |> assign(:project_assets, Assets.preview_manifest(assets))
     |> then(fn s ->
       if unsupported,
         do: put_flash(s, :error, gettext("editor.flash.unsupported_file")),
@@ -1439,17 +1458,6 @@ defmodule TypsterWeb.EditorLive.Index do
     |> Enum.filter(&Files.editable_file?/1)
     |> Enum.map(fn file ->
       %{path: file.path, content: file.content || "", language: Files.editor_language(file.path)}
-    end)
-  end
-
-  defp project_assets(assets) do
-    Enum.map(assets, fn asset ->
-      %{
-        filename: asset.filename,
-        reference_path: Assets.reference_path(asset),
-        content_type: asset.content_type,
-        size: asset.size
-      }
     end)
   end
 end

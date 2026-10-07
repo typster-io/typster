@@ -428,7 +428,7 @@
 
           <ul class="ts-tree" phx-drop-target={@uploads.dropped.ref}>
             <TypsterWeb.FileTree.tree_rows
-              nodes={TypsterWeb.FileTree.asset_nodes(@assets, @file_view_mode)}
+              nodes={TypsterWeb.FileTree.asset_nodes(@assets, @file_view_mode, @font_families)}
               collapsed={@collapsed_dirs}
             />
           </ul>

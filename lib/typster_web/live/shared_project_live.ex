@@ -12,6 +12,7 @@ defmodule TypsterWeb.SharedProjectLive do
   """
   use TypsterWeb, :live_view
 
+  alias Typster.Assets
   alias Typster.Embed
   alias Typster.Files
   alias Typster.Sharing
@@ -71,6 +72,10 @@ defmodule TypsterWeb.SharedProjectLive do
      |> assign(:content, (entry && entry.content) || "")
      |> assign(:language, entry_language(entry))
      |> assign(:project_sources, project_sources(files))
+     |> assign(
+       :project_assets,
+       Assets.preview_manifest(Assets.list_project_fonts(link.project_id))
+     )
      |> assign(:can_join?, can_join?)
      |> assign(:can_fork?, can_fork?)
      |> assign(:fork_open?, reopen_fork?(socket, can_fork?, params))
@@ -369,7 +374,7 @@ defmodule TypsterWeb.SharedProjectLive do
             data-readonly={to_string(!@editable?)}
             data-language={@language}
             data-project-sources={Jason.encode!(@project_sources)}
-            data-project-assets="[]"
+            data-project-assets={Jason.encode!(@project_assets)}
           >
           </div>
           <div :if={@can_fork? and not @editable?} class="fk-lock-hint">
@@ -389,7 +394,7 @@ defmodule TypsterWeb.SharedProjectLive do
               data-readonly="true"
               data-language={@language}
               data-project-sources={Jason.encode!(@project_sources)}
-              data-project-assets="[]"
+              data-project-assets={Jason.encode!(@project_assets)}
             >
             </div>
           </div>

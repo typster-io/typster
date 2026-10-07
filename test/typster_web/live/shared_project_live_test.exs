@@ -525,4 +525,32 @@ defmodule TypsterWeb.SharedProjectLiveTest do
 
   # The current copy run's ref, as the LiveView tags its progress messages.
   defp fork_ref(view), do: :sys.get_state(view.pid).socket.assigns.fork_busy.ref
+
+  describe "project fonts on the share page" do
+    test "the preview gets the project's fonts with presigned URLs, nothing else", %{
+      conn: conn,
+      owner: owner,
+      project: project,
+      link: link
+    } do
+      font = asset_fixture(project, owner, %{filename: "Brand.ttf", content_type: "font/ttf"})
+      asset_fixture(project, owner, %{filename: "logo.png"})
+
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
+
+      manifest =
+        view
+        |> element("#editor-container")
+        |> render()
+        |> LazyHTML.from_fragment()
+        |> LazyHTML.attribute("data-project-assets")
+        |> List.first()
+        |> Jason.decode!()
+
+      assert [%{"kind" => "font", "reference_path" => "assets/Brand.ttf", "url" => url}] =
+               manifest
+
+      assert url =~ font.object_key
+    end
+  end
 end
