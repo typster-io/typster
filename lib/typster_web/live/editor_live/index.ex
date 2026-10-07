@@ -179,9 +179,16 @@ defmodule TypsterWeb.EditorLive.Index do
     log =
       log_entry(:ok, "compiled · #{params["ms"]}ms · #{pages} page(s) · #{sources} sources")
 
+    stats = %{
+      ms: params["ms"],
+      pages: pages,
+      words: non_neg_int(params["words"]),
+      chars: non_neg_int(params["chars"])
+    }
+
     {:noreply,
      socket
-     |> assign(:preview_stats, %{ms: params["ms"], pages: pages})
+     |> assign(:preview_stats, stats)
      |> assign(:preview_compiling, false)
      |> assign(:preview_error, nil)
      |> assign(:preview_error_count, 0)
@@ -982,6 +989,10 @@ defmodule TypsterWeb.EditorLive.Index do
     scope = socket.assigns.current_scope
     assign_assets(socket, Assets.list_assets(scope, socket.assigns.project.id))
   end
+
+  # Client-reported counters: anything but a non-negative integer is dropped.
+  defp non_neg_int(n) when is_integer(n) and n >= 0, do: n
+  defp non_neg_int(_), do: nil
 
   # Fonts are fetched by the browser-side compiler through our own origin.
   defp font_url(project_id, asset), do: ~p"/projects/#{project_id}/assets/#{asset.id}/raw"

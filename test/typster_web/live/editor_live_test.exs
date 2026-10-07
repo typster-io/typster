@@ -686,4 +686,44 @@ defmodule TypsterWeb.EditorLiveTest do
       assert has_element?(view, "[id$='asset-entry-#{font.id}'] .ts-tree__pill", "128 B")
     end
   end
+
+  describe "word count in the status bar" do
+    test "shows the compiled document's word count once the preview reports it", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+
+      refute has_element?(view, "#status-words")
+
+      render_hook(view, "update_preview", %{"ms" => 42, "pages" => 1, "words" => 1, "chars" => 5})
+      assert has_element?(view, "#status-words", "1 word")
+
+      render_hook(view, "update_preview", %{
+        "ms" => 40,
+        "pages" => 2,
+        "words" => 1234,
+        "chars" => 6789
+      })
+
+      assert has_element?(view, "#status-words", "1234 words")
+      assert has_element?(view, "#status-words[title='6789 characters, not counting spaces']")
+    end
+
+    test "ignores malformed counters from the client", %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "update_preview", %{
+        "ms" => 42,
+        "pages" => 1,
+        "words" => "lots",
+        "chars" => -1
+      })
+
+      refute has_element?(view, "#status-words")
+    end
+  end
 end
