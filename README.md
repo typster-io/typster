@@ -9,7 +9,7 @@
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL%20v3-blue)](./LICENSE)
 [![Pixi](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/prefix-dev/pixi/main/assets/badge/v0.json)](https://pixi.sh)
 [![Dev Containers](https://img.shields.io/badge/dev_containers-supported-0078D4?logo=docker)](https://containers.dev)
-[![Phoenix LiveView](https://img.shields.io/badge/Phoenix_LiveView-1.1.30-FD4F00?logo=phoenixframework)](https://hexdocs.pm/phoenix_live_view)
+[![Phoenix LiveView](https://img.shields.io/badge/Phoenix_LiveView-1.1.33-FD4F00?logo=phoenixframework)](https://hexdocs.pm/phoenix_live_view)
 
 **The [Typst](https://typst.app) editor for writing that ships.**
 
