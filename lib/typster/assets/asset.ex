@@ -6,6 +6,8 @@ defmodule Typster.Assets.Asset do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
+  @type t :: %__MODULE__{}
+
   schema "assets" do
     field :object_key, :string
     field :content_type, :string

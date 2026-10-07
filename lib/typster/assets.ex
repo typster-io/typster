@@ -96,6 +96,76 @@ defmodule Typster.Assets do
     Asset.changeset(asset, attrs)
   end
 
+  ## Kinds & the preview manifest
+
+  # Font formats Typst's compiler reads. WOFF/WOFF2 are accepted as uploads
+  # (people have them) but Typst cannot load them, so they get their own kind
+  # and the editor says so instead of silently ignoring them.
+  @font_extensions ~w(.ttf .otf .ttc .otc)
+  @web_font_extensions ~w(.woff .woff2)
+  @image_extensions ~w(.png .jpg .jpeg .gif .svg .webp)
+
+  @typedoc "Coarse asset classification used by the editor and the preview."
+  @type kind :: :font | :web_font | :image | :other
+
+  @doc "Classify an asset (or a bare filename) by extension."
+  @spec kind(Asset.t() | String.t()) :: kind()
+  def kind(%Asset{filename: filename}), do: kind(filename)
+
+  def kind(filename) when is_binary(filename) do
+    case filename |> Path.extname() |> String.downcase() do
+      ext when ext in @font_extensions -> :font
+      ext when ext in @web_font_extensions -> :web_font
+      ext when ext in @image_extensions -> :image
+      _ -> :other
+    end
+  end
+
+  @doc "True for a font Typst can register (TTF/OTF/TTC/OTC)."
+  @spec font?(Asset.t() | String.t()) :: boolean()
+  def font?(asset_or_name), do: kind(asset_or_name) == :font
+
+  @doc """
+  What the client-side preview needs to know about a project's assets.
+
+  Every asset is listed with its kind; fonts additionally carry a presigned
+  `url` so the preview worker can fetch the bytes and register them with the
+  compiler. The URL is valid for an hour, which covers the worker's one-time
+  fetch — it caches the bytes afterwards.
+  """
+  @spec preview_manifest([Asset.t()]) :: [map()]
+  def preview_manifest(assets) do
+    Enum.map(assets, fn %Asset{} = asset ->
+      kind = kind(asset)
+
+      entry = %{
+        filename: asset.filename,
+        reference_path: reference_path(asset),
+        content_type: asset.content_type,
+        size: asset.size,
+        kind: Atom.to_string(kind)
+      }
+
+      with :font <- kind, {:ok, url} <- get_asset_url(asset) do
+        Map.put(entry, :url, url)
+      else
+        _ -> entry
+      end
+    end)
+  end
+
+  @doc """
+  PUBLIC: the fonts of a project, for the token-authorized share page and
+  embed. Those views compile client-side too, so a shared document needs its
+  fonts to render faithfully; nothing but fonts is exposed this way.
+  """
+  @spec list_project_fonts(Ecto.UUID.t()) :: [Asset.t()]
+  def list_project_fonts(project_id) do
+    from(a in Asset, where: a.project_id == ^project_id, order_by: [asc: a.filename])
+    |> Repo.all()
+    |> Enum.filter(&font?/1)
+  end
+
   @doc """
   Copies every asset of `source_project_id` into `target_project_id`,
   duplicating each S3 object under a fresh key (forks must not share objects —
