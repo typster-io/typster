@@ -73,7 +73,7 @@ defmodule TypsterWeb.SharedProjectLive do
      |> assign(:project_sources, project_sources(files))
      |> assign(:can_join?, can_join?)
      |> assign(:can_fork?, can_fork?)
-     |> assign(:fork_open?, can_fork? and params["fork"] == "1" and signed_in?(socket))
+     |> assign(:fork_open?, reopen_fork?(socket, can_fork?, params))
      |> assign(:fork_error, nil)
      |> assign(:fork_failed?, false)
      |> assign(:fork_busy, nil)
@@ -673,8 +673,10 @@ defmodule TypsterWeb.SharedProjectLive do
     gettext("share.fork.stage_assets", done: format_size(done), total: format_size(total))
   end
 
-  defp signed_in?(socket) do
-    match?(%{current_scope: %{user: %{}}}, socket.assigns)
+  # `?fork=1` (the post-sign-in return target) reopens the copy form — for a
+  # signed-in visitor on a link that allows copying, never anyone else.
+  defp reopen_fork?(socket, can_fork?, params) do
+    can_fork? and params["fork"] == "1" and match?(%{current_scope: %{user: %{}}}, socket.assigns)
   end
 
   # Where an anonymous visitor lands after signing in: this share page with

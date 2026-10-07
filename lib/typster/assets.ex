@@ -6,6 +6,7 @@ defmodule Typster.Assets do
   import Ecto.Query, warn: false
   alias Typster.Accounts.Scope
   alias Typster.Assets.Asset
+  alias Typster.Jobs.ForkCleanup
   alias Typster.Repo
   alias Typster.Sharing.Collaborator
 
@@ -152,7 +153,7 @@ defmodule Typster.Assets do
   """
   def schedule_fork_cleanup(fork_id, source_project_id, delay_seconds \\ 30) do
     %{"fork_id" => fork_id, "source_project_id" => source_project_id}
-    |> Typster.Jobs.ForkCleanup.new(schedule_in: delay_seconds)
+    |> ForkCleanup.new(schedule_in: delay_seconds)
     |> Oban.insert()
   end
 
@@ -166,12 +167,11 @@ defmodule Typster.Assets do
 
     source_project_id
     |> source_assets()
-    |> Enum.reduce(:ok, fn asset, acc ->
-      case ExAws.S3.delete_object(bucket, fork_object_key(fork_id, asset)) |> ExAws.request() do
-        {:ok, _} -> acc
-        {:error, reason} -> if acc == :ok, do: {:error, reason}, else: acc
-      end
-    end)
+    |> Enum.map(
+      &(ExAws.S3.delete_object(bucket, fork_object_key(fork_id, &1))
+        |> ExAws.request())
+    )
+    |> Enum.find(:ok, &match?({:error, _}, &1))
   end
 
   # Deterministic per (fork, source asset): asset ids are unique, so keys never
