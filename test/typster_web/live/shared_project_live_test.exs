@@ -148,6 +148,27 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       assert has_element?(view, "#shared-fork-form")
     end
 
+    test "the inline name error clears on the first keystroke", %{
+      conn: conn,
+      scope: scope,
+      link: link
+    } do
+      {:ok, link} = Sharing.update_link(scope, link, %{allow_fork: true})
+      conn = log_in_user(conn, Typster.AccountsFixtures.user_fixture())
+
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
+      view |> element("#shared-fork-open") |> render_click()
+
+      view |> form("#shared-fork-form", fork: %{name: ""}) |> render_submit()
+      assert has_element?(view, "#shared-fork-error")
+      assert has_element?(view, ~s|#shared-fork-form input.invalid[aria-invalid="true"]|)
+
+      view |> form("#shared-fork-form", fork: %{name: "M"}) |> render_change()
+      refute has_element?(view, "#shared-fork-error")
+      refute has_element?(view, "#shared-fork-form input.invalid")
+      assert has_element?(view, ~s|#shared-fork-form input[name="fork[name]"][value="M"]|)
+    end
+
     test "anonymous visitors get the sign-in step in the same modal", %{
       conn: conn,
       scope: scope,

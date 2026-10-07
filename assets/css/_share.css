@@ -1927,6 +1927,13 @@
   color: var(--text-mute);
   margin-bottom: 7px;
 }
+/* invalid name: red border + soft 4px ring until the first keystroke */
+.fk-body .input.invalid,
+.fk-body .input.invalid:focus {
+  border-color: var(--red-500);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--red-500) 16%, transparent);
+  outline: none;
+}
 .fk-err {
   display: flex; align-items: center; gap: 6px;
   font: 12px var(--font-sans); color: var(--red-500);

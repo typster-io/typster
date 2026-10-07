@@ -217,10 +217,21 @@ defmodule TypsterWeb.SharedProjectLive do
             </div>
 
             <%= if @current_scope && @current_scope.user do %>
-              <.form for={@fork_form} id="shared-fork-form" phx-submit="fork">
+              <.form
+                for={@fork_form}
+                id="shared-fork-form"
+                phx-change="fork_change"
+                phx-submit="fork"
+              >
                 <div class="fk-body">
                   <div class="fk-label">{gettext("share.join.fork_name")}</div>
-                  <.input field={@fork_form[:name]} type="text" autofocus />
+                  <.input
+                    field={@fork_form[:name]}
+                    type="text"
+                    class={if(@fork_error, do: "w-full input invalid", else: "w-full input")}
+                    aria-invalid={to_string(@fork_error != nil)}
+                    autofocus
+                  />
                   <div :if={@fork_error} id="shared-fork-error" class="fk-err">
                     <.icon name="hero-exclamation-triangle" class="size-3" /> {@fork_error}
                   </div>
@@ -376,6 +387,14 @@ defmodule TypsterWeb.SharedProjectLive do
 
   def handle_event("close_fork", _params, socket) do
     {:noreply, assign(socket, fork_open?: false, fork_error: nil, fork_failed?: false)}
+  end
+
+  # The inline name error clears on the first keystroke; the typed value stays.
+  def handle_event("fork_change", %{"fork" => %{"name" => name}}, socket) do
+    {:noreply,
+     socket
+     |> assign(:fork_form, to_form(%{"name" => name}, as: :fork))
+     |> assign(:fork_error, nil)}
   end
 
   def handle_event(
