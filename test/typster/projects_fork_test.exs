@@ -79,9 +79,11 @@ defmodule Typster.ProjectsForkTest do
                  on_progress: &send(test_pid, {:progress, &1})
                )
 
-      assert [{:created, fork_id}, {:files}, {:assets, 1_000, total}, {:assets, 4_000, total}] =
+      assert [{:created, fork_id}, {:files}, {:assets, first, total}, {:assets, 4_000, total}] =
                collect_progress()
 
+      # Asset order is not guaranteed; the running total is.
+      assert first in [1_000, 3_000]
       assert fork_id == fork.id
       assert total == stats.bytes
 
