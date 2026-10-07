@@ -843,18 +843,13 @@
         </div>
 
         <%!-- Status bar — spans all panes --%>
+        <%!-- Status bar: document facts pinned left (language, word count),
+              editor/compile facts pinned right (cursor, line endings,
+              encoding, compile time, log). --%>
         <div class="ts-statusbar">
           <span class="ts-statusbar__item">
             <span class="ts-statusbar__dot"></span>{String.upcase(@editor_language)}
           </span>
-          <span class="ts-statusbar__sep"></span>
-          <span id="status-cursor" phx-update="ignore" class="ts-statusbar__item">
-            Ln 1, Col 1
-          </span>
-          <span class="ts-statusbar__sep"></span>
-          <span class="ts-statusbar__item">UTF-8</span>
-          <span class="ts-statusbar__sep"></span>
-          <span class="ts-statusbar__item">LF</span>
           <%!-- Word count of the compiled document (what the reader sees),
                 reported by the preview after each successful render. --%>
           <span :if={@preview_stats && @preview_stats[:words]} class="ts-statusbar__sep"></span>
@@ -875,6 +870,14 @@
           >
             {ngettext("%{count} word", "%{count} words", @preview_stats.words)}
           </span>
+          <div class="ts-spacer" />
+          <span id="status-cursor" phx-update="ignore" class="ts-statusbar__item">
+            Ln 1, Col 1
+          </span>
+          <span class="ts-statusbar__sep"></span>
+          <span class="ts-statusbar__item">LF</span>
+          <span class="ts-statusbar__sep"></span>
+          <span class="ts-statusbar__item">UTF-8</span>
           <span :if={@compile_history != []} class="ts-statusbar__sep"></span>
           <span
             :if={@compile_history != []}
@@ -895,7 +898,7 @@
             </span>
             <span :if={@preview_stats && @preview_stats.ms}>{@preview_stats.ms}ms</span>
           </span>
-          <div class="ts-spacer" />
+          <span class="ts-statusbar__sep"></span>
           <button
             type="button"
             class={["ts-statusbar__btn", @preview_error_count > 0 && "is-error"]}
