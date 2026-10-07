@@ -72,7 +72,7 @@ defmodule TypsterWeb.SharedProjectLive do
      |> assign(:project_sources, project_sources(files))
      |> assign(:can_join?, can_join?)
      |> assign(:can_fork?, can_fork?)
-     |> assign(:fork_open?, false)
+     |> assign(:fork_open?, can_fork? and params["fork"] == "1" and signed_in?(socket))
      |> assign(:fork_error, nil)
      |> assign(:fork_failed?, false)
      |> assign(:fork_stats, if(can_fork?, do: Sharing.fork_stats(link)))
@@ -279,14 +279,21 @@ defmodule TypsterWeb.SharedProjectLive do
                 </div>
               </div>
               <div class="fk-anon-foot">
+                <%!-- Full page loads (not `navigate`): the auth pages store
+                      `return_to` server-side, so after sign-in the visitor
+                      lands back here with the copy modal reopened. --%>
                 <.link
-                  navigate={~p"/users/log-in"}
+                  href={~p"/users/log-in?#{[return_to: fork_return_to(@project, @link)]}"}
                   id="shared-fork-login"
                   class="ts-btn ts-btn--primary"
                 >
                   {gettext("share.fork.anon_cta")}
                 </.link>
-                <.link navigate={~p"/users/register"} class="ts-btn ts-btn--ghost">
+                <.link
+                  href={~p"/users/register?#{[return_to: fork_return_to(@project, @link)]}"}
+                  id="shared-fork-register"
+                  class="ts-btn ts-btn--ghost"
+                >
                   {gettext("share.fork.anon_alt")}
                 </.link>
               </div>
@@ -475,6 +482,17 @@ defmodule TypsterWeb.SharedProjectLive do
   defp entry_language(%{path: path}), do: Files.editor_language(path)
 
   defp copy_name(name), do: gettext("share.join.copy_of", name: name)
+
+  defp signed_in?(socket) do
+    match?(%{current_scope: %{user: %{}}}, socket.assigns)
+  end
+
+  # Where an anonymous visitor lands after signing in: this share page with
+  # the copy modal reopened (`fork=1`). It opens the form only — a GET never
+  # creates the copy, so a refresh cannot double-fork.
+  defp fork_return_to(project, link) do
+    ~p"/p/#{Sharing.slug(project)}?#{[key: link.token, fork: 1]}"
+  end
 
   # "12 files · 4 assets · 3.4 MB — copying takes a few seconds". The size
   # segment drops out below 1 KB rather than showing a noisy "0.0 KB".

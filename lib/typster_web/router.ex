@@ -138,7 +138,10 @@ defmodule TypsterWeb.Router do
   end
 
   scope "/", TypsterWeb do
-    pipe_through [:browser]
+    # `store_return_to_param` only acts on GET /users/log-in|register: it
+    # remembers a validated local `?return_to=` (the share page's copy modal)
+    # so the visitor lands back there after signing in.
+    pipe_through [:browser, :store_return_to_param]
 
     live_session :current_user,
       on_mount: [

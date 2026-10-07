@@ -178,6 +178,7 @@ defmodule TypsterWeb.SharedProjectLiveTest do
     test "anonymous visitors get the sign-in step in the same modal", %{
       conn: conn,
       scope: scope,
+      project: project,
       link: link
     } do
       {:ok, link} = Sharing.update_link(scope, link, %{allow_fork: true})
@@ -188,8 +189,55 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       assert has_element?(view, "#shared-fork-open")
       view |> element("#shared-fork-open") |> render_click()
 
-      assert has_element?(view, ~s|#shared-fork-login[href="/users/log-in"]|)
+      # Sign-in and sign-up carry this page (with the modal reopened) as the
+      # post-auth destination.
+      return_to = URI.encode_www_form("/p/#{Sharing.slug(project)}?key=#{link.token}&fork=1")
+
+      assert has_element?(
+               view,
+               ~s|#shared-fork-login[href="/users/log-in?return_to=#{return_to}"]|
+             )
+
+      assert has_element?(
+               view,
+               ~s|#shared-fork-register[href="/users/register?return_to=#{return_to}"]|
+             )
+
       refute has_element?(view, "#shared-fork-form")
+    end
+
+    test "?fork=1 reopens the copy form for a signed-in visitor", %{
+      conn: conn,
+      scope: scope,
+      link: link
+    } do
+      {:ok, link} = Sharing.update_link(scope, link, %{allow_fork: true})
+      visitor = Typster.AccountsFixtures.user_fixture()
+      conn = log_in_user(conn, visitor)
+
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token, fork: 1]}")
+
+      # The form opens prefilled; nothing is copied until the visitor presses Copy.
+      assert has_element?(view, "#shared-fork-form")
+      assert has_element?(view, ~s|#shared-fork-form input[name="fork[name]"][value$="(copy)"]|)
+      assert Typster.Projects.list_projects(Scope.for_user(visitor)) == []
+    end
+
+    test "?fork=1 is ignored for anonymous visitors and when copying is off", %{
+      conn: conn,
+      scope: scope,
+      link: link
+    } do
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token, fork: 1]}")
+      refute has_element?(view, "#shared-fork-overlay")
+
+      signed_in = log_in_user(conn, Typster.AccountsFixtures.user_fixture())
+      {:ok, view, _html} = live(signed_in, ~p"/p/shared?#{[key: link.token, fork: 1]}")
+      refute has_element?(view, "#shared-fork-overlay")
+
+      {:ok, link} = Sharing.update_link(scope, link, %{allow_fork: true})
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token, fork: 1]}")
+      refute has_element?(view, "#shared-fork-overlay")
     end
 
     test "no copy affordance while allow_fork is off (the default)", %{

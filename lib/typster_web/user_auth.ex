@@ -42,7 +42,7 @@ defmodule TypsterWeb.UserAuth do
 
     conn
     |> create_or_extend_session(user, params)
-    |> redirect(to: user_return_to || signed_in_path(conn))
+    |> redirect(to: safe_return_to(user_return_to) || signed_in_path(conn))
   end
 
   @doc """
@@ -313,6 +313,42 @@ defmodule TypsterWeb.UserAuth do
       |> halt()
     end
   end
+
+  @doc """
+  Plug: on `GET /users/log-in` and `GET /users/register`, remembers a
+  `?return_to=` query param as the post-login destination (`:user_return_to`)
+  — e.g. the share page's copy modal, so an anonymous visitor lands back on it.
+
+  Only a local path passes `safe_return_to/1`; anything else is ignored, so it
+  can never become an open redirect.
+  """
+  def store_return_to_param(%{method: "GET", request_path: path} = conn, _opts)
+      when path in ["/users/log-in", "/users/register"] do
+    case safe_return_to(conn.params["return_to"]) do
+      nil -> conn
+      return_to -> put_session(conn, :user_return_to, return_to)
+    end
+  end
+
+  def store_return_to_param(conn, _opts), do: conn
+
+  @doc """
+  Returns `path` when it is a safe local redirect target, otherwise `nil`.
+
+  Safe means: a single leading `/` (not `//` or `/\\`, which browsers treat as
+  protocol-relative), no scheme or host, no backslashes or control characters
+  (browsers strip tabs/newlines, which could turn `/\\t/evil` into `//evil`).
+  """
+  def safe_return_to("/" <> rest = path) when byte_size(path) <= 2048 do
+    cond do
+      String.starts_with?(rest, ["/", "\\"]) -> nil
+      String.match?(path, ~r/[\x00-\x1f\x7f\\]/) -> nil
+      match?(%URI{scheme: nil, host: nil}, URI.parse(path)) -> path
+      true -> nil
+    end
+  end
+
+  def safe_return_to(_path), do: nil
 
   defp maybe_store_return_to(%{method: "GET"} = conn) do
     put_session(conn, :user_return_to, current_path(conn))
