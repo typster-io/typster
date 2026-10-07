@@ -181,10 +181,8 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       refute has_element?(view, "#shared-fork-stages")
       assert Typster.Projects.list_projects(Scope.for_user(visitor)) == []
 
-      assert_enqueued(
-        worker: Typster.Jobs.ForkCleanup,
-        args: %{"source_project_id" => project.id}
-      )
+      # The safety net enqueued at the start removes any copied objects.
+      assert_enqueued(worker: Typster.Jobs.ForkCleanup)
     end
 
     test "cancel while copying aborts the copy and closes the modal", %{

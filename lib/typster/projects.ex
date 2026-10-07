@@ -96,37 +96,37 @@ defmodule Typster.Projects do
 
   Options:
 
-    * `:on_progress` — called (inside the fork's process) with
-      `{:created, fork_id}` once the project row exists, `{:files}` once the
-      file rows are copied, then `{:assets, copied_bytes, total_bytes}` after
-      each asset object lands.
+    * `:on_progress` — called (inside the fork's process) with `{:files}`
+      once the file rows are copied, then `{:assets, copied_bytes,
+      total_bytes}` after each asset object lands.
 
   Returns `{:ok, project}`, `{:error, changeset}` for an invalid name, or
-  `{:error, :asset_copy_failed}` when an S3 object copy fails (the whole fork
-  rolls back — no half-copied project is left behind, and the objects already
-  copied are scheduled for deletion). Killing the calling process mid-copy
-  also rolls the transaction back.
+  `{:error, :asset_copy_failed}` when an S3 object copy fails. Either way —
+  and also when the calling process is killed mid-copy (Cancel, a closed
+  tab) — the transaction rolls back, so no half-copied project is left
+  behind. The S3 objects copied before that are removed by a
+  `Typster.Jobs.ForkCleanup` safety net enqueued *before* the transaction
+  starts (so a rollback can't undo it); it waits while the copy holds the
+  fork's advisory lock and does nothing once the fork has committed.
   """
   def fork_project(%Scope{user: user}, %Project{} = source, attrs, opts \\ []) do
     on_progress = Keyword.get(opts, :on_progress, fn _ -> :ok end)
+    changeset = Project.changeset(%Project{id: Ecto.UUID.generate(), user_id: user.id}, attrs)
 
-    Repo.transaction(fn ->
-      case %Project{user_id: user.id} |> Project.changeset(attrs) |> Repo.insert() do
-        {:ok, fork} ->
-          on_progress.({:created, fork.id})
-          copy_project_contents!(source.id, fork, on_progress)
+    if changeset.valid? do
+      fork_id = Ecto.Changeset.get_field(changeset, :id)
+      :ok = Typster.Assets.schedule_fork_cleanup(fork_id, source.id)
 
-        {:error, changeset} ->
-          Repo.rollback(changeset)
-      end
-    end)
-    |> case do
-      {:error, {:asset_copy_failed, fork_id}} ->
-        Typster.Assets.schedule_fork_cleanup(fork_id, source.id)
-        {:error, :asset_copy_failed}
+      Repo.transaction(fn ->
+        Typster.Assets.lock_fork!(fork_id)
 
-      result ->
-        result
+        case Repo.insert(changeset) do
+          {:ok, fork} -> copy_project_contents!(source.id, fork, on_progress)
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+      end)
+    else
+      {:error, %{changeset | action: :insert}}
     end
   end
 
@@ -138,7 +138,7 @@ defmodule Typster.Projects do
 
     case Typster.Assets.copy_project_assets(source_id, fork.id, on_progress) do
       :ok -> fork
-      {:error, _reason} -> Repo.rollback({:asset_copy_failed, fork.id})
+      {:error, _reason} -> Repo.rollback(:asset_copy_failed)
     end
   end
 

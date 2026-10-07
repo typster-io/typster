@@ -457,8 +457,9 @@ defmodule TypsterWeb.SharedProjectLive do
   end
 
   # Cancel, ⎋ and backdrop click all land here. While copying, the task is
-  # killed — its DB transaction rolls back, so nothing is created — and any
-  # S3 objects it already copied are scheduled for deletion.
+  # killed — its DB transaction rolls back, so nothing is created — and the
+  # ForkCleanup safety net enqueued at the start removes any S3 objects it
+  # already copied.
   def handle_event("close_fork", _params, socket) do
     {:noreply,
      socket
@@ -542,15 +543,15 @@ defmodule TypsterWeb.SharedProjectLive do
      )}
   end
 
-  # Cancelled by the visitor: close_fork already cleaned up.
+  # Cancelled by the visitor: nothing to show.
   def handle_async(:fork, {:exit, _reason}, %{assigns: %{fork_busy: nil}} = socket) do
     {:noreply, socket}
   end
 
   # Stay in the modal: the fail slab explains, the CTA becomes "Try again".
-  # Nothing was created, the original is untouched.
-  def handle_async(:fork, result, socket) do
-    if match?({:exit, _}, result), do: schedule_fork_cleanup(socket, socket.assigns.fork_busy)
+  # Nothing was created, the original is untouched (copied objects are
+  # removed by the ForkCleanup safety net).
+  def handle_async(:fork, _result, socket) do
     {:noreply, assign(socket, fork_busy: nil, fork_error: nil, fork_failed?: true)}
   end
 
@@ -600,7 +601,6 @@ defmodule TypsterWeb.SharedProjectLive do
     |> assign(fork_error: nil, fork_failed?: false)
     |> assign(:fork_busy, %{
       ref: ref,
-      fork_id: nil,
       stage: :files,
       done_bytes: 0,
       total_bytes: (stats && stats.bytes) || 0
@@ -614,21 +614,12 @@ defmodule TypsterWeb.SharedProjectLive do
 
   defp cancel_fork(%{assigns: %{fork_busy: nil}} = socket), do: socket
 
-  defp cancel_fork(%{assigns: %{fork_busy: busy}} = socket) do
-    schedule_fork_cleanup(socket, busy)
-
+  defp cancel_fork(socket) do
     socket
     |> cancel_async(:fork, {:shutdown, :cancel})
     |> assign(:fork_busy, nil)
   end
 
-  defp schedule_fork_cleanup(_socket, %{fork_id: nil}), do: :ok
-
-  defp schedule_fork_cleanup(socket, %{fork_id: fork_id}) do
-    Typster.Assets.schedule_fork_cleanup(fork_id, socket.assigns.project.id)
-  end
-
-  defp advance_fork(busy, {:created, fork_id}), do: %{busy | fork_id: fork_id}
   defp advance_fork(busy, {:files}), do: %{busy | stage: :assets}
 
   defp advance_fork(busy, {:assets, done, total}),

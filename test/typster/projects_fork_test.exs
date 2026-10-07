@@ -79,12 +79,10 @@ defmodule Typster.ProjectsForkTest do
                  on_progress: &send(test_pid, {:progress, &1})
                )
 
-      assert [{:created, fork_id}, {:files}, {:assets, first, total}, {:assets, 4_000, total}] =
-               collect_progress()
+      assert [{:files}, {:assets, first, total}, {:assets, 4_000, total}] = collect_progress()
 
       # Asset order is not guaranteed; the running total is.
       assert first in [1_000, 3_000]
-      assert fork_id == fork.id
       assert total == stats.bytes
 
       # Every copied object lives under the fork's own key prefix.
@@ -94,19 +92,50 @@ defmodule Typster.ProjectsForkTest do
       end
     end
 
-    test "a failed asset copy rolls back and schedules the object cleanup", %{
+    test "a failed asset copy rolls back, leaving the object cleanup enqueued", %{
       owner: owner,
       project: project
     } do
       # An asset row whose S3 object is missing: the copy fails.
-      asset_fixture(project, owner)
+      asset = asset_fixture(project, owner)
       visitor = user_scope_fixture()
 
       assert {:error, :asset_copy_failed} =
                Projects.fork_project(visitor, project, %{name: "Doomed"})
 
       assert Projects.list_projects(visitor) == []
-      assert_enqueued(worker: ForkCleanup, args: %{"source_project_id" => project.id})
+      assert [job] = all_enqueued(worker: ForkCleanup)
+      assert [key] = job.args["object_keys"]
+      assert key == "projects/#{job.args["fork_id"]}/assets/#{asset.id}-logo.png"
+    end
+
+    test "the cleanup is enqueued before any object is copied", %{
+      owner: owner,
+      project: project
+    } do
+      # Covers a copy whose process dies mid-way (closed tab, Cancel): the
+      # job must already exist when the first object lands.
+      s3_asset(project, owner, "a.png", 10)
+      test_pid = self()
+
+      on_progress = fn
+        {:assets, _, _} -> send(test_pid, {:jobs, all_enqueued(worker: ForkCleanup)})
+        _ -> :ok
+      end
+
+      {:ok, fork} =
+        Projects.fork_project(user_scope_fixture(), project, %{name: "C"},
+          on_progress: on_progress
+        )
+
+      assert_received {:jobs, [job]}
+      assert job.args["fork_id"] == fork.id
+    end
+
+    test "an invalid name enqueues nothing", %{owner: owner, project: project} do
+      s3_asset(project, owner, "a.png", 10)
+      assert {:error, _} = Projects.fork_project(user_scope_fixture(), project, %{name: ""})
+      refute_enqueued(worker: ForkCleanup)
     end
   end
 
@@ -125,18 +154,52 @@ defmodule Typster.ProjectsForkTest do
         ExAws.S3.put_object_copy(bucket(), ghost_key, bucket(), asset.object_key)
         |> ExAws.request()
 
-      args = %{"fork_id" => ghost_id, "source_project_id" => project.id}
+      # The keys come from the job args, so deleting the source asset (or
+      # the whole source project) meanwhile doesn't hide the orphan.
+      Repo.delete!(asset)
+
+      args = %{"fork_id" => ghost_id, "object_keys" => [ghost_key]}
       assert :ok = perform_job(ForkCleanup, args)
       assert {:error, _} = ExAws.S3.head_object(bucket(), ghost_key) |> ExAws.request()
 
       # A committed fork keeps its objects.
+      s3_asset(project, owner, "d.png", 10)
       {:ok, fork} = Projects.fork_project(user_scope_fixture(), project, %{name: "Kept"})
       [copy] = Repo.all(from a in Assets.Asset, where: a.project_id == ^fork.id)
 
       assert :ok =
-               perform_job(ForkCleanup, %{"fork_id" => fork.id, "source_project_id" => project.id})
+               perform_job(ForkCleanup, %{
+                 "fork_id" => fork.id,
+                 "object_keys" => [copy.object_key]
+               })
 
       assert {:ok, _} = ExAws.S3.head_object(bucket(), copy.object_key) |> ExAws.request()
+    end
+
+    test "snoozes while the copy still holds the fork lock" do
+      fork_id = Ecto.UUID.generate()
+      test_pid = self()
+
+      # A copy in flight: another connection holds the fork's lock.
+      holder =
+        spawn_link(fn ->
+          :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo)
+
+          Repo.transaction(fn ->
+            Assets.lock_fork!(fork_id)
+            send(test_pid, :locked)
+            receive do: (:release -> :ok)
+          end)
+
+          Ecto.Adapters.SQL.Sandbox.checkin(Repo)
+          send(test_pid, :released)
+        end)
+
+      assert_receive :locked
+      args = %{"fork_id" => fork_id, "object_keys" => ["projects/#{fork_id}/assets/x"]}
+      assert {:snooze, _} = perform_job(ForkCleanup, args)
+      send(holder, :release)
+      assert_receive :released
     end
   end
 

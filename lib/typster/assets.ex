@@ -100,8 +100,8 @@ defmodule Typster.Assets do
   Copies every asset of `source_project_id` into `target_project_id`,
   duplicating each S3 object under a fresh key (forks must not share objects —
   deleting the original would break the copy). Target keys are derived from
-  the target project and source asset ids (`fork_object_key/2`), so a fork
-  that never commits can be cleaned up from its ids alone.
+  the target project and source asset ids (`fork_object_key/2`), so the
+  cleanup safety net can list them before the copy starts.
 
   `on_progress` is called with `{:assets, copied_bytes, total_bytes}` after
   each object lands.
@@ -146,31 +146,56 @@ defmodule Typster.Assets do
   end
 
   @doc """
-  Schedules `Typster.Jobs.ForkCleanup` to delete the S3 objects a fork of
-  `source_project_id` may have copied under `fork_id` — for a fork that was
-  cancelled or failed, so its transaction rolled back but the objects stayed.
-  The job is a no-op when the fork project exists after all.
+  Enqueues the `Typster.Jobs.ForkCleanup` safety net for a fork of
+  `source_project_id` into `fork_id`, *before* the copy starts and outside
+  its transaction (so a rollback, a crash or a killed caller can't undo it).
+
+  The job args carry the exact keys the copy may write, snapshotted now from
+  the source's assets — so source assets deleted or renamed meanwhile (or a
+  deleted source project) can't hide an orphaned object from the cleanup.
+  No job when the source has no assets: there is nothing to orphan.
   """
-  def schedule_fork_cleanup(fork_id, source_project_id, delay_seconds \\ 30) do
-    %{"fork_id" => fork_id, "source_project_id" => source_project_id}
-    |> ForkCleanup.new(schedule_in: delay_seconds)
-    |> Oban.insert()
+  def schedule_fork_cleanup(fork_id, source_project_id, delay_seconds \\ 60) do
+    case Enum.map(source_assets(source_project_id), &fork_object_key(fork_id, &1)) do
+      [] ->
+        :ok
+
+      keys ->
+        %{"fork_id" => fork_id, "object_keys" => keys}
+        |> ForkCleanup.new(schedule_in: delay_seconds)
+        |> Oban.insert!()
+
+        :ok
+    end
   end
 
   @doc """
-  Best-effort delete of every object a fork of `source_project_id` into
-  `fork_id` would have copied. Missing keys are fine (S3 deletes are
-  idempotent). Returns `:ok` or the first `{:error, reason}`.
+  Takes the fork's transaction-scoped advisory lock. `fork_project/4` holds
+  it for the whole copy; `try_lock_fork/1` tells the cleanup job whether a
+  copy is still in flight.
   """
-  def delete_fork_objects(fork_id, source_project_id) do
+  def lock_fork!(fork_id) do
+    Repo.query!("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [fork_id])
+    :ok
+  end
+
+  @doc "Non-blocking `lock_fork!/1`: `true` when no copy holds the lock. Call inside a transaction."
+  def try_lock_fork(fork_id) do
+    %{rows: [[locked?]]} =
+      Repo.query!("SELECT pg_try_advisory_xact_lock(hashtextextended($1, 0))", [fork_id])
+
+    locked?
+  end
+
+  @doc """
+  Best-effort delete of the given fork object keys. Missing keys are fine
+  (S3 deletes are idempotent). Returns `:ok` or the first `{:error, reason}`.
+  """
+  def delete_fork_objects(object_keys) do
     bucket = bucket()
 
-    source_project_id
-    |> source_assets()
-    |> Enum.map(
-      &(ExAws.S3.delete_object(bucket, fork_object_key(fork_id, &1))
-        |> ExAws.request())
-    )
+    object_keys
+    |> Enum.map(&(ExAws.S3.delete_object(bucket, &1) |> ExAws.request()))
     |> Enum.find(:ok, &match?({:error, _}, &1))
   end
 
