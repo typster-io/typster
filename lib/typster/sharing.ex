@@ -164,17 +164,25 @@ defmodule Typster.Sharing do
 
   Returns `{:ok, project}`, `{:error, changeset}` for a bad name,
   `{:error, :forbidden}` when the owner has not enabled copying,
-  `{:error, :not_found}` for an unknown token or anonymous visitor.
+  `{:error, :not_found}` for an unknown token or anonymous visitor. `opts` are
+  passed to `Typster.Projects.fork_project/4` (e.g. `:on_progress`).
   """
-  def fork_via_link(%Scope{user: %User{}} = scope, token, attrs) when is_binary(token) do
+  def fork_via_link(scope, token, attrs, opts \\ [])
+
+  def fork_via_link(%Scope{user: %User{}} = scope, token, attrs, opts) when is_binary(token) do
     case get_link_by_token(token) do
-      nil -> {:error, :not_found}
-      %ShareLink{allow_fork: true} = link -> Projects.fork_project(scope, link.project, attrs)
-      %ShareLink{} -> {:error, :forbidden}
+      nil ->
+        {:error, :not_found}
+
+      %ShareLink{allow_fork: true} = link ->
+        Projects.fork_project(scope, link.project, attrs, opts)
+
+      %ShareLink{} ->
+        {:error, :forbidden}
     end
   end
 
-  def fork_via_link(_scope, _token, _attrs), do: {:error, :not_found}
+  def fork_via_link(_scope, _token, _attrs, _opts), do: {:error, :not_found}
 
   @doc """
   PUBLIC (token): joins the signed-in visitor as an accepted collaborator on

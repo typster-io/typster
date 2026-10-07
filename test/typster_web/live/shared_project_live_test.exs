@@ -1,5 +1,6 @@
 defmodule TypsterWeb.SharedProjectLiveTest do
   use TypsterWeb.ConnCase, async: true
+  use Oban.Testing, repo: Typster.Repo
 
   import Phoenix.LiveViewTest
   import Typster.ProjectsFixtures
@@ -124,12 +125,91 @@ defmodule TypsterWeb.SharedProjectLiveTest do
       # The prefilled "(copy)" name is focused + selected by the hook on open.
       assert has_element?(view, ~s|#shared-fork-form input[phx-hook="SelectOnMount"]|)
 
-      view
-      |> form("#shared-fork-form", fork: %{name: "Fork of the century"})
-      |> render_submit()
+      html =
+        view
+        |> form("#shared-fork-form", fork: %{name: "Fork of the century"})
+        |> render_submit()
 
-      {path, _flash} = assert_redirect(view)
+      # Copying runs async: the reply shows the locked, staged busy state.
+      busy = LazyHTML.from_fragment(html)
+      assert LazyHTML.query(busy, "#shared-fork-stages .st--cur") |> Enum.count() == 1
+      assert LazyHTML.query(busy, "#shared-fork-progress") |> Enum.count() == 1
+      assert LazyHTML.query(busy, "#shared-fork-submit[disabled]") |> Enum.count() == 1
+
+      # The async result navigates to the copy (the view then shuts down, so
+      # wait for the redirect instead of calling render_async/1).
+      {path, flash} = assert_redirect(view, 2_000)
       assert path =~ ~r"^/projects/[0-9a-f-]+/edit$"
+      assert flash["info"] =~ "Fork of the century"
+    end
+
+    test "a failed copy shows the fail slab and offers a retry", %{
+      conn: conn,
+      scope: scope,
+      project: project,
+      link: link
+    } do
+      # An asset whose S3 object is missing makes the copy fail mid-way.
+      asset_fixture(project, scope)
+      {:ok, link} = Sharing.update_link(scope, link, %{allow_fork: true})
+      visitor = Typster.AccountsFixtures.user_fixture()
+      conn = log_in_user(conn, visitor)
+
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
+      view |> element("#shared-fork-open") |> render_click()
+      view |> form("#shared-fork-form", fork: %{name: "Unlucky"}) |> render_submit()
+      render_async(view)
+
+      assert has_element?(view, "#shared-fork-failed")
+      assert has_element?(view, "#shared-fork-submit:not([disabled])")
+      refute has_element?(view, "#shared-fork-stages")
+      assert Typster.Projects.list_projects(Scope.for_user(visitor)) == []
+
+      assert_enqueued(
+        worker: Typster.Jobs.ForkCleanup,
+        args: %{"source_project_id" => project.id}
+      )
+    end
+
+    test "cancel while copying aborts the copy and closes the modal", %{
+      conn: conn,
+      scope: scope,
+      link: link
+    } do
+      {:ok, link} = Sharing.update_link(scope, link, %{allow_fork: true})
+      visitor = Typster.AccountsFixtures.user_fixture()
+      conn = log_in_user(conn, visitor)
+
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
+      view |> element("#shared-fork-open") |> render_click()
+
+      # Hold the sandboxed connection so the copy task cannot reach the DB
+      # until Cancel has been pressed — makes the race deterministic.
+      Typster.Repo.transaction(fn ->
+        view |> form("#shared-fork-form", fork: %{name: "Never mind"}) |> render_submit()
+        view |> element("#shared-fork-form button.cancel") |> render_click()
+        refute has_element?(view, "#shared-fork-overlay")
+      end)
+
+      render_async(view)
+      refute has_element?(view, "#shared-fork-overlay")
+      assert Typster.Projects.list_projects(Scope.for_user(visitor)) == []
+    end
+
+    test "late progress from a cancelled run is ignored", %{
+      conn: conn,
+      scope: scope,
+      link: link
+    } do
+      {:ok, link} = Sharing.update_link(scope, link, %{allow_fork: true})
+      conn = log_in_user(conn, Typster.AccountsFixtures.user_fixture())
+
+      {:ok, view, _html} = live(conn, ~p"/p/shared?#{[key: link.token]}")
+      view |> element("#shared-fork-open") |> render_click()
+
+      send(view.pid, {:fork_progress, make_ref(), {:assets, 1, 2}})
+      refute has_element?(view, "#shared-fork-stages")
+      assert has_element?(view, "#shared-fork-form .fk-meta")
     end
 
     test "an empty name shows the inline error and keeps the modal open", %{

@@ -1945,6 +1945,27 @@
   margin-top: 10px;
   min-height: 18px;
 }
+/* copying: 2px progress bar on the modal's top edge + the stage row */
+.fk-progressbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  height: 2px;
+  background: var(--accent);
+  transition: width 300ms ease;
+}
+.fk-stages {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  font: 12px var(--font-sans); color: var(--text-mute);
+  margin-top: 10px;
+  min-height: 18px;
+}
+.fk-stages .st { display: inline-flex; align-items: center; gap: 4px; }
+.fk-stages .st--done { color: var(--green-500); }
+.fk-stages .st--cur { color: var(--text); font-weight: 500; }
+.fk-stages .st--todo { opacity: 0.7; }
+.fk-body .input:disabled { opacity: 0.7; cursor: default; }
 .fk-fail {
   display: flex; gap: 10px; align-items: flex-start;
   margin-top: 12px;

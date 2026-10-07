@@ -92,29 +92,53 @@ defmodule Typster.Projects do
 
   Does **not** authorize against `source` — the caller must have already
   established read access (e.g. via a share-link token in
-  `Typster.Sharing.fork_via_link/3`, or ownership).
+  `Typster.Sharing.fork_via_link/4`, or ownership).
+
+  Options:
+
+    * `:on_progress` — called (inside the fork's process) with
+      `{:created, fork_id}` once the project row exists, `{:files}` once the
+      file rows are copied, then `{:assets, copied_bytes, total_bytes}` after
+      each asset object lands.
 
   Returns `{:ok, project}`, `{:error, changeset}` for an invalid name, or
   `{:error, :asset_copy_failed}` when an S3 object copy fails (the whole fork
-  rolls back — no half-copied project is left behind).
+  rolls back — no half-copied project is left behind, and the objects already
+  copied are scheduled for deletion). Killing the calling process mid-copy
+  also rolls the transaction back.
   """
-  def fork_project(%Scope{user: user}, %Project{} = source, attrs) do
+  def fork_project(%Scope{user: user}, %Project{} = source, attrs, opts \\ []) do
+    on_progress = Keyword.get(opts, :on_progress, fn _ -> :ok end)
+
     Repo.transaction(fn ->
       case %Project{user_id: user.id} |> Project.changeset(attrs) |> Repo.insert() do
-        {:ok, fork} -> copy_project_contents!(source.id, fork)
-        {:error, changeset} -> Repo.rollback(changeset)
+        {:ok, fork} ->
+          on_progress.({:created, fork.id})
+          copy_project_contents!(source.id, fork, on_progress)
+
+        {:error, changeset} ->
+          Repo.rollback(changeset)
       end
     end)
+    |> case do
+      {:error, {:asset_copy_failed, fork_id}} ->
+        Typster.Assets.schedule_fork_cleanup(fork_id, source.id)
+        {:error, :asset_copy_failed}
+
+      result ->
+        result
+    end
   end
 
   # Inside the fork transaction: copy files, then assets; a failed S3 copy
   # rolls the whole fork back.
-  defp copy_project_contents!(source_id, fork) do
+  defp copy_project_contents!(source_id, fork, on_progress) do
     copy_files!(source_id, fork.id)
+    on_progress.({:files})
 
-    case Typster.Assets.copy_project_assets(source_id, fork.id) do
+    case Typster.Assets.copy_project_assets(source_id, fork.id, on_progress) do
       :ok -> fork
-      {:error, _reason} -> Repo.rollback(:asset_copy_failed)
+      {:error, _reason} -> Repo.rollback({:asset_copy_failed, fork.id})
     end
   end
 

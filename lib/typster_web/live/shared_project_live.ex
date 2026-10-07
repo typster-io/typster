@@ -75,6 +75,7 @@ defmodule TypsterWeb.SharedProjectLive do
      |> assign(:fork_open?, can_fork? and params["fork"] == "1" and signed_in?(socket))
      |> assign(:fork_error, nil)
      |> assign(:fork_failed?, false)
+     |> assign(:fork_busy, nil)
      |> assign(:fork_stats, if(can_fork?, do: Sharing.fork_stats(link)))
      |> assign(:notice, nil)
      |> assign(:fork_form, to_form(%{"name" => copy_name(link.project.name)}, as: :fork))
@@ -206,6 +207,13 @@ defmodule TypsterWeb.SharedProjectLive do
           phx-key="escape"
         >
           <div class="fk-modal" phx-click-away="close_fork">
+            <div
+              :if={@fork_busy}
+              id="shared-fork-progress"
+              class="fk-progressbar"
+              style={"width: #{fork_progress_pct(@fork_busy)}%"}
+            >
+            </div>
             <div class="fk-head">
               <div class="t">
                 <div class="ttl">{gettext("share.join.fork_title")}</div>
@@ -238,13 +246,30 @@ defmodule TypsterWeb.SharedProjectLive do
                     class={if(@fork_error, do: "w-full input invalid", else: "w-full input")}
                     aria-invalid={to_string(@fork_error != nil)}
                     phx-hook="SelectOnMount"
+                    disabled={@fork_busy != nil}
                     autofocus
                   />
                   <div :if={@fork_error} id="shared-fork-error" class="fk-err">
                     <.icon name="hero-exclamation-triangle" class="size-3" /> {@fork_error}
                   </div>
-                  <div :if={@fork_stats && !@fork_failed?} class="fk-meta">
+                  <div :if={@fork_stats && !@fork_failed? && !@fork_busy} class="fk-meta">
                     <.icon name="hero-folder" class="size-3" /> {fork_meta(@fork_stats)}
+                  </div>
+                  <%!-- Copying: Files → Assets (with MB) → Open. Done stages
+                        go green, the current one spins, future ones wait. --%>
+                  <div :if={@fork_busy} id="shared-fork-stages" class="fk-stages" role="status">
+                    <%= for {{state, label}, i} <- Enum.with_index(fork_stages(@fork_busy)) do %>
+                      <span :if={i > 0} class="sep" aria-hidden="true">→</span>
+                      <span class={["st", "st--#{state}"]}>
+                        <.icon :if={state == :done} name="hero-check" class="size-3" />
+                        <.icon
+                          :if={state == :cur}
+                          name="hero-arrow-path"
+                          class="size-3 motion-safe:animate-spin"
+                        />
+                        {label}
+                      </span>
+                    <% end %>
                   </div>
                   <div :if={@fork_failed?} id="shared-fork-failed" class="fk-fail" role="alert">
                     <.icon name="hero-exclamation-triangle" class="size-3.5" />
@@ -257,15 +282,21 @@ defmodule TypsterWeb.SharedProjectLive do
                   </button>
                   <button
                     type="submit"
+                    id="shared-fork-submit"
                     class="ts-btn ts-btn--primary ts-btn--sm"
-                    phx-disable-with={gettext("share.fork.busy")}
+                    disabled={@fork_busy != nil}
                   >
-                    <%= if @fork_failed? do %>
-                      <.icon name="hero-arrow-path" class="size-3" /> {gettext("share.fork.retry")}
-                    <% else %>
-                      <.icon name="hero-document-duplicate" class="size-3" /> {gettext(
-                        "share.join.fork_confirm"
-                      )}
+                    <%= cond do %>
+                      <% @fork_busy -> %>
+                        <.icon name="hero-arrow-path" class="size-3 motion-safe:animate-spin" /> {gettext(
+                          "share.fork.busy"
+                        )}
+                      <% @fork_failed? -> %>
+                        <.icon name="hero-arrow-path" class="size-3" /> {gettext("share.fork.retry")}
+                      <% true -> %>
+                        <.icon name="hero-document-duplicate" class="size-3" /> {gettext(
+                          "share.join.fork_confirm"
+                        )}
                     <% end %>
                   </button>
                 </div>
@@ -400,8 +431,14 @@ defmodule TypsterWeb.SharedProjectLive do
     {:noreply, assign(socket, fork_open?: true, fork_error: nil, fork_failed?: false)}
   end
 
+  # Cancel, ⎋ and backdrop click all land here. While copying, the task is
+  # killed — its DB transaction rolls back, so nothing is created — and any
+  # S3 objects it already copied are scheduled for deletion.
   def handle_event("close_fork", _params, socket) do
-    {:noreply, assign(socket, fork_open?: false, fork_error: nil, fork_failed?: false)}
+    {:noreply,
+     socket
+     |> cancel_fork()
+     |> assign(fork_open?: false, fork_error: nil, fork_failed?: false)}
   end
 
   # The inline name error clears on the first keystroke; the typed value stays.
@@ -415,27 +452,14 @@ defmodule TypsterWeb.SharedProjectLive do
   def handle_event(
         "fork",
         %{"fork" => %{"name" => name}},
-        %{assigns: %{can_fork?: true}} = socket
+        %{assigns: %{can_fork?: true, fork_busy: nil}} = socket
       ) do
-    scope = socket.assigns.current_scope
+    socket = assign(socket, :fork_form, to_form(%{"name" => name}, as: :fork))
 
-    case Sharing.fork_via_link(scope, socket.assigns.link.token, %{name: name}) do
-      {:ok, project} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("share.join.forked", name: project.name))
-         |> push_navigate(to: ~p"/projects/#{project.id}/edit")}
-
-      {:error, %Ecto.Changeset{}} ->
-        {:noreply,
-         socket
-         |> assign(:fork_form, to_form(%{"name" => name}, as: :fork))
-         |> assign(fork_error: gettext("share.join.fork_invalid_name"), fork_failed?: false)}
-
-      {:error, _reason} ->
-        # Stay in the modal: the fail slab explains, the CTA becomes "Try
-        # again". Nothing was created, the original is untouched.
-        {:noreply, assign(socket, fork_error: nil, fork_failed?: true)}
+    if valid_fork_name?(name) do
+      {:noreply, start_fork(socket, name)}
+    else
+      {:noreply, assign(socket, fork_error: gettext("share.join.fork_invalid_name"))}
     end
   end
 
@@ -458,6 +482,48 @@ defmodule TypsterWeb.SharedProjectLive do
   # `update_preview` push would crash the LiveView (undefined handle_event/3).
   # It also swallows join/fork clicks whose policy guard above didn't match.
   def handle_event(_event, _params, socket), do: {:noreply, socket}
+
+  # Progress from the fork task. A message from a cancelled (or earlier) run
+  # carries a stale ref and is dropped.
+  @impl true
+  def handle_info(
+        {:fork_progress, ref, event},
+        %{assigns: %{fork_busy: %{ref: ref} = busy}} = socket
+      ) do
+    {:noreply, assign(socket, :fork_busy, advance_fork(busy, event))}
+  end
+
+  def handle_info({:fork_progress, _ref, _event}, socket), do: {:noreply, socket}
+
+  @impl true
+  def handle_async(:fork, {:ok, {:ok, project}}, socket) do
+    {:noreply,
+     socket
+     |> assign(:fork_busy, nil)
+     |> put_flash(:info, gettext("share.join.forked", name: project.name))
+     |> push_navigate(to: ~p"/projects/#{project.id}/edit")}
+  end
+
+  def handle_async(:fork, {:ok, {:error, %Ecto.Changeset{}}}, socket) do
+    {:noreply,
+     assign(socket,
+       fork_busy: nil,
+       fork_error: gettext("share.join.fork_invalid_name"),
+       fork_failed?: false
+     )}
+  end
+
+  # Cancelled by the visitor: close_fork already cleaned up.
+  def handle_async(:fork, {:exit, _reason}, %{assigns: %{fork_busy: nil}} = socket) do
+    {:noreply, socket}
+  end
+
+  # Stay in the modal: the fail slab explains, the CTA becomes "Try again".
+  # Nothing was created, the original is untouched.
+  def handle_async(:fork, result, socket) do
+    if match?({:exit, _}, result), do: schedule_fork_cleanup(socket, socket.assigns.fork_busy)
+    {:noreply, assign(socket, fork_busy: nil, fork_error: nil, fork_failed?: true)}
+  end
 
   # ── helpers ──────────────────────────────────────────────────────────────
   defp show_source?(:output), do: false
@@ -482,6 +548,97 @@ defmodule TypsterWeb.SharedProjectLive do
   defp entry_language(%{path: path}), do: Files.editor_language(path)
 
   defp copy_name(name), do: gettext("share.join.copy_of", name: name)
+
+  defp valid_fork_name?(name) do
+    changeset = Typster.Projects.change_project(%Typster.Projects.Project{}, %{name: name})
+    not Keyword.has_key?(changeset.errors, :name)
+  end
+
+  # Runs the copy in a task so the modal can show live stages and Cancel can
+  # kill it. The task reports progress back to this LiveView, tagged with a
+  # per-run ref.
+  defp start_fork(socket, name) do
+    %{current_scope: scope, link: link, fork_stats: stats} = socket.assigns
+    lv = self()
+    ref = make_ref()
+    progress = fn event -> send(lv, {:fork_progress, ref, event}) end
+
+    socket
+    |> assign(fork_error: nil, fork_failed?: false)
+    |> assign(:fork_busy, %{
+      ref: ref,
+      fork_id: nil,
+      stage: :files,
+      done_bytes: 0,
+      total_bytes: (stats && stats.bytes) || 0
+    })
+    |> start_async(:fork, fn ->
+      result = Sharing.fork_via_link(scope, link.token, %{name: name}, on_progress: progress)
+      if match?({:ok, _}, result), do: progress.(:open)
+      result
+    end)
+  end
+
+  defp cancel_fork(%{assigns: %{fork_busy: nil}} = socket), do: socket
+
+  defp cancel_fork(%{assigns: %{fork_busy: busy}} = socket) do
+    schedule_fork_cleanup(socket, busy)
+
+    socket
+    |> cancel_async(:fork, {:shutdown, :cancel})
+    |> assign(:fork_busy, nil)
+  end
+
+  defp schedule_fork_cleanup(_socket, %{fork_id: nil}), do: :ok
+
+  defp schedule_fork_cleanup(socket, %{fork_id: fork_id}) do
+    Typster.Assets.schedule_fork_cleanup(fork_id, socket.assigns.project.id)
+  end
+
+  defp advance_fork(busy, {:created, fork_id}), do: %{busy | fork_id: fork_id}
+  defp advance_fork(busy, {:files}), do: %{busy | stage: :assets}
+
+  defp advance_fork(busy, {:assets, done, total}),
+    do: %{busy | stage: :assets, done_bytes: done, total_bytes: total}
+
+  defp advance_fork(busy, :open), do: %{busy | stage: :open}
+
+  # 2px bar on the modal edge: files ≈ 25%, assets 25–90% by bytes, open 95%.
+  defp fork_progress_pct(%{stage: :files}), do: 25
+  defp fork_progress_pct(%{stage: :open}), do: 95
+  defp fork_progress_pct(%{total_bytes: total}) when total <= 0, do: 90
+
+  defp fork_progress_pct(%{done_bytes: done, total_bytes: total}),
+    do: 25 + round(65 * done / total)
+
+  @fork_stage_order [:files, :assets, :open]
+
+  defp fork_stages(%{stage: current} = busy) do
+    current_index = Enum.find_index(@fork_stage_order, &(&1 == current))
+
+    @fork_stage_order
+    |> Enum.with_index()
+    |> Enum.map(fn {stage, index} ->
+      state =
+        cond do
+          index < current_index -> :done
+          index == current_index -> :cur
+          true -> :todo
+        end
+
+      {state, fork_stage_label(stage, busy)}
+    end)
+  end
+
+  defp fork_stage_label(:files, _busy), do: gettext("share.fork.stage_files")
+  defp fork_stage_label(:open, _busy), do: gettext("share.fork.stage_open")
+
+  defp fork_stage_label(:assets, %{total_bytes: total}) when total <= 0,
+    do: gettext("share.fork.stage_assets_empty")
+
+  defp fork_stage_label(:assets, %{done_bytes: done, total_bytes: total}) do
+    gettext("share.fork.stage_assets", done: format_size(done), total: format_size(total))
+  end
 
   defp signed_in?(socket) do
     match?(%{current_scope: %{user: %{}}}, socket.assigns)
@@ -512,6 +669,8 @@ defmodule TypsterWeb.SharedProjectLive do
   defp format_bytes(bytes) when bytes >= 1_048_576, do: "#{Float.round(bytes / 1_048_576, 1)} MB"
   defp format_bytes(bytes) when bytes >= 1024, do: "#{Float.round(bytes / 1024, 1)} KB"
   defp format_bytes(_), do: nil
+
+  defp format_size(bytes), do: format_bytes(bytes) || "#{bytes} B"
 
   defp project_sources(files) do
     files
