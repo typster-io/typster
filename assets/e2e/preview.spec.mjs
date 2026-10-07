@@ -41,6 +41,20 @@ test.describe('Preview pane', () => {
     await expect(page.locator('#preview-placeholder')).not.toBeVisible()
   })
 
+  test('status bar shows the word count of the compiled document', async ({ page }) => {
+    await createProjectAndOpenEditor(page, 'E2E Word Count')
+    const cm = await createFileAndOpenEditor(page)
+
+    await cm.click()
+    await page.keyboard.press('Control+a')
+    // Code and markup do not count; the heading and the sentence do: 1 + 7 = 8.
+    await page.keyboard.type('#set text(size: 12pt)\n= Title\n\nHello wonderful world, here are seven words.')
+
+    await expect(page.locator('#preview-container svg')).toBeVisible({ timeout: 30_000 })
+    await expect(page.locator('#status-words')).toHaveText(/\b8 words\b/, { timeout: 15_000 })
+    await expect(page.locator('#status-words')).toHaveAttribute('title', /characters, not counting spaces/)
+  })
+
   test('preview SVG persists through autosave re-renders', async ({ page }) => {
     await createProjectAndOpenEditor(page, 'E2E Preview Persistence')
     const cm = await createFileAndOpenEditor(page)
