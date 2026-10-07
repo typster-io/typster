@@ -106,6 +106,24 @@ defmodule TypsterWeb.FileTree do
   def asset_insert(a, _kind, _families, current_path),
     do: insert_snippet(Typster.Assets.reference_path(a), current_path)
 
+  # Typst call each extension is inserted with; anything else is `#read`.
+  @insert_calls %{
+    ".typ" => "include",
+    ".png" => "image",
+    ".jpg" => "image",
+    ".jpeg" => "image",
+    ".gif" => "image",
+    ".svg" => "image",
+    ".webp" => "image",
+    ".bib" => "bibliography",
+    ".csv" => "csv",
+    ".json" => "json",
+    ".yaml" => "yaml",
+    ".yml" => "yaml",
+    ".toml" => "toml",
+    ".xml" => "xml"
+  }
+
   @doc """
   The Typst snippet that references the project file at `path` from the file at
   `current_path`, with the path written relative to that file's directory.
@@ -113,16 +131,9 @@ defmodule TypsterWeb.FileTree do
   def insert_snippet(path, current_path \\ nil) do
     ref = typst_string(relative_path(path, current_path))
 
-    case path |> Path.extname() |> String.downcase() do
-      ".typ" -> "#include #{ref}"
-      ext when ext in ~w(.png .jpg .jpeg .gif .svg .webp) -> "#image(#{ref})"
-      ".bib" -> "#bibliography(#{ref})"
-      ".csv" -> "#csv(#{ref})"
-      ".json" -> "#json(#{ref})"
-      ext when ext in ~w(.yaml .yml) -> "#yaml(#{ref})"
-      ".toml" -> "#toml(#{ref})"
-      ".xml" -> "#xml(#{ref})"
-      _ -> "#read(#{ref})"
+    case Map.get(@insert_calls, path |> Path.extname() |> String.downcase(), "read") do
+      "include" -> "#include #{ref}"
+      call -> "##{call}(#{ref})"
     end
   end
 
