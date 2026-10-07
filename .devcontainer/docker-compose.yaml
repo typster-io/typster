@@ -1,17 +1,16 @@
 services:
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
+  rustfs:
+    image: rustfs/rustfs:1.0.1
     expose:
       - "9000"
       - "9001"
     environment:
-      MINIO_ROOT_USER: "${AWS_ACCESS_KEY_ID:-minioadmin}"
-      MINIO_ROOT_PASSWORD: "${AWS_SECRET_ACCESS_KEY:-minioadmin}"
+      RUSTFS_ACCESS_KEY: "${AWS_ACCESS_KEY_ID:-rustfsadmin}"
+      RUSTFS_SECRET_KEY: "${AWS_SECRET_ACCESS_KEY:-rustfsadmin}"
     volumes:
-      - minio_data:/data
+      - rustfs_data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,16 +26,16 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      minio:
+      rustfs:
         condition: service_healthy
     environment:
       MIX_ENV: "dev"
       DB_HOST: "db"
-      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID:-minioadmin}"
-      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY:-minioadmin}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID:-rustfsadmin}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY:-rustfsadmin}"
       AWS_REGION: "${AWS_REGION:-us-east-1}"
       S3_BUCKET: "${S3_BUCKET:-typster-assets}"
-      S3_ENDPOINT: "${S3_ENDPOINT:-http://minio:9000}"
+      S3_ENDPOINT: "${S3_ENDPOINT:-http://rustfs:9000}"
 
   db:
     image: postgres:16-alpine
@@ -57,4 +56,4 @@ services:
 
 volumes:
   postgres-data:
-  minio_data:
+  rustfs_data:

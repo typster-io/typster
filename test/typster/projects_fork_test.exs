@@ -213,7 +213,7 @@ defmodule Typster.ProjectsForkTest do
 
   defp bucket, do: Application.get_env(:typster, :s3_bucket, "typster-assets")
 
-  # An asset backed by a real object in the (MinIO) bucket.
+  # An asset backed by a real object in the (RustFS) bucket.
   defp s3_asset(project, owner, filename, size) do
     _ = ExAws.S3.put_bucket(bucket(), "us-east-1") |> ExAws.request()
     key = "projects/#{project.id}/assets/#{System.unique_integer([:positive])}-#{filename}"

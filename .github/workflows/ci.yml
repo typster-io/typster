@@ -164,22 +164,21 @@ jobs:
         run: pixi run mix compile --warnings-as-errors
 
       # The fork tests copy real objects, so the suite needs an S3 endpoint.
-      # MinIO no longer publishes minio/minio to Docker Hub or quay.io for
-      # anonymous pulls, so use the frozen Bitnami build pinned by digest. It
-      # runs the server on 9000 with the defaults the test config assumes
-      # (minioadmin / localhost:9000) and needs no command.
-      - name: Start MinIO
+      # RustFS serves the S3 API on 9000 with the defaults the test config
+      # assumes (rustfsadmin / localhost:9000). Same image as docker-compose,
+      # pinned by digest here so CI cannot drift under a moved tag.
+      - name: Start RustFS
         if: steps.edition.outputs.run == 'true'
         run: |
-          docker run -d --name minio -p 9000:9000 \
-            -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
-            bitnamilegacy/minio@sha256:451fe6858cb770cc9d0e77ba811ce287420f781c7c1b806a386f6896471a349c
+          docker run -d --name rustfs -p 9000:9000 \
+            -e RUSTFS_ACCESS_KEY=rustfsadmin -e RUSTFS_SECRET_KEY=rustfsadmin \
+            rustfs/rustfs:1.0.1@sha256:1803faef57627e2d9c2e7d89d655d712ddded5389040054987163043fecb6a3c
           for i in $(seq 1 30); do
-            curl -fs http://localhost:9000/minio/health/live && exit 0
+            curl -fs http://localhost:9000/health && exit 0
             sleep 1
           done
-          echo "MinIO did not become healthy" >&2
-          docker logs minio >&2
+          echo "RustFS did not become healthy" >&2
+          docker logs rustfs >&2
           exit 1
 
       - name: Run tests

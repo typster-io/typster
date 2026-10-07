@@ -30,7 +30,7 @@ Typst is a modern LaTeX alternative — a markup-based language for producing be
 | Backend | Elixir 1.19 + Phoenix 1.8 + LiveView 1.1 on BEAM (Erlang/OTP 28) |
 | Frontend | Bun 1.3 · Tailwind CSS · salad_ui components |
 | Database | PostgreSQL 16 (Ecto) |
-| Object storage | MinIO (S3-compatible) |
+| Object storage | RustFS (S3-compatible) |
 | Background jobs | Oban 2.22 |
 | Testing | ExUnit · Playwright (browser E2E) |
 | Dev environment | Pixi · prek · Docker Compose |
@@ -47,7 +47,7 @@ docker compose up
 
 Open [http://localhost:4000](http://localhost:4000)
 
-That's it. Docker Compose starts PostgreSQL, MinIO, and the app together. The app container waits for both services to be healthy before booting
+That's it. Docker Compose starts PostgreSQL, RustFS, and the app together. The app container waits for both services to be healthy before booting
 
 > Looking to set up a local dev environment, use Pixi, or work inside a Dev Container? See [CONTRIBUTING.md](CONTRIBUTING.md)
 

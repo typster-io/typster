@@ -28,7 +28,7 @@ Finish the MVP around authenticated project ownership, stable project/file editi
 - Make preview project-aware enough for MVP by sending project text file and asset metadata into the preview worker, while keeping the current placeholder renderer if full Typst WASM integration is still absent.
 
 ## Test Plan
-- Start dependencies with `docker compose up -d db minio`.
+- Start dependencies with `docker compose up -d db rustfs`.
 - Run migrations and tests with Mix.
 - Add focused coverage for:
   - registration, login, logout, and authenticated route protection
