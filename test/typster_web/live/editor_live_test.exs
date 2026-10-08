@@ -199,6 +199,59 @@ defmodule TypsterWeb.EditorLiveTest do
     assert has_element?(view, ".ts-pill--error", "2 errors")
   end
 
+  test "a file row carries a badge with its compile error count",
+       %{conn: conn, user: user, project: project} do
+    main = file_fixture(project, user, %{path: "main.typ"})
+    intro = file_fixture(project, user, %{path: "sections/intro.typ"})
+    view = open_editor(conn, project)
+
+    refute has_element?(view, ".ts-tree__badge")
+
+    render_hook(view, "preview_error", %{
+      "message" => "expected comma",
+      "errors" => 3,
+      "warnings" => 1,
+      "diagnostics" => [
+        %{
+          "severity" => "error",
+          "message" => "a",
+          "location" => %{"file" => "/sections/intro.typ"}
+        },
+        %{
+          "severity" => "error",
+          "message" => "b",
+          "location" => %{"file" => "sections/intro.typ"}
+        },
+        %{"severity" => "warning", "message" => "c", "location" => %{"file" => "/main.typ"}}
+      ]
+    })
+
+    assert has_element?(view, "#select-file-#{intro.id} .ts-tree__badge", "2")
+    refute has_element?(view, "#select-file-#{main.id} .ts-tree__badge")
+
+    render_hook(view, "update_preview", %{"ms" => 12, "pages" => 1})
+    refute has_element?(view, ".ts-tree__badge")
+  end
+
+  test "the sidebar folds uploaded assets into a virtual assets folder",
+       %{conn: conn, user: user, project: project} do
+    file_fixture(project, user, %{path: "main.typ"})
+    image = asset_fixture(project, user)
+    view = open_editor(conn, project)
+
+    assert has_element?(view, "#assets-folder[aria-expanded=true]", "assets")
+    assert has_element?(view, "#asset-tree [id$=\"asset-entry-#{image.id}\"]")
+    assert has_element?(view, "#sidebar-find-file", "Find file")
+    assert has_element?(view, ".ts-side__outline .ts-side__head", "main.typ")
+
+    view |> element("#assets-folder") |> render_click()
+    assert has_element?(view, "#assets-folder[aria-expanded=false]")
+    refute has_element?(view, "#asset-tree")
+
+    view |> element("#assets-folder") |> render_click()
+    assert has_element?(view, "#asset-tree [id$=\"asset-entry-#{image.id}\"]")
+  end
+
   test "the compile drawer lists diagnostics and toggles from the status bar",
        %{conn: conn, user: user, project: project} do
     file_fixture(project, user, %{path: "main.typ"})

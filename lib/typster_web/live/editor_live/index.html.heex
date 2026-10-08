@@ -214,314 +214,346 @@
       <div class="ts-window ts-editor__panes">
         <%!-- Sidebar: file tree + outline + assets --%>
         <aside class="ts-side" id="editor-sidebar" phx-hook="LucideIcons">
-          <div class="ts-side__search">
-            <div class="ts-search ts-search--sm">
-              <.icon name="hero-magnifying-glass" class="size-3.5" />
-              <input
-                placeholder={gettext("editor.find_in_project")}
-                aria-label={gettext("editor.find_in_project")}
-              />
-            </div>
-          </div>
-
-          <div class="ts-side__head">
-            <span>{gettext("editor.files")}</span>
-            <div class="ts-side__actions">
-              <button
-                type="button"
-                class="ts-btn ts-btn--ghost ts-btn--sm ts-viewmenu__btn"
-                phx-click={JS.toggle(to: "#file-viewmenu")}
-                aria-label={gettext("editor.view.label")}
-              >
-                <.icon name="hero-arrows-right-left" class="size-3" />
-                {TypsterWeb.FileTree.view_label(@file_view_mode)}
-              </button>
-              <button
-                id="create-folder-button"
-                phx-click="new_folder"
-                class="ts-btn ts-btn--ghost ts-btn--icon ts-btn--sm"
-                aria-label={gettext("editor.new_folder")}
-              >
-                <.icon name="hero-folder-plus" class="size-3" />
-              </button>
-              <button
-                id="create-main-file-button"
-                phx-click="new_file"
-                class="ts-btn ts-btn--ghost ts-btn--icon ts-btn--sm"
-                aria-label={gettext("editor.new_file")}
-              >
-                <.icon name="hero-plus" class="size-3" />
-              </button>
-            </div>
-          </div>
-
-          <div
-            id="file-viewmenu"
-            class="ts-viewmenu__pop hidden"
-            phx-click-away={JS.hide(to: "#file-viewmenu")}
+          <button
+            type="button"
+            id="sidebar-find-file"
+            class="ts-side__find"
+            phx-click="open_palette"
           >
-            <button
-              :for={
-                {m, label, desc} <- [
-                  {"tree", gettext("editor.view.tree"), gettext("editor.view.tree_desc")},
-                  {"smart", gettext("editor.view.smart_label"),
-                   gettext("editor.view.smart_desc")},
-                  {"flat", gettext("editor.view.flat_label"), gettext("editor.view.flat_desc")}
-                ]
-              }
-              type="button"
-              class={["ts-viewmenu__opt", to_string(@file_view_mode) == m && "is-on"]}
-              phx-click={
-                JS.hide(to: "#file-viewmenu") |> JS.push("set_file_view", value: %{mode: m})
-              }
-            >
-              <.icon
-                :if={to_string(@file_view_mode) == m}
-                name="hero-check"
-                class="size-3 ts-viewmenu__check"
-              />
-              <span :if={to_string(@file_view_mode) != m} class="ts-viewmenu__dot"></span>
-              <span>
-                <strong>{label}</strong>
-                <em>{desc}</em>
-              </span>
-            </button>
-          </div>
+            <.icon name="hero-magnifying-glass" class="size-3.5" />
+            <span class="truncate">{gettext("editor.find_file")}</span>
+            <span class="ts-kbd ts-kbd--combo">
+              <span class="ts-mac">⌘</span><span class="ts-other">Ctrl</span>P
+            </span>
+          </button>
 
-          <div :if={pinned_files(@file_tree) != []}>
-            <div class="ts-side__head ts-side__head--sub">{gettext("editor.pinned")}</div>
-            <ul class="ts-tree" id="pinned-tree" phx-hook="InsertDrag">
-              <TypsterWeb.FileTree.tree_rows
-                nodes={
-                  TypsterWeb.FileTree.file_nodes(
-                    pinned_files(@file_tree),
-                    :flat,
-                    @current_file && @current_file.path
-                  )
-                }
-                collapsed={@collapsed_dirs}
-                current_id={@current_file && @current_file.id}
-                id_prefix="pinned-"
-              />
-            </ul>
-            <div class="ts-side__head ts-side__head--sub">{gettext("editor.files")}</div>
-          </div>
-
-          <%= if Enum.empty?(@file_tree) and Enum.empty?(@assets) and not @creating? do %>
-            <div class="ts-empty" style="margin: 8px 14px; padding: 20px 12px;">
-              {gettext("editor.no_files")}
-            </div>
-          <% else %>
-            <ul class="ts-tree" id="file-tree-main" phx-hook="FileTreeDnD">
-              <li :if={@creating?} class="ts-tree__draft" id="new-file-draft">
-                <.form
-                  for={%{}}
-                  id="new-file-form"
-                  phx-change={@new_kind == :file && "suggest_new_file"}
-                  phx-submit={
-                    if(@new_kind == :folder,
-                      do: "create_folder_from_dialog",
-                      else: "create_file_from_dialog"
+          <div class="ts-side__scroll">
+            <div :if={pinned_files(@file_tree) != []}>
+              <div class="ts-side__head ts-side__head--sub">{gettext("editor.pinned")}</div>
+              <ul class="ts-tree" id="pinned-tree" phx-hook="InsertDrag">
+                <TypsterWeb.FileTree.tree_rows
+                  nodes={
+                    TypsterWeb.FileTree.file_nodes(
+                      pinned_files(@file_tree),
+                      :flat,
+                      @current_file && @current_file.path
                     )
                   }
-                  phx-window-keydown="cancel_new_file"
-                  phx-key="Escape"
-                  phx-click-away="cancel_new_file"
+                  collapsed={@collapsed_dirs}
+                  id_prefix="pinned-"
+                  badges={file_errors(@diagnostics)}
+                />
+              </ul>
+            </div>
+
+            <div class="ts-side__head">
+              <span>{gettext("editor.files")}</span>
+              <div class="ts-side__actions">
+                <button
+                  type="button"
+                  class="ts-btn ts-btn--outline ts-btn--sm ts-viewmenu__btn"
+                  phx-click={JS.toggle(to: "#file-viewmenu")}
+                  aria-label={gettext("editor.view.label")}
                 >
-                  <div class="ts-draft__row">
-                    <span :if={@new_kind == :folder} class="ts-tree__ficon" aria-hidden="true">
-                      <i data-lucide="folder"></i>
-                    </span>
-                    <span
-                      :if={@new_kind == :file}
-                      class={[
-                        "ts-filechip",
-                        "ts-filechip--#{draft_chip_ext(@new_file_name, @new_file_suggestions)}"
-                      ]}
-                    >
-                      {chip_glyph(draft_chip_ext(@new_file_name, @new_file_suggestions))}
-                    </span>
-                    <span :if={@create_dir != ""} class="ts-draft__dir">{@create_dir}/</span>
-                    <input
-                      class="ts-draft__input"
-                      name="path"
-                      value={@new_file_name}
-                      placeholder={
-                        if(@new_kind == :folder,
-                          do: gettext("editor.newfolder.placeholder"),
-                          else: gettext("editor.newfile.placeholder")
-                        )
-                      }
-                      autocomplete="off"
-                      spellcheck="false"
-                      phx-mounted={JS.focus()}
-                    />
-                    <button
-                      :if={@new_kind == :file and length(@new_file_suggestions) == 1}
-                      type="button"
-                      class="ts-exthint"
-                      phx-click="create_file_from_dialog"
-                      phx-value-path={hd(@new_file_suggestions)}
-                      title={gettext("editor.newfile.append_hint")}
-                    >
-                      + {draft_hint(@new_file_name, @new_file_suggestions)}
-                    </button>
-                  </div>
-                  <div
-                    :if={@new_kind == :file and length(@new_file_suggestions) > 1}
-                    class="ts-suggest"
+                  <.icon name="hero-arrows-right-left" class="size-3" />
+                  {TypsterWeb.FileTree.view_label(@file_view_mode)}
+                </button>
+                <button
+                  id="create-folder-button"
+                  phx-click="new_folder"
+                  class="ts-btn ts-btn--ghost ts-btn--icon ts-btn--sm"
+                  aria-label={gettext("editor.new_folder")}
+                >
+                  <.icon name="hero-folder-plus" class="size-3" />
+                </button>
+                <button
+                  id="create-main-file-button"
+                  phx-click="new_file"
+                  class="ts-btn ts-btn--ghost ts-btn--icon ts-btn--sm"
+                  aria-label={gettext("editor.new_file")}
+                >
+                  <.icon name="hero-plus" class="size-3" />
+                </button>
+              </div>
+            </div>
+
+            <div
+              id="file-viewmenu"
+              class="ts-viewmenu__pop hidden"
+              phx-click-away={JS.hide(to: "#file-viewmenu")}
+            >
+              <button
+                :for={
+                  {m, label, desc} <- [
+                    {"tree", gettext("editor.view.tree"), gettext("editor.view.tree_desc")},
+                    {"smart", gettext("editor.view.smart_label"),
+                     gettext("editor.view.smart_desc")},
+                    {"flat", gettext("editor.view.flat_label"), gettext("editor.view.flat_desc")}
+                  ]
+                }
+                type="button"
+                class={["ts-viewmenu__opt", to_string(@file_view_mode) == m && "is-on"]}
+                phx-click={
+                  JS.hide(to: "#file-viewmenu") |> JS.push("set_file_view", value: %{mode: m})
+                }
+              >
+                <.icon
+                  :if={to_string(@file_view_mode) == m}
+                  name="hero-check"
+                  class="size-3 ts-viewmenu__check"
+                />
+                <span :if={to_string(@file_view_mode) != m} class="ts-viewmenu__dot"></span>
+                <span>
+                  <strong>{label}</strong>
+                  <em>{desc}</em>
+                </span>
+              </button>
+            </div>
+
+            <%= if Enum.empty?(@file_tree) and Enum.empty?(@assets) and not @creating? do %>
+              <div class="ts-empty ts-side__empty">
+                {gettext("editor.no_files")}
+              </div>
+            <% else %>
+              <ul class="ts-tree" id="file-tree-main" phx-hook="FileTreeDnD">
+                <li :if={@creating?} class="ts-tree__draft" id="new-file-draft">
+                  <.form
+                    for={%{}}
+                    id="new-file-form"
+                    phx-change={@new_kind == :file && "suggest_new_file"}
+                    phx-submit={
+                      if(@new_kind == :folder,
+                        do: "create_folder_from_dialog",
+                        else: "create_file_from_dialog"
+                      )
+                    }
+                    phx-window-keydown="cancel_new_file"
+                    phx-key="Escape"
+                    phx-click-away="cancel_new_file"
                   >
-                    <button
-                      :for={suggestion <- @new_file_suggestions}
-                      type="button"
-                      class="ts-suggest__chip"
-                      phx-click="create_file_from_dialog"
-                      phx-value-path={suggestion}
-                    >
-                      <span class={["ts-filechip", "ts-filechip--#{ext_label(suggestion)}"]}>
-                        {chip_glyph(ext_label(suggestion))}
+                    <div class="ts-draft__row">
+                      <span :if={@new_kind == :folder} class="ts-tree__ficon" aria-hidden="true">
+                        <i data-lucide="folder"></i>
                       </span>
-                      {Path.basename(suggestion)}
+                      <span
+                        :if={@new_kind == :file}
+                        class={[
+                          "ts-filechip",
+                          "ts-filechip--#{draft_chip_ext(@new_file_name, @new_file_suggestions)}"
+                        ]}
+                      >
+                        {chip_glyph(draft_chip_ext(@new_file_name, @new_file_suggestions))}
+                      </span>
+                      <span :if={@create_dir != ""} class="ts-draft__dir">{@create_dir}/</span>
+                      <input
+                        class="ts-draft__input"
+                        name="path"
+                        value={@new_file_name}
+                        placeholder={
+                          if(@new_kind == :folder,
+                            do: gettext("editor.newfolder.placeholder"),
+                            else: gettext("editor.newfile.placeholder")
+                          )
+                        }
+                        autocomplete="off"
+                        spellcheck="false"
+                        phx-mounted={JS.focus()}
+                      />
+                      <button
+                        :if={@new_kind == :file and length(@new_file_suggestions) == 1}
+                        type="button"
+                        class="ts-exthint"
+                        phx-click="create_file_from_dialog"
+                        phx-value-path={hd(@new_file_suggestions)}
+                        title={gettext("editor.newfile.append_hint")}
+                      >
+                        + {draft_hint(@new_file_name, @new_file_suggestions)}
+                      </button>
+                    </div>
+                    <div
+                      :if={@new_kind == :file and length(@new_file_suggestions) > 1}
+                      class="ts-suggest"
+                    >
+                      <button
+                        :for={suggestion <- @new_file_suggestions}
+                        type="button"
+                        class="ts-suggest__chip"
+                        phx-click="create_file_from_dialog"
+                        phx-value-path={suggestion}
+                      >
+                        <span class={["ts-filechip", "ts-filechip--#{ext_label(suggestion)}"]}>
+                          {chip_glyph(ext_label(suggestion))}
+                        </span>
+                        {Path.basename(suggestion)}
+                      </button>
+                    </div>
+                  </.form>
+                </li>
+
+                <TypsterWeb.FileTree.tree_rows
+                  nodes={
+                    TypsterWeb.FileTree.file_nodes(
+                      @file_tree,
+                      @file_view_mode,
+                      @current_file && @current_file.path
+                    )
+                  }
+                  collapsed={@collapsed_dirs}
+                  current_id={@current_file && @current_file.id}
+                  dnd={true}
+                  badges={file_errors(@diagnostics)}
+                />
+              </ul>
+
+              <%!-- Uploaded assets: a virtual `assets/` folder under the files,
+                    since that is the path Typst references them by. --%>
+              <div class="ts-tree ts-tree--assets" phx-drop-target={@uploads.dropped.ref}>
+                <div class="ts-tree__item ts-tree__dir ts-tree__dir--assets">
+                  <button
+                    type="button"
+                    id="assets-folder"
+                    class="ts-tree__dirbtn"
+                    phx-click="toggle_assets"
+                    aria-expanded={to_string(@assets_open)}
+                  >
+                    <.icon
+                      name={if @assets_open, do: "hero-chevron-down", else: "hero-chevron-right"}
+                      class="size-3"
+                    />
+                    <span class="ts-filechip ts-filechip--folder" aria-hidden="true"></span>
+                    <span class="truncate flex-1">{Typster.Assets.reference_dir()}</span>
+                  </button>
+                  <label
+                    for={@uploads.asset.ref}
+                    class="ts-tree__act ts-tree__act--upload"
+                    aria-label={gettext("editor.upload_asset")}
+                    title={gettext("editor.upload_asset")}
+                  >
+                    <.icon name="hero-arrow-up-tray" class="size-3" />
+                  </label>
+                </div>
+                <ul
+                  :if={@assets_open}
+                  class="ts-tree ts-tree--nested"
+                  id="asset-tree"
+                  phx-hook="InsertDrag"
+                >
+                  <TypsterWeb.FileTree.tree_rows
+                    nodes={
+                      TypsterWeb.FileTree.asset_nodes(
+                        @assets,
+                        @file_view_mode,
+                        @font_families,
+                        @current_file && @current_file.path
+                      )
+                    }
+                    collapsed={@collapsed_dirs}
+                    depth={1}
+                  />
+                </ul>
+                <.form
+                  id="asset-upload-form"
+                  for={%{}}
+                  phx-change="validate_upload"
+                  phx-submit="save_upload"
+                >
+                  <.live_file_input upload={@uploads.asset} class="hidden" />
+                  <div :if={@uploads.asset.entries != []} class="ts-side__upload">
+                    <button
+                      id="upload-asset-button"
+                      type="submit"
+                      class="ts-btn ts-btn--primary ts-btn--sm ts-side__upload-btn"
+                    >
+                      <.icon name="hero-arrow-up-tray" class="size-3" />
+                      {ngettext(
+                        "Upload %{count} file",
+                        "Upload %{count} files",
+                        length(@uploads.asset.entries)
+                      )}
                     </button>
                   </div>
                 </.form>
-              </li>
-              <TypsterWeb.FileTree.tree_rows
-                nodes={
-                  TypsterWeb.FileTree.file_nodes(
-                    @file_tree,
-                    @file_view_mode,
-                    @current_file && @current_file.path
-                  )
-                }
-                collapsed={@collapsed_dirs}
-                current_id={@current_file && @current_file.id}
-                dnd={true}
-              />
-            </ul>
-          <% end %>
+              </div>
+            <% end %>
 
-          <div class="ts-side__head">
-            <span>{gettext("editor.outline")}</span>
-            <span :if={@outline_count > 0} class="ts-side__count">
-              {ngettext("%{count} section", "%{count} sections", @outline_count)}
-            </span>
-          </div>
-          <ul id="outline" phx-update="stream" class="ts-outline">
-            <li class="ts-outline__empty only:block hidden" id="outline-empty">
-              {gettext("editor.outline_empty")}
-            </li>
-            <li
-              :for={{id, heading} <- @streams.outline}
-              id={id}
-              class={["ts-outline__item", "level-#{heading.level}"]}
-              phx-click={
-                JS.dispatch("phx:editor-command", detail: %{cmd: "goto", line: heading.line})
-              }
-            >
-              <span :if={heading.num != ""} class="ts-outline__num">{heading.num}</span>
-              <span class="truncate">{heading.text}</span>
-            </li>
-          </ul>
+            <div class="ts-side__head">
+              <span>{gettext("editor.templates")}</span>
+              <span :if={@templates != []} class="ts-side__count">{length(@templates)}</span>
+            </div>
 
-          <div class="ts-side__head" style="margin-top: auto;">
-            <span>{gettext("editor.assets")}</span>
-            <div class="ts-side__actions">
-              <label
-                for={@uploads.asset.ref}
-                class="ts-btn ts-btn--ghost ts-btn--icon ts-btn--sm"
-                aria-label={gettext("editor.upload_asset")}
-                style="cursor: pointer;"
-              >
-                <.icon name="hero-arrow-up-tray" class="size-3" />
-              </label>
+            <div class="ts-tpl">
+              <div :for={tpl <- @templates} class="ts-tpl__row">
+                <% kind = TypsterWeb.FileTree.file_chip_kind(tpl.name) %>
+                <span class={["ts-filechip", "ts-filechip--#{kind}"]}>
+                  {TypsterWeb.FileTree.chip_glyph(kind)}
+                </span>
+                <span class="ts-tpl__name truncate">{tpl.name}</span>
+                <button
+                  type="button"
+                  class="ts-tree__act"
+                  phx-click="use_template"
+                  phx-value-id={tpl.id}
+                  aria-label={gettext("editor.tpl.use")}
+                  title={gettext("editor.tpl.use")}
+                >
+                  <.icon name="hero-arrow-right" class="size-3" />
+                </button>
+                <button
+                  type="button"
+                  class="ts-tree__act ts-tree__act--danger"
+                  phx-click="delete_template"
+                  phx-value-id={tpl.id}
+                  phx-confirm={gettext("editor.tpl.delete_confirm")}
+                  aria-label={gettext("editor.tree.delete")}
+                  title={gettext("editor.tree.delete")}
+                >
+                  <.icon name="hero-trash" class="size-3" />
+                </button>
+              </div>
+
+              <.form id="template-upload-form" for={%{}} phx-change="validate_template">
+                <.live_file_input upload={@uploads.template} class="hidden" />
+                <label
+                  for={@uploads.template.ref}
+                  class="ts-tpl__drop"
+                  phx-drop-target={@uploads.template.ref}
+                >
+                  <.icon name="hero-arrow-up-tray" class="size-3.5" />
+                  <span>{gettext("editor.tpl.upload")}</span>
+                </label>
+              </.form>
             </div>
           </div>
 
-          <ul
-            class="ts-tree"
-            id="asset-tree"
-            phx-hook="InsertDrag"
-            phx-drop-target={@uploads.dropped.ref}
-          >
-            <TypsterWeb.FileTree.tree_rows
-              nodes={
-                TypsterWeb.FileTree.asset_nodes(
-                  @assets,
-                  @file_view_mode,
-                  @font_families,
-                  @current_file && @current_file.path
-                )
-              }
-              collapsed={@collapsed_dirs}
-            />
-          </ul>
-
-          <div class="ts-side__upload" phx-drop-target={@uploads.dropped.ref}>
-            <.form
-              id="asset-upload-form"
-              for={%{}}
-              phx-change="validate_upload"
-              phx-submit="save_upload"
-            >
-              <.live_file_input upload={@uploads.asset} class="hidden" />
-              <button
-                id="upload-asset-button"
-                type="submit"
-                class="ts-btn ts-btn--outline ts-btn--sm"
-                style="width: 100%;"
-              >
-                {gettext("editor.upload_asset")}
-              </button>
-            </.form>
-          </div>
-
-          <div class="ts-side__head">
-            <span>{gettext("editor.templates")}</span>
-            <span :if={@templates != []} class="ts-side__count">{length(@templates)}</span>
-          </div>
-
-          <div class="ts-tpl">
-            <div :for={tpl <- @templates} class="ts-tpl__row">
-              <% kind = TypsterWeb.FileTree.file_chip_kind(tpl.name) %>
-              <span class={["ts-filechip", "ts-filechip--#{kind}"]}>
-                {TypsterWeb.FileTree.chip_glyph(kind)}
+          <div class="ts-side__outline">
+            <div class="ts-side__head">
+              <span class="truncate">
+                {gettext("editor.outline")}<span
+                  :if={@current_file}
+                  class="ts-side__head-file"
+                > — {Path.basename(@current_file.path)}</span>
               </span>
-              <span class="ts-tpl__name truncate">{tpl.name}</span>
-              <button
-                type="button"
-                class="ts-tree__act"
-                phx-click="use_template"
-                phx-value-id={tpl.id}
-                aria-label={gettext("editor.tpl.use")}
-                title={gettext("editor.tpl.use")}
-              >
-                <.icon name="hero-arrow-right" class="size-3" />
-              </button>
-              <button
-                type="button"
-                class="ts-tree__act ts-tree__act--danger"
-                phx-click="delete_template"
-                phx-value-id={tpl.id}
-                phx-confirm={gettext("editor.tpl.delete_confirm")}
-                aria-label={gettext("editor.tree.delete")}
-                title={gettext("editor.tree.delete")}
-              >
-                <.icon name="hero-trash" class="size-3" />
-              </button>
+              <span :if={@outline_count > 0} class="ts-side__count">
+                {ngettext("%{count} section", "%{count} sections", @outline_count)}
+              </span>
             </div>
-
-            <.form id="template-upload-form" for={%{}} phx-change="validate_template">
-              <.live_file_input upload={@uploads.template} class="hidden" />
-              <label
-                for={@uploads.template.ref}
-                class="ts-tpl__drop"
-                phx-drop-target={@uploads.template.ref}
+            <ul id="outline" phx-update="stream" phx-hook="OutlineList" class="ts-outline">
+              <li class="ts-outline__empty only:block hidden" id="outline-empty">
+                {gettext("editor.outline_empty")}
+              </li>
+              <li
+                :for={{id, heading} <- @streams.outline}
+                id={id}
+                class={["ts-outline__item", "level-#{heading.level}"]}
+                data-line={heading.line}
+                phx-click={
+                  JS.dispatch("phx:editor-command", detail: %{cmd: "goto", line: heading.line})
+                }
               >
-                <.icon name="hero-arrow-up-tray" class="size-3.5" />
-                <span>{gettext("editor.tpl.upload")}</span>
-              </label>
-            </.form>
+                <span :if={heading.num != ""} class="ts-outline__num">{heading.num}</span>
+                <span class="truncate">{heading.text}</span>
+              </li>
+            </ul>
           </div>
         </aside>
 

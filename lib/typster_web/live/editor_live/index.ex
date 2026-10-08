@@ -81,6 +81,7 @@ defmodule TypsterWeb.EditorLive.Index do
      |> assign(:templates, Templates.list_templates(scope))
      |> assign(:file_view_mode, :tree)
      |> assign(:collapsed_dirs, MapSet.new())
+     |> assign(:assets_open, true)
      |> assign(:show_palette, false)
      |> assign(:palette_query, "")
      |> assign(:show_share, false)
@@ -650,6 +651,11 @@ defmodule TypsterWeb.EditorLive.Index do
     else
       {:noreply, put_flash(socket, :error, gettext("editor.flash.unsupported_file"))}
     end
+  end
+
+  @impl true
+  def handle_event("toggle_assets", _params, socket) do
+    {:noreply, assign(socket, :assets_open, not socket.assigns.assets_open)}
   end
 
   @impl true
@@ -1440,6 +1446,14 @@ defmodule TypsterWeb.EditorLive.Index do
   end
 
   # ── Compile log + diagnostics ─────────────────────────────────────────────
+  # Error count per project file path, for the badge on its sidebar row. The
+  # compiler reports paths with a leading slash; the tree keys rows without it.
+  defp file_errors(diagnostics) do
+    diagnostics
+    |> Enum.filter(&(&1.severity == "error" and is_binary(&1.file)))
+    |> Enum.frequencies_by(&String.trim_leading(&1.file, "/"))
+  end
+
   defp normalize_diagnostics(nil), do: []
 
   defp normalize_diagnostics(list) when is_list(list) do
