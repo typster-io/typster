@@ -479,6 +479,30 @@ export const CompileDelay = {
   }
 }
 
+// Drag image for a sidebar row: its file chip, its name and the snippet a drop
+// inserts, instead of the browser's faint snapshot of the whole row. Mounted
+// inside .ts-app so it takes the user's accent; the browser snapshots it
+// synchronously, so it is removed on the next tick.
+function setRowDragImage(e, li) {
+  const ghost = document.createElement("div")
+  ghost.className = "ts-dragghost"
+  const chip = li.querySelector(".ts-filechip")
+  if (chip) ghost.appendChild(chip.cloneNode(true))
+  const name = document.createElement("span")
+  name.className = "ts-dragghost__name"
+  name.textContent = li.querySelector(".truncate")?.textContent.trim() || ""
+  ghost.appendChild(name)
+  if (li.dataset.insert) {
+    const snippet = document.createElement("code")
+    snippet.className = "ts-dragghost__snippet"
+    snippet.textContent = li.dataset.insert
+    ghost.appendChild(snippet)
+  }
+  ;(li.closest(".ts-app") || document.body).appendChild(ghost)
+  e.dataTransfer.setDragImage(ghost, 12, 12)
+  setTimeout(() => ghost.remove(), 0)
+}
+
 // Drag a file row onto a folder row (or the empty tree area = project root) to
 // move it. Listeners are delegated on the <ul>, so they survive LiveView
 // re-renders without managing any child DOM (no phx-update="ignore" needed).
@@ -500,6 +524,7 @@ export const FileTreeDnD = {
       this.dragId = li.dataset.dndFile || null
       e.dataTransfer.effectAllowed = this.dragId ? "copyMove" : "copy"
       e.dataTransfer.setData("text/plain", li.dataset.insert || "")
+      setRowDragImage(e, li)
       li.classList.add("is-dnd-dragging")
     })
 
@@ -541,6 +566,7 @@ export const InsertDrag = {
       if (!li) return
       e.dataTransfer.effectAllowed = "copy"
       e.dataTransfer.setData("text/plain", li.dataset.insert)
+      setRowDragImage(e, li)
       li.classList.add("is-dnd-dragging")
     })
     this.el.addEventListener("dragend", () => {

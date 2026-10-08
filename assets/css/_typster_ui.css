@@ -255,6 +255,25 @@
 .ts-tree__act svg { width: 14px; height: 14px; }
 .ts-tab__pin svg { width: 13px; height: 13px; }
 
+/* Drag image for a file/asset row: chip, name and the snippet a drop inserts.
+   Rendered off-screen only long enough for the browser to snapshot it. */
+.ts-dragghost {
+  position: fixed; top: -1000px; left: -1000px;
+  display: inline-flex; align-items: center; gap: var(--mk-sp-2);
+  max-width: 340px; padding: var(--mk-sp-1) var(--mk-sp-2);
+  border: 1px solid var(--bd); border-radius: var(--r);
+  background: var(--bg); color: var(--fg); box-shadow: var(--sh-md);
+  font: 500 13px 'Inter', system-ui, sans-serif;
+  pointer-events: none;
+}
+.ts-dragghost__name { white-space: nowrap; }
+.ts-dragghost__snippet {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 1px var(--mk-sp-1); border-radius: var(--r-sm);
+  background: var(--pri-50); color: var(--pri-h);
+  font: 500 11px 'JetBrains Mono', ui-monospace, monospace;
+}
+
 /* ── Typed file-type chip (square glyph, colored by extension) ────────────── */
 .ts-filechip {
   width: 18px; height: 18px; flex-shrink: 0;
