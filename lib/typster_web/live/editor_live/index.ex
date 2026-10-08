@@ -97,11 +97,6 @@ defmodule TypsterWeb.EditorLive.Index do
      |> assign(:outline_items, [])
      |> assign(:outline_count, 0)
      |> assign(:page_title, project.name)
-     |> allow_upload(:asset,
-       accept: ~w(.pdf .png .jpg .jpeg .svg .webp .ttf .otf .woff .woff2),
-       max_entries: 5,
-       max_file_size: 20_000_000
-     )
      |> allow_upload(:template,
        accept: :any,
        max_entries: 1,
@@ -547,7 +542,8 @@ defmodule TypsterWeb.EditorLive.Index do
   def handle_event("validate_template", _params, socket), do: {:noreply, socket}
 
   @impl true
-  def handle_event("validate_dropped", _params, socket), do: {:noreply, socket}
+  def handle_event("validate_dropped", _params, socket),
+    do: {:noreply, drop_rejected_entries(socket)}
 
   @impl true
   def handle_event("use_template", %{"id" => id}, socket) do
@@ -755,39 +751,6 @@ defmodule TypsterWeb.EditorLive.Index do
      |> put_flash(:info, gettext("editor.flash.asset_deleted"))}
   end
 
-  @impl true
-  def handle_event("validate_upload", _params, socket) do
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("save_upload", _params, socket) do
-    scope = socket.assigns.current_scope
-    project_id = socket.assigns.project.id
-
-    results =
-      consume_uploaded_entries(socket, :asset, fn %{path: path}, entry ->
-        Assets.upload_entry(scope, project_id, %{
-          path: path,
-          client_name: entry.client_name,
-          client_type: entry.client_type
-        })
-      end)
-
-    case Enum.find(results, &match?({:error, _}, &1)) do
-      nil ->
-        assets = Assets.list_assets(scope, project_id)
-
-        {:noreply,
-         socket
-         |> assign_assets(assets)
-         |> put_flash(:info, gettext("editor.flash.asset_uploaded"))}
-
-      {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, gettext("editor.flash.asset_upload_failed"))}
-    end
-  end
-
   defp create_text_file(socket, path, content) do
     scope = socket.assigns.current_scope
 
@@ -934,16 +897,14 @@ defmodule TypsterWeb.EditorLive.Index do
       else: gettext("editor.flash.asset_uploaded")
   end
 
-  defp handle_dropped_progress(:dropped, entry, socket) do
-    if entry.done?, do: {:noreply, consume_dropped(socket)}, else: {:noreply, socket}
-  end
-
-  defp consume_dropped(socket) do
+  # Each finished entry is consumed on its own: consuming the whole upload
+  # raises while a sibling from the same drop or pick is still in flight.
+  defp handle_dropped_progress(:dropped, %{done?: true} = entry, socket) do
     scope = socket.assigns.current_scope
     project_id = socket.assigns.project.id
 
-    results =
-      consume_uploaded_entries(socket, :dropped, fn %{path: tmp}, entry ->
+    result =
+      consume_uploaded_entry(socket, entry, fn %{path: tmp} ->
         {:ok,
          ingest_upload(scope, project_id, tmp, entry, fn name, content ->
            Files.create_file(scope, project_id, %{path: name, content: content})
@@ -953,12 +914,38 @@ defmodule TypsterWeb.EditorLive.Index do
 
     file_tree = Files.get_file_tree(scope, project_id)
 
-    socket
-    |> assign(:file_tree, file_tree)
-    |> assign(:project_sources, project_sources(file_tree))
-    |> assign_assets(Assets.list_assets(scope, project_id))
-    |> flash_for_uploads(results, gettext("editor.flash.dropped_added"))
+    {:noreply,
+     socket
+     |> assign(:file_tree, file_tree)
+     |> assign(:project_sources, project_sources(file_tree))
+     |> assign_assets(Assets.list_assets(scope, project_id))
+     |> flash_for_uploads([result], gettext("editor.flash.dropped_added"))}
   end
+
+  defp handle_dropped_progress(:dropped, _entry, socket), do: {:noreply, socket}
+
+  # Entries the client rejects up front (too large, too many) never reach the
+  # progress callback and would sit in the upload forever: cancel them and say
+  # why, so a bad pick never blocks the next one.
+  defp drop_rejected_entries(socket) do
+    Enum.reduce(socket.assigns.uploads.dropped.entries, socket, fn entry, socket ->
+      case upload_errors(socket.assigns.uploads.dropped, entry) do
+        [] ->
+          socket
+
+        [reason | _] ->
+          socket
+          |> cancel_upload(:dropped, entry.ref)
+          |> put_flash(:error, upload_error_text(reason, entry.client_name))
+      end
+    end)
+  end
+
+  defp upload_error_text(:too_large, name),
+    do: gettext("editor.flash.too_large", name: name)
+
+  defp upload_error_text(:too_many_files, _name), do: gettext("editor.flash.too_many_files")
+  defp upload_error_text(_reason, _name), do: gettext("editor.flash.unsupported_file")
 
   # One uploaded entry → :asset | :file | :template | {:failed, name} | {:unsupported, name}
   defp ingest_upload(scope, project_id, tmp, entry, text_fun) do

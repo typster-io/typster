@@ -493,8 +493,8 @@ html:not(.is-mac) .ts-other { display: inline-flex; }
 /* ── Sidebar foot: pinned "Upload file" row under the outline ─────────────────
    Opens the asset picker. The sidebar is the drop target for files dragged in
    from the desktop; LiveView marks it `.phx-drop-target-active` while a file
-   hovers, which lights the panel and swaps the row's label. Once files are
-   picked the row gives way to the submit button. */
+   hovers, which lights the panel and swaps the row's label. Picks and drops
+   upload on their own; the row reads "Uploading" meanwhile. */
 .ts-side__foot { flex-shrink: 0; border-top: 1px solid var(--bd); }
 .ts-side__upload-row { display: flex; align-items: center; gap: var(--mk-sp-2); min-height: 30px; padding: 0 14px; color: var(--fg3); font: 600 11px 'Inter', system-ui, sans-serif; text-transform: uppercase; letter-spacing: .06em; cursor: pointer; transition: color 150ms var(--ease), background 150ms var(--ease); }
 .ts-side__upload-row:hover { color: var(--fg); background: var(--bd2); }
@@ -503,7 +503,7 @@ html:not(.is-mac) .ts-other { display: inline-flex; }
 .ts-side.phx-drop-target-active .ts-side__upload-row { color: var(--pri-h); background: var(--pri-50); }
 .ts-side.phx-drop-target-active .ts-side__upload-idle { display: none; }
 .ts-side.phx-drop-target-active .ts-side__upload-drop { display: inline; }
-.ts-side__upload-btn { width: calc(100% - var(--mk-sp-4)); margin: var(--mk-sp-2); justify-content: center; }
+.ts-side__upload-row.is-busy { color: var(--pri-h); pointer-events: none; }
 
 /* ── Serif accent (mirrors landing <em>, Instrument Serif italic) ──────────── */
 .ts-serif { font-family: 'Instrument Serif', 'Times New Roman', serif; font-style: italic; font-weight: 400; color: var(--pri); letter-spacing: -0.01em; }

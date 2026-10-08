@@ -531,46 +531,32 @@
             </ul>
           </div>
 
-          <%!-- Pinned upload row: opens the asset picker; while a file is dragged
-                over the sidebar the whole panel lights up and this row labels it. --%>
-          <.form
-            id="asset-upload-form"
-            for={%{}}
-            phx-change="validate_upload"
-            phx-submit="save_upload"
-            class="ts-side__foot"
-          >
-            <.live_file_input upload={@uploads.asset} class="hidden" />
+          <%!-- Pinned upload row: opens the picker for any file the project takes
+                (text files land in Files, the rest under assets); picks and drops
+                upload on their own through the `dropped` input in the source pane.
+                While a file is dragged over the sidebar the whole panel lights up
+                and this row labels it. --%>
+          <div class="ts-side__foot">
             <label
-              :if={@uploads.asset.entries == []}
-              for={@uploads.asset.ref}
+              for={@uploads.dropped.ref}
               id="sidebar-upload"
-              class="ts-side__upload-row"
+              class={["ts-side__upload-row", @uploads.dropped.entries != [] && "is-busy"]}
             >
               <.icon name="hero-arrow-up-tray" class="size-3.5" />
-              <span class="ts-side__upload-idle">{gettext("editor.upload_file")}</span>
+              <span class="ts-side__upload-idle">
+                {if @uploads.dropped.entries == [],
+                  do: gettext("editor.upload_file"),
+                  else: gettext("editor.uploading")}
+              </span>
               <span class="ts-side__upload-drop">{gettext("editor.upload_drop")}</span>
             </label>
-            <button
-              :if={@uploads.asset.entries != []}
-              id="upload-asset-button"
-              type="submit"
-              class="ts-btn ts-btn--primary ts-btn--sm ts-side__upload-btn"
-            >
-              <.icon name="hero-arrow-up-tray" class="size-3" />
-              {ngettext(
-                "Upload %{count} file",
-                "Upload %{count} files",
-                length(@uploads.asset.entries)
-              )}
-            </button>
-          </.form>
+          </div>
         </aside>
 
         <%!-- Source pane: tab bar + formatting toolbar + CodeMirror --%>
         <section class="ts-source" phx-drop-target={@uploads.dropped.ref}>
           <.form id="dropped-upload-form" for={%{}} phx-change="validate_dropped" class="hidden">
-            <.live_file_input upload={@uploads.dropped} id="dropped-file-input" />
+            <.live_file_input upload={@uploads.dropped} />
           </.form>
           <div class="ts-source__tabs" id="editor-tabs" phx-hook="LucideIcons">
             <%= for file <- open_tabs(@file_tree, @open_file_ids) do %>
