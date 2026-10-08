@@ -469,8 +469,11 @@ html:not(.is-mac) .ts-other { display: inline-flex; }
 .ts-kbd svg { width: 11px; height: 11px; }
 .ts-kbd--combo { gap: 3px; }
 
-/* ── Your templates ───────────────────────────────────────────────────────── */
-.ts-tpl { padding: 4px 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+/* ── Template library (projects page) ─────────────────────────────────────── */
+.ts-tpl-panel { margin-top: var(--mk-sp-7); max-width: 560px; }
+.ts-tpl-panel__head { display: flex; align-items: baseline; gap: var(--mk-sp-2); }
+.ts-tpl-panel__sub { font: 13px/1.5 'Inter', system-ui, sans-serif; color: var(--fg3); margin: 2px 0 var(--mk-sp-3); }
+.ts-tpl { padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .ts-tpl__row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--r-sm); background: var(--bg2); border: 1px solid var(--bd); }
 .ts-tpl__name { flex: 1; min-width: 0; font: 500 12.5px 'JetBrains Mono', ui-monospace, monospace; color: var(--fg); }
 .ts-tpl__drop { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border: 1.5px dashed var(--bd2); border-radius: var(--r-sm); color: var(--fg3); font: 12px 'Inter', system-ui, sans-serif; cursor: pointer; transition: border-color 150ms var(--ease), color 150ms var(--ease); }

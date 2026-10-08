@@ -303,6 +303,7 @@ italic accent. Key shared primitives added with the product-UI redesign:
 | `.ts-swatch`      | Settings accent swatch (`--sw` hue)                       |
 | `.ts-emptystate`  | Serif "blank page" empty state                            |
 | `.ts-card--action`| Clickable action card (templates / import), `.ts-cards` row |
+| `.ts-tpl-panel`   | Template library on the projects page: rows plus a dropzone; the new-project dialog offers them under "Start from". The editor sidebar no longer lists templates |
 | `.ts-dragghost`   | Drag image for a sidebar row: chip, name, snippet to insert |
 | `.ts-prefrow`     | Settings preference row (label + control)                 |
 | `.ts-cm-search`   | Custom CodeMirror find & replace panel (`_codemirror.css`) |

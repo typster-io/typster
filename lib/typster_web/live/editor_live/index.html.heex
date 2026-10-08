@@ -450,54 +450,6 @@
                 </ul>
               </div>
             <% end %>
-
-            <div class="ts-side__head">
-              <span>{gettext("editor.templates")}</span>
-              <span :if={@templates != []} class="ts-side__count">{length(@templates)}</span>
-            </div>
-
-            <div class="ts-tpl">
-              <div :for={tpl <- @templates} class="ts-tpl__row">
-                <% kind = TypsterWeb.FileTree.file_chip_kind(tpl.name) %>
-                <span class={["ts-filechip", "ts-filechip--#{kind}"]}>
-                  {TypsterWeb.FileTree.chip_glyph(kind)}
-                </span>
-                <span class="ts-tpl__name truncate">{tpl.name}</span>
-                <button
-                  type="button"
-                  class="ts-tree__act"
-                  phx-click="use_template"
-                  phx-value-id={tpl.id}
-                  aria-label={gettext("editor.tpl.use")}
-                  title={gettext("editor.tpl.use")}
-                >
-                  <.icon name="hero-arrow-right" class="size-3" />
-                </button>
-                <button
-                  type="button"
-                  class="ts-tree__act ts-tree__act--danger"
-                  phx-click="delete_template"
-                  phx-value-id={tpl.id}
-                  phx-confirm={gettext("editor.tpl.delete_confirm")}
-                  aria-label={gettext("editor.tree.delete")}
-                  title={gettext("editor.tree.delete")}
-                >
-                  <.icon name="hero-trash" class="size-3" />
-                </button>
-              </div>
-
-              <.form id="template-upload-form" for={%{}} phx-change="validate_template">
-                <.live_file_input upload={@uploads.template} class="hidden" />
-                <label
-                  for={@uploads.template.ref}
-                  class="ts-tpl__drop"
-                  phx-drop-target={@uploads.template.ref}
-                >
-                  <.icon name="hero-arrow-up-tray" class="size-3.5" />
-                  <span>{gettext("editor.tpl.upload")}</span>
-                </label>
-              </.form>
-            </div>
           </div>
 
           <div class="ts-side__outline">

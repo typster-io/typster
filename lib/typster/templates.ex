@@ -5,6 +5,7 @@ defmodule Typster.Templates do
 
   import Ecto.Query, warn: false
   alias Typster.Accounts.Scope
+  alias Typster.Files
   alias Typster.Repo
   alias Typster.Templates.Template
 
@@ -24,6 +25,26 @@ defmodule Typster.Templates do
     %Template{user_id: user.id}
     |> Template.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Save an uploaded file as a template. Only text sources the editor can open
+  (see `Typster.Files.editable_file?/1`) with valid UTF-8 content qualify;
+  anything else is `{:error, :unsupported}`.
+  """
+  def create_from_upload(%Scope{} = scope, name, content)
+      when is_binary(name) and is_binary(content) do
+    if Files.editable_file?(name) and String.valid?(content),
+      do: create_template(scope, %{name: name, content: content}),
+      else: {:error, :unsupported}
+  end
+
+  @doc """
+  The project file a template seeds: a `.typ` template becomes `main.typ` so
+  the editor opens it first; other text files keep their own name.
+  """
+  def seed_path(%Template{name: name}) do
+    if Files.typst_file?(name), do: "main.typ", else: name
   end
 
   def delete_template(%Scope{} = scope, %Template{} = template) do

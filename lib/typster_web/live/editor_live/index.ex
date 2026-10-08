@@ -9,7 +9,6 @@ defmodule TypsterWeb.EditorLive.Index do
   alias Typster.Projects
   alias Typster.Revisions
   alias Typster.Sharing
-  alias Typster.Templates
 
   # Stable avatar colours for the share People list (hashed from the email).
   @collab_palette ~w(#6366f1 #8b5cf6 #0ea5e9 #10b981 #f43f5e #f59e0b)
@@ -77,8 +76,6 @@ defmodule TypsterWeb.EditorLive.Index do
      |> assign(:new_kind, :file)
      |> assign(:new_file_name, "")
      |> assign(:new_file_suggestions, [])
-     |> assign(:template_content, nil)
-     |> assign(:templates, Templates.list_templates(scope))
      |> assign(:file_view_mode, :tree)
      |> assign(:collapsed_dirs, MapSet.new())
      |> assign(:assets_open, true)
@@ -97,13 +94,6 @@ defmodule TypsterWeb.EditorLive.Index do
      |> assign(:outline_items, [])
      |> assign(:outline_count, 0)
      |> assign(:page_title, project.name)
-     |> allow_upload(:template,
-       accept: :any,
-       max_entries: 1,
-       max_file_size: 2_000_000,
-       auto_upload: true,
-       progress: &handle_template_progress/3
-     )
      |> allow_upload(:dropped,
        accept: :any,
        max_entries: 10,
@@ -534,42 +524,12 @@ defmodule TypsterWeb.EditorLive.Index do
     {:noreply,
      socket
      |> assign(creating?: false, new_file_name: "", new_file_suggestions: [])
-     |> assign(:new_kind, :file)
-     |> assign(:template_content, nil)}
+     |> assign(:new_kind, :file)}
   end
-
-  @impl true
-  def handle_event("validate_template", _params, socket), do: {:noreply, socket}
 
   @impl true
   def handle_event("validate_dropped", _params, socket),
     do: {:noreply, drop_rejected_entries(socket)}
-
-  @impl true
-  def handle_event("use_template", %{"id" => id}, socket) do
-    template = Templates.get_template!(socket.assigns.current_scope, id)
-    stem = Path.rootname(template.name)
-
-    {:noreply,
-     socket
-     |> assign(:creating?, true)
-     |> assign(:new_kind, :file)
-     |> assign(:create_dir, socket.assigns.active_dir)
-     |> assign(:new_file_name, stem)
-     |> assign(
-       :new_file_suggestions,
-       Files.new_file_suggestions(socket.assigns.file_tree, stem)
-     )
-     |> assign(:template_content, template.content || "")}
-  end
-
-  @impl true
-  def handle_event("delete_template", %{"id" => id}, socket) do
-    scope = socket.assigns.current_scope
-    template = Templates.get_template!(scope, id)
-    {:ok, _} = Templates.delete_template(scope, template)
-    {:noreply, assign(socket, :templates, Templates.list_templates(scope))}
-  end
 
   @impl true
   def handle_event("create_folder_from_dialog", %{"path" => typed}, socket) do
@@ -633,10 +593,7 @@ defmodule TypsterWeb.EditorLive.Index do
          |> put_flash(:error, gettext("editor.flash.file_exists"))}
 
       true ->
-        content =
-          socket.assigns.template_content || default_file_content(path, socket.assigns.file_tree)
-
-        create_text_file(assign(socket, :template_content, nil), path, content)
+        create_text_file(socket, path, default_file_content(path, socket.assigns.file_tree))
     end
   end
 
@@ -861,41 +818,11 @@ defmodule TypsterWeb.EditorLive.Index do
 
   # ── Uploads that may carry anything ─────────────────────────────────────
   #
-  # Both drop zones (editor/assets and templates) take whatever lands on them:
-  # asset types (fonts, images, PDFs) go to object storage, text sources go
-  # where the zone says (a project file or a saved template) but only when
-  # they are valid UTF-8 (a binary in a text column crashed the view), and
-  # anything else is rejected with a flash.
-
-  defp handle_template_progress(:template, entry, socket) do
-    if entry.done? do
-      scope = socket.assigns.current_scope
-      project_id = socket.assigns.project.id
-
-      results =
-        consume_uploaded_entries(socket, :template, fn %{path: path}, e ->
-          {:ok,
-           ingest_upload(scope, project_id, path, e, fn name, content ->
-             {:ok, _} = Templates.create_template(scope, %{name: name, content: content})
-             :template
-           end)}
-        end)
-
-      {:noreply,
-       socket
-       |> assign(:templates, Templates.list_templates(scope))
-       |> refresh_assets_if(:asset in results)
-       |> flash_for_uploads(results, template_zone_success(results))}
-    else
-      {:noreply, socket}
-    end
-  end
-
-  defp template_zone_success(results) do
-    if :template in results,
-      do: gettext("editor.flash.template_saved"),
-      else: gettext("editor.flash.asset_uploaded")
-  end
+  # The drop zone (and the sidebar's upload row, which feeds the same input)
+  # takes whatever lands on it: asset types (fonts, images, PDFs) go to object
+  # storage, text sources become project files but only when they are valid
+  # UTF-8 (a binary in a text column crashed the view), and anything else is
+  # rejected with a flash.
 
   # Each finished entry is consumed on its own: consuming the whole upload
   # raises while a sibling from the same drop or pick is still in flight.
@@ -947,7 +874,7 @@ defmodule TypsterWeb.EditorLive.Index do
   defp upload_error_text(:too_many_files, _name), do: gettext("editor.flash.too_many_files")
   defp upload_error_text(_reason, _name), do: gettext("editor.flash.unsupported_file")
 
-  # One uploaded entry → :asset | :file | :template | {:failed, name} | {:unsupported, name}
+  # One uploaded entry → :asset | :file | {:failed, name} | {:unsupported, name}
   defp ingest_upload(scope, project_id, tmp, entry, text_fun) do
     name = entry.client_name
 
@@ -972,15 +899,8 @@ defmodule TypsterWeb.EditorLive.Index do
   end
 
   defp ingest_text(tmp, name, text_fun) do
-    content = read_upload!(tmp)
+    content = Files.read_upload!(tmp)
     if String.valid?(content), do: text_fun.(name, content), else: {:unsupported, name}
-  end
-
-  defp refresh_assets_if(socket, false), do: socket
-
-  defp refresh_assets_if(socket, true) do
-    scope = socket.assigns.current_scope
-    assign_assets(socket, Assets.list_assets(scope, socket.assigns.project.id))
   end
 
   # Client-reported counters: anything but a non-negative integer is dropped.
@@ -1012,23 +932,6 @@ defmodule TypsterWeb.EditorLive.Index do
 
       true ->
         put_flash(socket, :info, success)
-    end
-  end
-
-  # Read an upload's temp file, confined to the system temp dir where LiveView
-  # writes uploads — defense in depth against path traversal. Reads the
-  # validated, expanded path.
-  defp read_upload!(path) do
-    tmp = Path.expand(System.tmp_dir!())
-    expanded = Path.expand(path)
-
-    unless String.starts_with?(expanded, tmp <> "/") do
-      raise ArgumentError, "upload path is outside the temp directory"
-    end
-
-    case :file.read_file(expanded) do
-      {:ok, content} -> content
-      {:error, reason} -> raise "could not read upload (#{:file.format_error(reason)})"
     end
   end
 
@@ -1083,7 +986,6 @@ defmodule TypsterWeb.EditorLive.Index do
     |> assign(:create_dir, active_dir)
     |> assign(:new_file_name, "")
     |> assign(:new_file_suggestions, [])
-    |> assign(:template_content, nil)
     |> assign(:collapsed_dirs, MapSet.delete(socket.assigns.collapsed_dirs, active_dir))
   end
 

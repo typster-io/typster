@@ -136,6 +136,48 @@
           <.icon name="hero-arrow-right" class="size-3.5 ts-muted" />
         </div>
       </div>
+
+      <%!-- Template library: text sources a new project can start from. The
+            new-project dialog lists them; the editor no longer carries them. --%>
+      <section class="ts-tpl-panel" id="templates-panel">
+        <div class="ts-tpl-panel__head">
+          <h2 class="ts-h3">{gettext("projects.templates.title")}</h2>
+          <span :if={@templates != []} class="ts-side__count">{length(@templates)}</span>
+        </div>
+        <p class="ts-tpl-panel__sub">{gettext("projects.templates.sub")}</p>
+        <div class="ts-tpl">
+          <div :for={tpl <- @templates} class="ts-tpl__row" id={"template-#{tpl.id}"}>
+            <% kind = TypsterWeb.FileTree.file_chip_kind(tpl.name) %>
+            <span class={["ts-filechip", "ts-filechip--#{kind}"]}>
+              {TypsterWeb.FileTree.chip_glyph(kind)}
+            </span>
+            <span class="ts-tpl__name truncate">{tpl.name}</span>
+            <button
+              type="button"
+              class="ts-tree__act ts-tree__act--danger"
+              phx-click="delete_template"
+              phx-value-id={tpl.id}
+              phx-confirm={gettext("projects.templates.delete_confirm")}
+              aria-label={gettext("projects.templates.delete")}
+              title={gettext("projects.templates.delete")}
+            >
+              <.icon name="hero-trash" class="size-3" />
+            </button>
+          </div>
+
+          <.form id="template-upload-form" for={%{}} phx-change="validate_template">
+            <.live_file_input upload={@uploads.template} class="hidden" />
+            <label
+              for={@uploads.template.ref}
+              class="ts-tpl__drop"
+              phx-drop-target={@uploads.template.ref}
+            >
+              <.icon name="hero-arrow-up-tray" class="size-3.5" />
+              <span>{gettext("projects.templates.upload")}</span>
+            </label>
+          </.form>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -157,6 +199,13 @@
                 placeholder={gettext("projects.name.placeholder")}
                 required
               />
+            </label>
+            <label :if={@templates != []} class="ts-field">
+              <span class="ts-field__label">{gettext("projects.templates.start_from")}</span>
+              <select class="ts-input" name="template" id="new-project-template">
+                <option value="">{gettext("projects.templates.blank")}</option>
+                <option :for={tpl <- @templates} value={tpl.id}>{tpl.name}</option>
+              </select>
             </label>
             <div class="ts-dialog__footer">
               <button type="button" phx-click="close_dialog" class="ts-btn ts-btn--ghost">

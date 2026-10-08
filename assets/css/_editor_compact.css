@@ -34,7 +34,6 @@
   .ts-tree__dirbtn { padding: 3px 8px 3px 6px; }
   .ts-outline__item { padding: 3px 14px; }
   .ts-side__outline { max-height: 36%; }
-  .ts-tpl__drop { padding: 6px; }
 }
 
 @media (max-height: 600px) {
