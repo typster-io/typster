@@ -494,19 +494,24 @@ html:not(.is-mac) .ts-other { display: inline-flex; }
 .ts-diag__hint { font: 12px 'Inter', system-ui, sans-serif; color: var(--fg3); margin-top: 3px; }
 
 /* ── Sidebar foot: pinned "Upload file" row under the outline ─────────────────
-   Opens the asset picker. The sidebar is the drop target for files dragged in
-   from the desktop; LiveView marks it `.phx-drop-target-active` while a file
-   hovers, which lights the panel and swaps the row's label. Picks and drops
-   upload on their own; the row reads "Uploading" meanwhile. */
+   Opens the asset picker. Picks and drops upload on their own; the row reads
+   "Uploading" meanwhile. */
 .ts-side__foot { flex-shrink: 0; border-top: 1px solid var(--bd); }
 .ts-side__upload-row { display: flex; align-items: center; gap: var(--mk-sp-2); min-height: 30px; padding: 0 14px; color: var(--fg3); font: 600 11px 'Inter', system-ui, sans-serif; text-transform: uppercase; letter-spacing: .06em; cursor: pointer; transition: color 150ms var(--ease), background 150ms var(--ease); }
 .ts-side__upload-row:hover { color: var(--fg); background: var(--bd2); }
-.ts-side__upload-drop { display: none; }
-.ts-side.phx-drop-target-active { box-shadow: inset 0 0 0 2px var(--pri); }
-.ts-side.phx-drop-target-active .ts-side__upload-row { color: var(--pri-h); background: var(--pri-50); }
-.ts-side.phx-drop-target-active .ts-side__upload-idle { display: none; }
-.ts-side.phx-drop-target-active .ts-side__upload-drop { display: inline; }
 .ts-side__upload-row.is-busy { color: var(--pri-h); pointer-events: none; }
+
+/* ── Sidebar drop overlay ─────────────────────────────────────────────────────
+   The sidebar is the drop target for files dragged in from the desktop.
+   LiveView marks it `.phx-drop-target-active` while a file hovers; this layer
+   then covers the whole panel (tint, dashed frame, "Drop to add") so the
+   target reads as the entire left half, not a row. It takes no pointer
+   events, so drag events keep landing on the panel underneath. */
+.ts-side { position: relative; }
+.ts-side__dropzone { position: absolute; inset: 0; z-index: 5; display: none; flex-direction: column; align-items: center; justify-content: center; gap: var(--mk-sp-2); padding: var(--mk-sp-4); pointer-events: none; background: color-mix(in oklab, var(--pri) 10%, var(--bg2)); color: var(--pri-h); font: 600 12px 'Inter', system-ui, sans-serif; text-transform: uppercase; letter-spacing: .06em; text-align: center; }
+.ts-side__dropzone::before { content: ""; position: absolute; inset: var(--mk-sp-2); border: 2px dashed var(--pri); border-radius: var(--r-sm); opacity: .75; }
+.ts-side__dropzone svg { width: 24px; height: 24px; }
+.ts-side.phx-drop-target-active .ts-side__dropzone { display: flex; }
 
 /* ── Serif accent (mirrors landing <em>, Instrument Serif italic) ──────────── */
 .ts-serif { font-family: 'Instrument Serif', 'Times New Roman', serif; font-style: italic; font-weight: 400; color: var(--pri); letter-spacing: -0.01em; }

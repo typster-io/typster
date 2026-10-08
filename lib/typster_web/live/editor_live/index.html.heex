@@ -219,6 +219,11 @@
           phx-hook="LucideIcons"
           phx-drop-target={@uploads.dropped.ref}
         >
+          <%!-- Shown by CSS while a file from the desktop hovers the panel. --%>
+          <div class="ts-side__dropzone" id="sidebar-dropzone" aria-hidden="true">
+            <.icon name="hero-arrow-down-tray" class="size-6" />
+            <span>{gettext("editor.upload_drop")}</span>
+          </div>
           <button
             type="button"
             id="sidebar-find-file"
@@ -487,7 +492,7 @@
                 (text files land in Files, the rest under assets); picks and drops
                 upload on their own through the `dropped` input in the source pane.
                 While a file is dragged over the sidebar the whole panel lights up
-                and this row labels it. --%>
+                (see `.ts-side__dropzone`). --%>
           <div class="ts-side__foot">
             <label
               for={@uploads.dropped.ref}
@@ -495,12 +500,11 @@
               class={["ts-side__upload-row", @uploads.dropped.entries != [] && "is-busy"]}
             >
               <.icon name="hero-arrow-up-tray" class="size-3.5" />
-              <span class="ts-side__upload-idle">
+              <span>
                 {if @uploads.dropped.entries == [],
                   do: gettext("editor.upload_file"),
                   else: gettext("editor.uploading")}
               </span>
-              <span class="ts-side__upload-drop">{gettext("editor.upload_drop")}</span>
             </label>
           </div>
         </aside>
