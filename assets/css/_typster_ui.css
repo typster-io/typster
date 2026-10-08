@@ -236,8 +236,6 @@
 /* The virtual assets folder: its row is a toggle button beside an upload label. */
 .ts-tree__dir--assets { padding: 0 2px 0 0; gap: 0; }
 .ts-tree__dirbtn { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; padding: 5px 8px 5px 6px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-.ts-tree__act--upload { color: var(--fg4); cursor: pointer; }
-.ts-tree__item:hover .ts-tree__act--upload { color: var(--fg2); }
 .ts-tree__badge { flex-shrink: 0; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9999px; display: inline-grid; place-items: center; background: var(--mk-error); color: #fff; font: 600 10px 'JetBrains Mono', ui-monospace, monospace; }
 .ts-tree__smart { margin-left: 4px; color: var(--fg4); font: 11px 'JetBrains Mono', ui-monospace, monospace; flex-shrink: 0; }
 
@@ -492,9 +490,20 @@ html:not(.is-mac) .ts-other { display: inline-flex; }
 .ts-diag__msg { font: 13px/1.5 'Inter', system-ui, sans-serif; color: var(--fg); overflow-wrap: anywhere; white-space: pre-wrap; }
 .ts-diag__hint { font: 12px 'Inter', system-ui, sans-serif; color: var(--fg3); margin-top: 3px; }
 
-/* ── Sidebar upload zone (shown once files are picked for the assets folder) ─ */
-.ts-side__upload { padding: var(--mk-sp-1) var(--mk-sp-2) var(--mk-sp-2) 34px; }
-.ts-side__upload-btn { width: 100%; justify-content: center; }
+/* ── Sidebar foot: pinned "Upload file" row under the outline ─────────────────
+   Opens the asset picker. The sidebar is the drop target for files dragged in
+   from the desktop; LiveView marks it `.phx-drop-target-active` while a file
+   hovers, which lights the panel and swaps the row's label. Once files are
+   picked the row gives way to the submit button. */
+.ts-side__foot { flex-shrink: 0; border-top: 1px solid var(--bd); }
+.ts-side__upload-row { display: flex; align-items: center; gap: var(--mk-sp-2); min-height: 30px; padding: 0 14px; color: var(--fg3); font: 600 11px 'Inter', system-ui, sans-serif; text-transform: uppercase; letter-spacing: .06em; cursor: pointer; transition: color 150ms var(--ease), background 150ms var(--ease); }
+.ts-side__upload-row:hover { color: var(--fg); background: var(--bd2); }
+.ts-side__upload-drop { display: none; }
+.ts-side.phx-drop-target-active { box-shadow: inset 0 0 0 2px var(--pri); }
+.ts-side.phx-drop-target-active .ts-side__upload-row { color: var(--pri-h); background: var(--pri-50); }
+.ts-side.phx-drop-target-active .ts-side__upload-idle { display: none; }
+.ts-side.phx-drop-target-active .ts-side__upload-drop { display: inline; }
+.ts-side__upload-btn { width: calc(100% - var(--mk-sp-4)); margin: var(--mk-sp-2); justify-content: center; }
 
 /* ── Serif accent (mirrors landing <em>, Instrument Serif italic) ──────────── */
 .ts-serif { font-family: 'Instrument Serif', 'Times New Roman', serif; font-style: italic; font-weight: 400; color: var(--pri); letter-spacing: -0.01em; }
