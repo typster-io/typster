@@ -49,11 +49,12 @@ async function expectDrop(page, cm, source, snippet) {
   await expect(cm.locator(".cm-line")).toHaveText([snippet])
 }
 
+// Picks go through the sidebar's "Upload file" row, which feeds the hidden
+// `dropped` input and uploads on its own.
 async function uploadAssets(page, files) {
-  await page.locator("#asset-upload-form input[type=file]").setInputFiles(
+  await page.locator("#dropped-upload-form input[type=file]").setInputFiles(
     files.map(([name, mimeType, buffer]) => ({ name, mimeType, buffer }))
   )
-  await page.locator("#upload-asset-button").click()
   for (const [name] of files) {
     await expect(page.locator("#asset-tree li").filter({ has: page.getByText(name, { exact: true }) })).toHaveCount(1)
   }
