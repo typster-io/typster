@@ -298,6 +298,7 @@ italic accent. Key shared primitives added with the product-UI redesign:
 | `.ts-swatch`      | Settings accent swatch (`--sw` hue)                       |
 | `.ts-emptystate`  | Serif "blank page" empty state                            |
 | `.ts-card--action`| Clickable action card (templates / import), `.ts-cards` row |
+| `.ts-dragghost`   | Drag image for a sidebar row: chip, name, snippet to insert |
 | `.ts-prefrow`     | Settings preference row (label + control)                 |
 | `.ts-cm-search`   | Custom CodeMirror find & replace panel (`_codemirror.css`) |
 

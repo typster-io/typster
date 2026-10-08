@@ -158,3 +158,64 @@ test.describe("Drag a file or asset into the editor", () => {
     })
   })
 })
+
+// Starts a drag on the row labelled `name` in `tree` and returns what the hook
+// handed to setDragImage. The real drag image is a native bitmap Playwright
+// can't see, so a spy on the DataTransfer stands in for it.
+async function dragImageOf(page, tree, name) {
+  return page.evaluate(
+    async ([tree, name]) => {
+      const li = [...document.querySelectorAll(`${tree} li`)].find(
+        (l) => l.querySelector(".truncate")?.textContent.trim() === name
+      )
+      const dt = new DataTransfer()
+      let image = null
+      dt.setDragImage = (el, x, y) => {
+        image = {
+          chip: el.querySelector(".ts-filechip")?.className || null,
+          name: el.querySelector(".ts-dragghost__name")?.textContent || null,
+          snippet: el.querySelector(".ts-dragghost__snippet")?.textContent || null,
+          inApp: !!el.closest(".ts-app"),
+          offset: [x, y]
+        }
+      }
+      li.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }))
+      li.dispatchEvent(new DragEvent("dragend", { bubbles: true }))
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      return { image, leftover: document.querySelectorAll(".ts-dragghost").length }
+    },
+    [tree, name]
+  )
+}
+
+test.describe("Drag image while dragging a row", () => {
+  test("shows the row's chip, name and the snippet a drop inserts", async ({ page }) => {
+    await openEditor(page, `Drag Image ${Date.now()}`)
+    await createFile(page, "refs.bib")
+    await openFile(page, "main.typ")
+
+    const fromTree = await dragImageOf(page, "#file-tree-main", "refs.bib")
+    expect(fromTree.image).toEqual({
+      chip: "ts-filechip ts-filechip--bib",
+      name: "refs.bib",
+      snippet: '#bibliography("refs.bib")',
+      inApp: true,
+      offset: [12, 12]
+    })
+    // The ghost is only there for the browser's snapshot.
+    expect(fromTree.leftover).toBe(0)
+
+    // The open file has no snippet, but moving it still shows chip and name.
+    const openOne = await dragImageOf(page, "#file-tree-main", "main.typ")
+    expect(openOne.image).toMatchObject({ chip: "ts-filechip ts-filechip--typ", name: "main.typ", snippet: null })
+
+    const bib = page.locator("#file-tree-main li").filter({ has: page.getByText("refs.bib", { exact: true }) })
+    await bib.hover()
+    await bib.locator('button[phx-click="toggle_pin"]').click()
+    await expect(page.locator("#pinned-tree li[data-insert]")).toHaveCount(1)
+
+    const fromPinned = await dragImageOf(page, "#pinned-tree", "refs.bib")
+    expect(fromPinned.image).toMatchObject({ name: "refs.bib", snippet: '#bibliography("refs.bib")' })
+    expect(fromPinned.leftover).toBe(0)
+  })
+})
