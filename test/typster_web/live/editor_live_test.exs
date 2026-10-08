@@ -243,6 +243,9 @@ defmodule TypsterWeb.EditorLiveTest do
     assert has_element?(view, "#asset-tree [id$=\"asset-entry-#{image.id}\"]")
     assert has_element?(view, "#sidebar-find-file", "Find file")
     assert has_element?(view, ".ts-side__outline .ts-side__head", "main.typ")
+    assert has_element?(view, "#editor-sidebar[phx-drop-target]")
+    assert has_element?(view, ".ts-side__foot #sidebar-upload", "Upload file")
+    refute has_element?(view, "#upload-asset-button")
 
     view |> element("#assets-folder") |> render_click()
     assert has_element?(view, "#assets-folder[aria-expanded=false]")
