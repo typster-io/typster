@@ -299,13 +299,20 @@ test.describe('Product UI redesign', () => {
       dt.items.add(new File(['x'], 'drop.png', { type: 'image/png' }))
       return dt
     })
+    const zone = page.locator('#sidebar-dropzone')
+    await expect(zone).toBeHidden()
     await side.dispatchEvent('dragenter', { dataTransfer: dt })
     await expect(side).toHaveClass(/phx-drop-target-active/)
-    await expect(row).toHaveText(/Drop to add/)
+    // The overlay covers the whole panel, not just the row.
+    await expect(zone).toBeVisible()
+    await expect(zone).toHaveText(/Drop to add/)
+    const [sideBox, zoneBox] = await Promise.all([side.boundingBox(), zone.boundingBox()])
+    expect(Math.abs(zoneBox.height - sideBox.height)).toBeLessThan(2)
+    await expect(row).toHaveText(/Upload file/)
 
     await side.dispatchEvent('dragleave', { dataTransfer: dt })
     await expect(side).not.toHaveClass(/phx-drop-target-active/)
-    await expect(row).toHaveText(/Upload file/)
+    await expect(zone).toBeHidden()
   })
 
   test('command shortcut hint adapts to the OS (⌘ on Mac, Ctrl elsewhere)', async ({ page }) => {
