@@ -213,7 +213,12 @@
     <div class="ts-editor__body">
       <div class="ts-window ts-editor__panes">
         <%!-- Sidebar: file tree + outline + assets --%>
-        <aside class="ts-side" id="editor-sidebar" phx-hook="LucideIcons">
+        <aside
+          class="ts-side"
+          id="editor-sidebar"
+          phx-hook="LucideIcons"
+          phx-drop-target={@uploads.dropped.ref}
+        >
           <button
             type="button"
             id="sidebar-find-file"
@@ -407,7 +412,7 @@
 
               <%!-- Uploaded assets: a virtual `assets/` folder under the files,
                     since that is the path Typst references them by. --%>
-              <div class="ts-tree ts-tree--assets" phx-drop-target={@uploads.dropped.ref}>
+              <div class="ts-tree ts-tree--assets">
                 <div class="ts-tree__item ts-tree__dir ts-tree__dir--assets">
                   <button
                     type="button"
@@ -423,14 +428,6 @@
                     <span class="ts-filechip ts-filechip--folder" aria-hidden="true"></span>
                     <span class="truncate flex-1">{Typster.Assets.reference_dir()}</span>
                   </button>
-                  <label
-                    for={@uploads.asset.ref}
-                    class="ts-tree__act ts-tree__act--upload"
-                    aria-label={gettext("editor.upload_asset")}
-                    title={gettext("editor.upload_asset")}
-                  >
-                    <.icon name="hero-arrow-up-tray" class="size-3" />
-                  </label>
                 </div>
                 <ul
                   :if={@assets_open}
@@ -451,28 +448,6 @@
                     depth={1}
                   />
                 </ul>
-                <.form
-                  id="asset-upload-form"
-                  for={%{}}
-                  phx-change="validate_upload"
-                  phx-submit="save_upload"
-                >
-                  <.live_file_input upload={@uploads.asset} class="hidden" />
-                  <div :if={@uploads.asset.entries != []} class="ts-side__upload">
-                    <button
-                      id="upload-asset-button"
-                      type="submit"
-                      class="ts-btn ts-btn--primary ts-btn--sm ts-side__upload-btn"
-                    >
-                      <.icon name="hero-arrow-up-tray" class="size-3" />
-                      {ngettext(
-                        "Upload %{count} file",
-                        "Upload %{count} files",
-                        length(@uploads.asset.entries)
-                      )}
-                    </button>
-                  </div>
-                </.form>
               </div>
             <% end %>
 
@@ -555,6 +530,41 @@
               </li>
             </ul>
           </div>
+
+          <%!-- Pinned upload row: opens the asset picker; while a file is dragged
+                over the sidebar the whole panel lights up and this row labels it. --%>
+          <.form
+            id="asset-upload-form"
+            for={%{}}
+            phx-change="validate_upload"
+            phx-submit="save_upload"
+            class="ts-side__foot"
+          >
+            <.live_file_input upload={@uploads.asset} class="hidden" />
+            <label
+              :if={@uploads.asset.entries == []}
+              for={@uploads.asset.ref}
+              id="sidebar-upload"
+              class="ts-side__upload-row"
+            >
+              <.icon name="hero-arrow-up-tray" class="size-3.5" />
+              <span class="ts-side__upload-idle">{gettext("editor.upload_file")}</span>
+              <span class="ts-side__upload-drop">{gettext("editor.upload_drop")}</span>
+            </label>
+            <button
+              :if={@uploads.asset.entries != []}
+              id="upload-asset-button"
+              type="submit"
+              class="ts-btn ts-btn--primary ts-btn--sm ts-side__upload-btn"
+            >
+              <.icon name="hero-arrow-up-tray" class="size-3" />
+              {ngettext(
+                "Upload %{count} file",
+                "Upload %{count} files",
+                length(@uploads.asset.entries)
+              )}
+            </button>
+          </.form>
         </aside>
 
         <%!-- Source pane: tab bar + formatting toolbar + CodeMirror --%>

@@ -42,6 +42,7 @@
   .ts-editor__body { padding: 0; }
   .ts-editor__panes.ts-window { border-radius: 0; border-right: 0; border-bottom: 0; border-left: 0; box-shadow: none; }
   .ts-formatbar__hint { display: none; }
+  .ts-side__upload-row { display: none; }
   .ts-statusbar { height: 22px; }
   .ts-drawer { min-height: 90px; max-height: 140px; }
   .ts-side__outline { max-height: 30%; }
