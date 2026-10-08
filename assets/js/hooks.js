@@ -34,21 +34,45 @@ function editorOptions(element) {
 }
 
 // Breadcrumb symbol segment: show the nearest heading above the cursor as the
-// final crumb (`folder / file.typ › Heading`). Pure DOM — tracks every cursor
-// move without a server round-trip.
-function updateCrumbSymbol(outline, line) {
-  const sym = document.getElementById("topbar-symbol")
-  const sep = document.getElementById("topbar-symbol-sep")
-  if (!sym || !sep) return
+// final crumb (`folder / file.typ › Heading`), and light the same heading in
+// the sidebar outline. Pure DOM — tracks every cursor move without a server
+// round-trip.
+const headingState = { outline: [], line: 1 }
 
+function updateCrumbSymbol(outline, line) {
+  headingState.outline = outline || []
+  headingState.line = line
   let current = null
   for (const item of outline || []) {
     if (item.line <= line) current = item
     else break
   }
 
-  sym.hidden = sep.hidden = !current
-  if (current) sym.textContent = current.text
+  const sym = document.getElementById("topbar-symbol")
+  const sep = document.getElementById("topbar-symbol-sep")
+  if (sym && sep) {
+    sym.hidden = sep.hidden = !current
+    if (current) sym.textContent = current.text
+  }
+
+  for (const li of document.querySelectorAll("#outline [data-line]")) {
+    li.classList.toggle("is-active", !!current && Number(li.dataset.line) === current.line)
+  }
+}
+
+// The outline list re-renders after the server streams parsed headings, which
+// lands after the cursor callback ran: re-light the current heading whenever
+// the list's rows change (a stream patch does not call the hook's `updated`).
+export const OutlineList = {
+  mounted() {
+    const relight = () => updateCrumbSymbol(headingState.outline, headingState.line)
+    this.observer = new MutationObserver(relight)
+    this.observer.observe(this.el, { childList: true })
+    relight()
+  },
+  destroyed() {
+    if (this.observer) this.observer.disconnect()
+  }
 }
 
 export const CodeMirror = {
@@ -306,7 +330,8 @@ export const SaveStatus = {
   updated() {}
 }
 
-// Editor shell: captures ⌘K / Ctrl+K to open the command palette, and
+// Editor shell: captures ⌘K / Ctrl+K (and ⌘P, the sidebar's "Find file" hint)
+// to open the command palette, and
 // re-initializes lucide icons after LiveView patches (the format toolbar and
 // palette render <i data-lucide> nodes that need svg upgrading on each patch).
 export const CommandPalette = {
@@ -314,7 +339,8 @@ export const CommandPalette = {
     if (window.mkIcons) window.mkIcons(this.el)
 
     this.keyHandler = (event) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      const key = event.key.toLowerCase()
+      if ((event.metaKey || event.ctrlKey) && (key === "k" || key === "p")) {
         event.preventDefault()
         this.pushEvent("open_palette", {})
       }

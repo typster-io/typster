@@ -201,14 +201,24 @@
 .ts-editor__panes { flex: 1; display: grid; grid-template-columns: 230px 1fr 1fr; grid-template-rows: 1fr auto; min-height: 0; }
 
 /* ── Sidebar ──────────────────────────────────────────────────────────────── */
-.ts-side { border-right: 1px solid var(--bd); background: var(--bg2); overflow: auto; padding: 8px 0; display: flex; flex-direction: column; min-height: 0; }
-.ts-side__search { padding: 10px 12px 4px; flex-shrink: 0; }
-.ts-search--sm { max-width: none; height: 30px; font-size: 12px; }
-.ts-search--sm input { font-size: 12px; }
-.ts-side__head { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px 6px; font: 600 11px 'Inter', system-ui, sans-serif; color: var(--fg3); text-transform: uppercase; letter-spacing: .06em; flex-shrink: 0; }
+.ts-side { border-right: 1px solid var(--bd); background: var(--bg2); overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+/* "Find file ⌘P" row: a flat trigger for the palette, divided from the lists below. */
+.ts-side__find { display: flex; align-items: center; gap: var(--mk-sp-2); width: 100%; min-height: 44px; padding: 0 14px; border: 0; border-bottom: 1px solid var(--bd); background: none; color: var(--fg3); font: 13px 'Inter', system-ui, sans-serif; text-align: left; cursor: pointer; flex-shrink: 0; transition: color 150ms var(--ease), background 150ms var(--ease); }
+.ts-side__find:hover { color: var(--fg); background: var(--bd2); }
+.ts-side__find .ts-kbd { margin-left: auto; }
+/* Files, assets and templates scroll together; the outline stays pinned below. */
+.ts-side__scroll { flex: 1; min-height: 0; overflow: auto; padding: var(--mk-sp-2) 0 var(--mk-sp-3); }
+.ts-side__outline { flex-shrink: 0; max-height: 42%; overflow: auto; border-top: 1px solid var(--bd); padding: var(--mk-sp-1) 0 var(--mk-sp-2); }
+.ts-side__head { display: flex; align-items: center; justify-content: space-between; gap: var(--mk-sp-2); padding: 8px 14px 6px; font: 600 11px 'Inter', system-ui, sans-serif; color: var(--fg3); text-transform: uppercase; letter-spacing: .06em; flex-shrink: 0; }
+.ts-side__head > .truncate { min-width: 0; }
+.ts-side__head-file { color: var(--fg4); font-weight: 500; }
 .ts-side__actions { display: flex; align-items: center; gap: 2px; }
-.ts-tree { display: flex; flex-direction: column; padding: 0 6px 12px; list-style: none; margin: 0; }
-.ts-tree__item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--r-sm); font: 13px 'Inter', system-ui, sans-serif; color: var(--fg2); cursor: pointer; }
+.ts-side__actions .ts-btn--outline { height: 24px; padding: 0 8px; gap: 4px; font-size: 11.5px; }
+.ts-side__actions .ts-btn--sm.ts-btn--icon { width: 24px; height: 24px; }
+.ts-side__empty { margin: var(--mk-sp-2) 14px; padding: var(--mk-sp-5) var(--mk-sp-3); font-size: 13px; }
+.ts-tree { display: flex; flex-direction: column; padding: 0 6px 6px; list-style: none; margin: 0; }
+.ts-tree--nested { padding: 0; }
+.ts-tree__item { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: var(--r-sm); font: 13px 'Inter', system-ui, sans-serif; color: var(--fg2); cursor: pointer; }
 .ts-tree__item:hover { background: rgba(0,0,0,.04); color: var(--fg); }
 [data-theme="dark"] .ts-tree__item:hover { background: rgba(255,255,255,.05); }
 .ts-tree__item.is-active { background: var(--pri-50); color: var(--pri-h); }
@@ -221,8 +231,14 @@
 .ts-tree__item.is-asset[data-insert] { cursor: grab; }
 .ts-tree__pill { margin-left: auto; font: 500 10px 'JetBrains Mono', ui-monospace, monospace; color: var(--fg4); }
 .ts-tree__dir { color: var(--fg); font-weight: 500; user-select: none; }
-.ts-tree__dir > span:nth-child(-n+2) { color: var(--fg3); }
-.ts-tree__count { margin-left: auto; font: 500 10px 'JetBrains Mono', ui-monospace, monospace; color: var(--fg4); background: var(--bd2); padding: 1px 6px; border-radius: 9999px; }
+.ts-tree__dir > .size-3 { color: var(--fg4); flex-shrink: 0; }
+.ts-tree__dir .ts-filechip--folder { border: 1px solid var(--bd2); background: color-mix(in oklab, var(--fg) 5%, transparent); }
+/* The virtual assets folder: its row is a toggle button beside an upload label. */
+.ts-tree__dir--assets { padding: 0 2px 0 0; gap: 0; }
+.ts-tree__dirbtn { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; padding: 5px 8px 5px 6px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ts-tree__act--upload { color: var(--fg4); cursor: pointer; }
+.ts-tree__item:hover .ts-tree__act--upload { color: var(--fg2); }
+.ts-tree__badge { flex-shrink: 0; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9999px; display: inline-grid; place-items: center; background: var(--mk-error); color: #fff; font: 600 10px 'JetBrains Mono', ui-monospace, monospace; }
 .ts-tree__smart { margin-left: 4px; color: var(--fg4); font: 11px 'JetBrains Mono', ui-monospace, monospace; flex-shrink: 0; }
 
 /* ── Drag & drop: move a file onto a folder (or empty tree = root) ─────────── */
@@ -240,8 +256,8 @@
 
 /* ── Pin indicator + hover row actions (pin / delete) ─────────────────────── */
 .ts-side__head--sub { padding-top: 4px; }
-.ts-tree__pin-ind { display: inline-flex; align-items: center; flex-shrink: 0; color: var(--pri); margin-left: 4px; }
-.ts-tree__item.is-active .ts-tree__pin-ind { color: var(--pri-h); }
+.ts-tree__pin-ind { display: inline-flex; align-items: center; flex-shrink: 0; color: var(--fg4); margin-left: 4px; }
+.ts-tree__item.is-active .ts-tree__pin-ind { color: var(--pri); }
 .ts-tree__item:hover .ts-tree__pin-ind { display: none; }
 .ts-tree__actions { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; margin-left: 4px; opacity: 0; transition: opacity 150ms var(--ease); }
 .ts-tree__item:hover .ts-tree__actions { opacity: 1; }
@@ -438,7 +454,7 @@
 .ts-palette__list button.ts-palette__item { width: 100%; background: transparent; border: 0; text-align: left; font-family: inherit; }
 .ts-palette__item .size-4 { flex-shrink: 0; }
 .ts-palette__dim { color: var(--fg4); font: 500 12px var(--mono, ui-monospace, monospace); }
-.ts-outline__empty { padding: 4px 14px 10px; color: var(--fg4); font: 12px 'Inter', system-ui, sans-serif; }
+.ts-outline__empty { padding: 4px 14px 8px; color: var(--fg4); font: 12.5px 'Inter', system-ui, sans-serif; }
 
 /* ── Keyboard hints ───────────────────────────────────────────────────────── */
 .ts-kbd { display: inline-flex; align-items: center; height: 18px; padding: 0 5px; border-radius: 4px; background: var(--bd2); border: 1px solid var(--bd); border-bottom-width: 2px; color: var(--fg2); font: 500 10px 'JetBrains Mono', ui-monospace, monospace; }
@@ -476,8 +492,9 @@ html:not(.is-mac) .ts-other { display: inline-flex; }
 .ts-diag__msg { font: 13px/1.5 'Inter', system-ui, sans-serif; color: var(--fg); overflow-wrap: anywhere; white-space: pre-wrap; }
 .ts-diag__hint { font: 12px 'Inter', system-ui, sans-serif; color: var(--fg3); margin-top: 3px; }
 
-/* ── Sidebar upload zone ──────────────────────────────────────────────────── */
-.ts-side__upload { padding: 8px 14px; border-top: 1px solid var(--bd); flex-shrink: 0; }
+/* ── Sidebar upload zone (shown once files are picked for the assets folder) ─ */
+.ts-side__upload { padding: var(--mk-sp-1) var(--mk-sp-2) var(--mk-sp-2) 34px; }
+.ts-side__upload-btn { width: 100%; justify-content: center; }
 
 /* ── Serif accent (mirrors landing <em>, Instrument Serif italic) ──────────── */
 .ts-serif { font-family: 'Instrument Serif', 'Times New Roman', serif; font-style: italic; font-weight: 400; color: var(--pri); letter-spacing: -0.01em; }
@@ -504,12 +521,12 @@ html:not(.is-mac) .ts-other { display: inline-flex; }
 .ts-formatbar__hint { margin-left: auto; font: 11px 'JetBrains Mono', ui-monospace, monospace; color: var(--fg4); padding-right: 6px; white-space: nowrap; }
 
 /* ── Outline ───────────────────────────────────────────────────────────────── */
-.ts-outline { display: flex; flex-direction: column; padding: 0 6px 12px; list-style: none; margin: 0; }
-.ts-outline__item { display: flex; align-items: center; gap: 6px; padding: 5px 8px; font: 12.5px 'Inter', system-ui, sans-serif; color: var(--fg3); cursor: pointer; border-left: 2px solid transparent; border-radius: 0 var(--r-sm) var(--r-sm) 0; }
-.ts-outline__item:hover { color: var(--fg); }
-.ts-outline__item.is-active { color: var(--pri); border-left-color: var(--pri); background: var(--pri-50); }
-.ts-outline__item.level-2 { padding-left: 22px; font-size: 12px; }
-.ts-outline__item.level-3 { padding-left: 34px; font-size: 12px; color: var(--fg4); }
+.ts-outline { display: flex; flex-direction: column; padding: 0 0 4px; list-style: none; margin: 0; }
+.ts-outline__item { display: flex; align-items: center; gap: 6px; padding: 5px 14px; font: 13px 'Inter', system-ui, sans-serif; color: var(--fg2); cursor: pointer; border-left: 2px solid transparent; }
+.ts-outline__item:hover { color: var(--fg); background: var(--bd2); }
+.ts-outline__item.is-active { color: var(--pri-h); border-left-color: var(--pri); background: var(--pri-50); }
+.ts-outline__item.level-2 { padding-left: 28px; font-size: 12.5px; }
+.ts-outline__item.level-3 { padding-left: 44px; font-size: 12.5px; color: var(--fg3); }
 .ts-outline__num { flex-shrink: 0; min-width: 20px; color: var(--fg4); font: 500 10px 'JetBrains Mono', ui-monospace, monospace; }
 .ts-outline__item.is-active .ts-outline__num { color: var(--pri); }
 .ts-side__count { font: 500 10px 'JetBrains Mono', ui-monospace, monospace; color: var(--fg4); text-transform: none; letter-spacing: 0; }

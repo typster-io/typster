@@ -48,6 +48,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
     SaveStatus: Hooks.SaveStatus,
     PreviewZoom: Hooks.PreviewZoom,
     CommandPalette: Hooks.CommandPalette,
+    OutlineList: Hooks.OutlineList,
     Palette: Hooks.Palette,
     SlashFocus: Hooks.SlashFocus,
     SelectOnMount: Hooks.SelectOnMount,

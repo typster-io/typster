@@ -330,7 +330,10 @@ defmodule Typster.Assets do
 
   defp bucket, do: Application.get_env(:typster, :s3_bucket, "typster-assets")
 
-  def reference_path(%Asset{} = asset), do: "assets/#{asset.filename}"
+  def reference_path(%Asset{} = asset), do: "#{reference_dir()}/#{asset.filename}"
+
+  @doc "The virtual folder Typst sources reference uploaded assets under."
+  def reference_dir, do: "assets"
 
   defp safe_upload_path!(path) do
     expanded = Path.expand(path)

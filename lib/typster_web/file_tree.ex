@@ -238,6 +238,7 @@ defmodule TypsterWeb.FileTree do
   attr :current_id, :any, default: nil
   attr :id_prefix, :string, default: ""
   attr :dnd, :boolean, default: false
+  attr :badges, :map, default: %{}, doc: "error count per file path, shown as a red badge"
 
   @doc "Recursively render tree rows (siblings share one `<ul>`, indented by depth)."
   def tree_rows(assigns) do
@@ -257,14 +258,8 @@ defmodule TypsterWeb.FileTree do
             }
             class="size-3"
           />
-          <span class="ts-tree__ficon" aria-hidden="true">
-            <i data-lucide={
-              if expanded?(@collapsed, node.path), do: "folder-open", else: "folder-closed"
-            }>
-            </i>
-          </span>
+          <span class="ts-filechip ts-filechip--folder" aria-hidden="true"></span>
           <span class="truncate flex-1">{node.name}</span>
-          <span class="ts-tree__count">{length(node.children)}</span>
         </li>
         <.tree_rows
           :if={expanded?(@collapsed, node.path)}
@@ -274,6 +269,7 @@ defmodule TypsterWeb.FileTree do
           current_id={@current_id}
           id_prefix={@id_prefix}
           dnd={@dnd}
+          badges={@badges}
         />
       <% else %>
         <% can_drag = @dnd and not node.asset? and node.editable %>
@@ -303,6 +299,13 @@ defmodule TypsterWeb.FileTree do
             title={Map.get(node, :meta_title)}
           >
             {node.meta}
+          </span>
+          <span
+            :if={not node.asset? and Map.get(@badges, node.path, 0) > 0}
+            class="ts-tree__badge"
+            title={ngettext("%{count} error", "%{count} errors", @badges[node.path])}
+          >
+            {@badges[node.path]}
           </span>
           <span
             :if={Map.get(node, :pinned, false)}
