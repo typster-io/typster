@@ -309,10 +309,14 @@ test.describe('Product UI redesign', () => {
     const [sideBox, zoneBox] = await Promise.all([side.boundingBox(), zone.boundingBox()])
     expect(Math.abs(zoneBox.height - sideBox.height)).toBeLessThan(2)
     await expect(row).toHaveText(/Upload file/)
+    // The rest of the editor sits under a scrim while the panel is live.
+    const scrim = () => page.evaluate(() => getComputedStyle(document.querySelector('.ts-editor'), '::after').position)
+    expect(await scrim()).toBe('fixed')
 
     await side.dispatchEvent('dragleave', { dataTransfer: dt })
     await expect(side).not.toHaveClass(/phx-drop-target-active/)
     await expect(zone).toBeHidden()
+    expect(await scrim()).not.toBe('fixed')
   })
 
   test('command shortcut hint adapts to the OS (⌘ on Mac, Ctrl elsewhere)', async ({ page }) => {
