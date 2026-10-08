@@ -1,5 +1,13 @@
 <Layouts.app flash={@flash} current_scope={@current_scope} nav={false}>
-  <div class="ts-editor" id="editor-shell" phx-hook="CommandPalette">
+  <%!-- The whole shell is the file drop target: a file dragged anywhere over
+        the window dims the editor and lights the sidebar as the place to drop,
+        and a drop anywhere lands in the project through the `dropped` input. --%>
+  <div
+    class="ts-editor"
+    id="editor-shell"
+    phx-hook="CommandPalette"
+    phx-drop-target={@uploads.dropped.ref}
+  >
     <%!-- Top bar v3.1 — merged chrome: project · breadcrumb · omnibox · compile · account --%>
     <div class="ts-tb" id="editor-topbar" phx-hook="LucideIcons">
       <.link
@@ -217,9 +225,8 @@
           class="ts-side"
           id="editor-sidebar"
           phx-hook="LucideIcons"
-          phx-drop-target={@uploads.dropped.ref}
         >
-          <%!-- Shown by CSS while a file from the desktop hovers the panel. --%>
+          <%!-- Shown by CSS while a file from the desktop hovers the window. --%>
           <div class="ts-side__dropzone" id="sidebar-dropzone" aria-hidden="true">
             <span class="ts-side__dropzone-label">
               <.icon name="hero-arrow-down-tray" class="size-4" />
@@ -512,7 +519,7 @@
         </aside>
 
         <%!-- Source pane: tab bar + formatting toolbar + CodeMirror --%>
-        <section class="ts-source" phx-drop-target={@uploads.dropped.ref}>
+        <section class="ts-source">
           <.form id="dropped-upload-form" for={%{}} phx-change="validate_dropped" class="hidden">
             <.live_file_input upload={@uploads.dropped} />
           </.form>

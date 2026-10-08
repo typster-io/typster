@@ -297,7 +297,7 @@ italic accent. Key shared primitives added with the product-UI redesign:
 | `.ts-tree__badge` | Red error count on a file row (from compile diagnostics)  |
 | `.ts-tree__dir--assets` | Virtual `assets/` folder row: a toggle button plus the upload label |
 | `.ts-side__foot`  | Pinned "Upload file" row under the outline: opens the picker for every file type the project takes and auto-uploads; hidden under 600px of height |
-| `.ts-side__dropzone` | Overlay covering the whole sidebar while a desktop file hovers it (`.phx-drop-target-active`): translucent accent hatching, dashed frame, "Drop to add" pill; the rest of the editor goes under `--mk-scrim` via `.ts-editor:has(…)::after`; pointer-events none |
+| `.ts-side__dropzone` | Overlay covering the sidebar while a desktop file hovers anywhere over the editor (the shell is the drop target, `.ts-editor.phx-drop-target-active`): translucent accent hatching, dashed frame, "Drop to add" pill; the rest goes under `--mk-scrim` via `.ts-editor::after`; pointer-events none |
 | `_editor_compact.css` | Viewport fit: `.ts-app` is clipped so the editor never scrolls as a page (only the sidebar lists, CodeMirror, preview and drawer body scroll); the chrome tightens under 760px and again under 600px of height |
 | `.ts-statusbar`   | Editor status bar (Ln/Col, language, ⌘K hint)             |
 | `.ts-project-icon`| Serif-italic project initial tile (`--ts-icon` hue)       |
