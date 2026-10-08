@@ -281,7 +281,31 @@ test.describe('Product UI redesign', () => {
       expect(m.statusBottom).toBeLessThanOrEqual(height)
       expect(m.paneScrolls).toBe(true)
       if (height <= 760) expect(m.topbar).toBeLessThan(44)
+      if (height <= 600) await expect(page.locator('#sidebar-upload')).toBeHidden()
+      else await expect(page.locator('#sidebar-upload')).toBeVisible()
     }
+  })
+
+  test('dragging a file over the sidebar lights it as the drop target', async ({ page }) => {
+    await createProjectAndOpenEditor(page, 'Drop Light E2E')
+    await addMainFile(page)
+    const side = page.locator('#editor-sidebar')
+    const row = page.locator('#sidebar-upload')
+    await expect(row).toHaveText(/Upload file/)
+
+    // LiveView lights a drop target on dragenter only when the drag carries files.
+    const dt = await page.evaluateHandle(() => {
+      const dt = new DataTransfer()
+      dt.items.add(new File(['x'], 'drop.png', { type: 'image/png' }))
+      return dt
+    })
+    await side.dispatchEvent('dragenter', { dataTransfer: dt })
+    await expect(side).toHaveClass(/phx-drop-target-active/)
+    await expect(row).toHaveText(/Drop to add/)
+
+    await side.dispatchEvent('dragleave', { dataTransfer: dt })
+    await expect(side).not.toHaveClass(/phx-drop-target-active/)
+    await expect(row).toHaveText(/Upload file/)
   })
 
   test('command shortcut hint adapts to the OS (⌘ on Mac, Ctrl elsewhere)', async ({ page }) => {
