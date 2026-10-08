@@ -221,8 +221,10 @@
         >
           <%!-- Shown by CSS while a file from the desktop hovers the panel. --%>
           <div class="ts-side__dropzone" id="sidebar-dropzone" aria-hidden="true">
-            <.icon name="hero-arrow-down-tray" class="size-6" />
-            <span>{gettext("editor.upload_drop")}</span>
+            <span class="ts-side__dropzone-label">
+              <.icon name="hero-arrow-down-tray" class="size-4" />
+              {gettext("editor.upload_drop")}
+            </span>
           </div>
           <button
             type="button"
