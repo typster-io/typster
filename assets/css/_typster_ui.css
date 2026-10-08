@@ -529,7 +529,7 @@ html:not(.is-mac) .ts-other { display: inline-flex; }
 .ts-outline__item.level-3 { padding-left: 44px; font-size: 12.5px; color: var(--fg3); }
 .ts-outline__num { flex-shrink: 0; min-width: 20px; color: var(--fg4); font: 500 10px 'JetBrains Mono', ui-monospace, monospace; }
 .ts-outline__item.is-active .ts-outline__num { color: var(--pri); }
-.ts-side__count { font: 500 10px 'JetBrains Mono', ui-monospace, monospace; color: var(--fg4); text-transform: none; letter-spacing: 0; }
+.ts-side__count { font: 500 10px 'JetBrains Mono', ui-monospace, monospace; color: var(--fg4); text-transform: none; letter-spacing: 0; white-space: nowrap; flex-shrink: 0; }
 
 /* ── Project initial tile (serif, accent-tinted; --ts-icon overrides hue) ──── */
 .ts-project-icon { width: 40px; height: 40px; border-radius: var(--r-sm); display: grid; place-items: center; flex-shrink: 0; font-family: 'Instrument Serif', 'Times New Roman', serif; font-style: italic; font-weight: 400; font-size: 19px; background: color-mix(in srgb, var(--ts-icon, var(--pri)) 14%, transparent); color: var(--ts-icon, var(--pri)); }

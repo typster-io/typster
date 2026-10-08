@@ -296,6 +296,7 @@ italic accent. Key shared primitives added with the product-UI redesign:
 | `.ts-side__find`  | Flat "Find file ⌘P" row at the top of the sidebar that opens the palette |
 | `.ts-tree__badge` | Red error count on a file row (from compile diagnostics)  |
 | `.ts-tree__dir--assets` | Virtual `assets/` folder row: a toggle button plus the upload label |
+| `_editor_compact.css` | Viewport fit: `.ts-app` is clipped so the editor never scrolls as a page (only the sidebar lists, CodeMirror, preview and drawer body scroll); the chrome tightens under 760px and again under 600px of height |
 | `.ts-statusbar`   | Editor status bar (Ln/Col, language, ⌘K hint)             |
 | `.ts-project-icon`| Serif-italic project initial tile (`--ts-icon` hue)       |
 | `.ts-swatch`      | Settings accent swatch (`--sw` hue)                       |
