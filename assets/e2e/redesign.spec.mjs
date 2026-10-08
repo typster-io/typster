@@ -255,6 +255,35 @@ test.describe('Product UI redesign', () => {
     expect(outlineBox.y).toBeGreaterThan(files.y + files.height)
   })
 
+  test('the editor never scrolls as a page; only its panes scroll', async ({ page }) => {
+    await createProjectAndOpenEditor(page, 'Viewport E2E')
+    await addMainFile(page)
+    const cm = page.locator('#editor-container .cm-content')
+    await cm.click()
+    await page.keyboard.type('= Long\n' + 'line\n'.repeat(80))
+
+    for (const [width, height] of [[1280, 720], [900, 560]]) {
+      await page.setViewportSize({ width, height })
+      const m = await page.evaluate(() => {
+        window.scrollTo(0, 99999)
+        const scroller = document.querySelector('.cm-scroller')
+        const status = document.querySelector('.ts-statusbar').getBoundingClientRect()
+        return {
+          pageScroll: document.documentElement.scrollHeight - innerHeight,
+          scrollY: window.scrollY,
+          statusBottom: status.bottom,
+          paneScrolls: scroller.scrollHeight > scroller.clientHeight,
+          topbar: document.querySelector('.ts-tb').getBoundingClientRect().height
+        }
+      })
+      expect(m.pageScroll, `${width}x${height} page scroll`).toBeLessThanOrEqual(0)
+      expect(m.scrollY).toBe(0)
+      expect(m.statusBottom).toBeLessThanOrEqual(height)
+      expect(m.paneScrolls).toBe(true)
+      if (height <= 760) expect(m.topbar).toBeLessThan(44)
+    }
+  })
+
   test('command shortcut hint adapts to the OS (⌘ on Mac, Ctrl elsewhere)', async ({ page }) => {
     // Force a Windows-class platform before any script runs.
     await page.addInitScript(() => {
