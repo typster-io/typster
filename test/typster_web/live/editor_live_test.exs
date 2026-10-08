@@ -420,27 +420,6 @@ defmodule TypsterWeb.EditorLiveTest do
     assert created.content == "= Dropped in"
   end
 
-  test "using a template stages its content into the file you create",
-       %{conn: conn, user: user, project: project} do
-    scope = Typster.Accounts.Scope.for_user(user)
-
-    {:ok, tpl} =
-      Typster.Templates.create_template(scope, %{name: "ieee.typ", content: "= From tpl"})
-
-    file_fixture(project, user, %{path: "main.typ"})
-    view = open_editor(conn, project)
-
-    view
-    |> element("button[phx-click='use_template'][phx-value-id='#{tpl.id}']")
-    |> render_click()
-
-    assert has_element?(view, "#new-file-draft")
-    view |> form("#new-file-form", %{path: "paper.typ"}) |> render_submit()
-
-    created = Enum.find(Typster.Files.get_file_tree(scope, project.id), &(&1.path == "paper.typ"))
-    assert created.content == "= From tpl"
-  end
-
   test "file rows render colored type chips by extension",
        %{conn: conn, user: user, project: project} do
     file_fixture(project, user, %{path: "main.typ"})
@@ -704,29 +683,7 @@ defmodule TypsterWeb.EditorLiveTest do
       assert url =~ ~r"^/projects/#{project.id}/assets/[0-9a-f-]+/raw$"
     end
 
-    test "a font dropped on the template zone becomes an asset, not a template", %{
-      conn: conn,
-      user: user,
-      project: project
-    } do
-      file_fixture(project, user, %{path: "main.typ"})
-      view = open_editor(conn, project)
-      bytes = File.read!("assets/e2e/fixtures/NotoSansLycian-Regular.ttf")
-
-      input =
-        file_input(view, "#template-upload-form", :template, [
-          %{name: "Espruar.otf", content: bytes, type: "font/otf"}
-        ])
-
-      render_upload(input, "Espruar.otf")
-
-      assert has_element?(view, "[id*='asset-entry'] .ts-filechip--font")
-      assert render(view) =~ "Espruar.otf"
-      assert Typster.Templates.list_templates(Typster.Accounts.Scope.for_user(user)) == []
-      assert_push_event(view, "assets_updated", %{assets: [%{kind: "font"}]})
-    end
-
-    test "binary bytes under a text extension are rejected on the template zone", %{
+    test "binary bytes under a text extension are rejected on the drop zone", %{
       conn: conn,
       user: user,
       project: project
@@ -735,7 +692,7 @@ defmodule TypsterWeb.EditorLiveTest do
       view = open_editor(conn, project)
 
       input =
-        file_input(view, "#template-upload-form", :template, [
+        file_input(view, "#dropped-upload-form", :dropped, [
           %{
             name: "not-text.typ",
             content: <<0, 1, 2, 255, 254>>,
@@ -745,11 +702,17 @@ defmodule TypsterWeb.EditorLiveTest do
 
       render_upload(input, "not-text.typ")
 
-      assert Typster.Templates.list_templates(Typster.Accounts.Scope.for_user(user)) == []
+      scope = Typster.Accounts.Scope.for_user(user)
+
+      refute Enum.any?(
+               Typster.Files.get_file_tree(scope, project.id),
+               &(&1.path == "not-text.typ")
+             )
+
       assert render(view) =~ "Unsupported file format."
     end
 
-    test "the upload icon and template label point at their file inputs", %{
+    test "the sidebar upload row points at its file input", %{
       conn: conn,
       project: project
     } do
