@@ -292,7 +292,10 @@ italic accent. Key shared primitives added with the product-UI redesign:
 | `.ts-pill`        | Status pill (`--accent`/`--success`/`--error` variants)   |
 | `.ts-window`      | Rounded chrome wrapping the 3-pane editor                 |
 | `.ts-formatbar`   | WYSIWYG formatting toolbar row (separate from tabs)        |
-| `.ts-outline`     | Live document outline (parsed headings)                   |
+| `.ts-outline`     | Live document outline (parsed headings); pinned to the sidebar foot in `.ts-side__outline`, the heading under the cursor gets `.is-active` |
+| `.ts-side__find`  | Flat "Find file ⌘P" row at the top of the sidebar that opens the palette |
+| `.ts-tree__badge` | Red error count on a file row (from compile diagnostics)  |
+| `.ts-tree__dir--assets` | Virtual `assets/` folder row: a toggle button plus the upload label |
 | `.ts-statusbar`   | Editor status bar (Ln/Col, language, ⌘K hint)             |
 | `.ts-project-icon`| Serif-italic project initial tile (`--ts-icon` hue)       |
 | `.ts-swatch`      | Settings accent swatch (`--sw` hue)                       |
