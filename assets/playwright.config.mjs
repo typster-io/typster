@@ -41,7 +41,8 @@ export default defineConfig({
         /fork_flow\.spec\.mjs/,
         /search_panel\.spec\.mjs/,
         /editor_gutter\.spec\.mjs/,
-        /collab\.spec\.mjs/
+        /collab\.spec\.mjs/,
+        /asset_drag\.spec\.mjs/
       ]
     },
     {
@@ -50,7 +51,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         storageState: authFile
       },
-      testMatch: [/editor_load\.spec\.mjs/, /wasm\.spec\.mjs/, /preview\.spec\.mjs/, /redesign\.spec\.mjs/, /fork_flow\.spec\.mjs/, /search_panel\.spec\.mjs/, /editor_gutter\.spec\.mjs/, /collab\.spec\.mjs/],
+      testMatch: [/editor_load\.spec\.mjs/, /wasm\.spec\.mjs/, /preview\.spec\.mjs/, /redesign\.spec\.mjs/, /fork_flow\.spec\.mjs/, /search_panel\.spec\.mjs/, /editor_gutter\.spec\.mjs/, /collab\.spec\.mjs/, /asset_drag\.spec\.mjs/],
       dependencies: ["setup"]
     }
   ]

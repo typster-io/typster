@@ -290,9 +290,15 @@
 
           <div :if={pinned_files(@file_tree) != []}>
             <div class="ts-side__head ts-side__head--sub">{gettext("editor.pinned")}</div>
-            <ul class="ts-tree">
+            <ul class="ts-tree" id="pinned-tree" phx-hook="InsertDrag">
               <TypsterWeb.FileTree.tree_rows
-                nodes={TypsterWeb.FileTree.file_nodes(pinned_files(@file_tree), :flat)}
+                nodes={
+                  TypsterWeb.FileTree.file_nodes(
+                    pinned_files(@file_tree),
+                    :flat,
+                    @current_file && @current_file.path
+                  )
+                }
                 collapsed={@collapsed_dirs}
                 current_id={@current_file && @current_file.id}
                 id_prefix="pinned-"
@@ -381,7 +387,13 @@
                 </.form>
               </li>
               <TypsterWeb.FileTree.tree_rows
-                nodes={TypsterWeb.FileTree.file_nodes(@file_tree, @file_view_mode)}
+                nodes={
+                  TypsterWeb.FileTree.file_nodes(
+                    @file_tree,
+                    @file_view_mode,
+                    @current_file && @current_file.path
+                  )
+                }
                 collapsed={@collapsed_dirs}
                 current_id={@current_file && @current_file.id}
                 dnd={true}
@@ -426,9 +438,21 @@
             </div>
           </div>
 
-          <ul class="ts-tree" phx-drop-target={@uploads.dropped.ref}>
+          <ul
+            class="ts-tree"
+            id="asset-tree"
+            phx-hook="InsertDrag"
+            phx-drop-target={@uploads.dropped.ref}
+          >
             <TypsterWeb.FileTree.tree_rows
-              nodes={TypsterWeb.FileTree.asset_nodes(@assets, @file_view_mode, @font_families)}
+              nodes={
+                TypsterWeb.FileTree.asset_nodes(
+                  @assets,
+                  @file_view_mode,
+                  @font_families,
+                  @current_file && @current_file.path
+                )
+              }
               collapsed={@collapsed_dirs}
             />
           </ul>

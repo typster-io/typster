@@ -492,12 +492,14 @@ export const FileTreeDnD = {
     const clearOver = () =>
       root.querySelectorAll(".is-dnd-over").forEach((n) => n.classList.remove("is-dnd-over"))
 
+    // A row drags its Typst snippet as text, so dropping it into the editor
+    // inserts a reference (#97); dropping it on a folder here moves it.
     root.addEventListener("dragstart", (e) => {
-      const li = e.target.closest("[data-dnd-file]")
+      const li = e.target.closest("[data-dnd-file], [data-insert]")
       if (!li) return
-      this.dragId = li.dataset.dndFile
-      e.dataTransfer.effectAllowed = "move"
-      e.dataTransfer.setData("text/plain", this.dragId)
+      this.dragId = li.dataset.dndFile || null
+      e.dataTransfer.effectAllowed = this.dragId ? "copyMove" : "copy"
+      e.dataTransfer.setData("text/plain", li.dataset.insert || "")
       li.classList.add("is-dnd-dragging")
     })
 
@@ -523,6 +525,26 @@ export const FileTreeDnD = {
       this.pushEvent("move_file", { id: this.dragId, dir: dir ? dir.dataset.dndDir : "" })
       clearOver()
       this.dragId = null
+    })
+  }
+}
+
+// Drag a file or asset row into the editor to insert its Typst snippet (#97).
+// The row carries the snippet, with its path relative to the open file, in
+// `data-insert`; CodeMirror's built-in drop handler inserts dropped
+// `text/plain` at the drop position. Delegated on the <ul>, so rows LiveView
+// re-renders need no re-binding.
+export const InsertDrag = {
+  mounted() {
+    this.el.addEventListener("dragstart", (e) => {
+      const li = e.target.closest("[data-insert]")
+      if (!li) return
+      e.dataTransfer.effectAllowed = "copy"
+      e.dataTransfer.setData("text/plain", li.dataset.insert)
+      li.classList.add("is-dnd-dragging")
+    })
+    this.el.addEventListener("dragend", () => {
+      this.el.querySelectorAll(".is-dnd-dragging").forEach((n) => n.classList.remove("is-dnd-dragging"))
     })
   }
 }

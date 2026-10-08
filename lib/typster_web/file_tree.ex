@@ -17,8 +17,11 @@ defmodule TypsterWeb.FileTree do
   def mode("flat"), do: :flat
   def mode(_), do: :tree
 
-  @doc "Build render nodes for the file list in the given mode."
-  def file_nodes(files, mode) do
+  @doc """
+  Build render nodes for the file list in the given mode. `current_path` is the
+  open file's path: dragged rows insert references relative to it.
+  """
+  def file_nodes(files, mode, current_path \\ nil) do
     files
     |> Enum.map(fn f ->
       %{
@@ -26,7 +29,8 @@ defmodule TypsterWeb.FileTree do
         id: f.id,
         editable: Typster.Files.editable_file?(f),
         asset?: false,
-        pinned: Map.get(f, :pinned, false)
+        pinned: Map.get(f, :pinned, false),
+        insert: if(f.path != current_path, do: insert_snippet(f.path, current_path))
       }
     end)
     |> by_mode(mode)
@@ -39,7 +43,7 @@ defmodule TypsterWeb.FileTree do
   family names the preview compiler detected; a font row shows those instead
   of its size so the writer knows what to put in `#set text(font: …)`.
   """
-  def asset_nodes(assets, mode, font_families \\ %{}) do
+  def asset_nodes(assets, mode, font_families \\ %{}, current_path \\ nil) do
     assets
     |> Enum.map(fn a ->
       kind = Typster.Assets.kind(a)
@@ -51,7 +55,8 @@ defmodule TypsterWeb.FileTree do
         editable: false,
         kind: asset_chip_kind(kind),
         meta: asset_meta(a, kind, font_families),
-        meta_title: asset_meta_title(a, kind, font_families)
+        meta_title: asset_meta_title(a, kind, font_families),
+        insert: asset_insert(a, kind, font_families, current_path)
       }
     end)
     |> by_mode(mode)
@@ -81,6 +86,66 @@ defmodule TypsterWeb.FileTree do
 
   defp asset_meta_title(_a, :web_font, _), do: gettext("editor.assets.font_unsupported_title")
   defp asset_meta_title(_a, _kind, _), do: nil
+
+  @doc """
+  The Typst snippet dropped into the editor when an asset row is dragged there,
+  or `nil` when the asset has nothing to insert (an unreadable web font, or a
+  font whose family the preview has not reported yet).
+  """
+  def asset_insert(a, kind, families \\ %{}, current_path \\ nil)
+
+  def asset_insert(a, :font, families, _current_path) do
+    case Map.get(families, Typster.Assets.reference_path(a), []) do
+      [family | _] -> ~s|#set text(font: #{typst_string(family)})|
+      [] -> nil
+    end
+  end
+
+  def asset_insert(_a, :web_font, _families, _current_path), do: nil
+
+  def asset_insert(a, _kind, _families, current_path),
+    do: insert_snippet(Typster.Assets.reference_path(a), current_path)
+
+  # Typst call each extension is inserted with; anything else is `#read`.
+  @insert_calls %{
+    ".typ" => "include",
+    ".png" => "image",
+    ".jpg" => "image",
+    ".jpeg" => "image",
+    ".gif" => "image",
+    ".svg" => "image",
+    ".webp" => "image",
+    ".pdf" => "image",
+    ".bib" => "bibliography",
+    ".csv" => "csv",
+    ".json" => "json",
+    ".yaml" => "yaml",
+    ".yml" => "yaml",
+    ".toml" => "toml",
+    ".xml" => "xml"
+  }
+
+  @doc """
+  The Typst snippet that references the project file at `path` from the file at
+  `current_path`, with the path written relative to that file's directory.
+  """
+  def insert_snippet(path, current_path \\ nil) do
+    ref = typst_string(relative_path(path, current_path))
+
+    case Map.get(@insert_calls, path |> Path.extname() |> String.downcase(), "read") do
+      "include" -> "#include #{ref}"
+      call -> "##{call}(#{ref})"
+    end
+  end
+
+  defp relative_path(path, nil), do: path
+
+  defp relative_path(path, current_path),
+    do: Path.relative_to(path, Path.dirname(current_path), force: true)
+
+  defp typst_string(text) do
+    ~s|"| <> (text |> String.replace("\\", "\\\\") |> String.replace(~s|"|, ~s|\\"|)) <> ~s|"|
+  end
 
   defp by_mode(items, :flat), do: Enum.map(items, &Map.merge(&1, %{type: :leaf, name: &1.path}))
   defp by_mode(items, :smart), do: items |> build_tree() |> smart_collapse()
@@ -216,8 +281,10 @@ defmodule TypsterWeb.FileTree do
           id={leaf_dom_id(node, @id_prefix)}
           phx-click={if not node.asset? and node.editable, do: "select_file"}
           phx-value-file-id={node.id}
-          draggable={can_drag && "true"}
+          draggable={(can_drag or Map.get(node, :insert) != nil) && "true"}
           data-dnd-file={if can_drag, do: node.id}
+          data-insert={Map.get(node, :insert)}
+          title={Map.get(node, :insert) && gettext("editor.assets.drag_hint")}
           class={[
             "ts-tree__item",
             node.asset? && "is-asset",
