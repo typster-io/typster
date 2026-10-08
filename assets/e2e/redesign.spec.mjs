@@ -220,6 +220,41 @@ test.describe('Product UI redesign', () => {
     await expect(page.locator('#command-palette')).not.toBeVisible()
   })
 
+  test('sidebar: Find file opens the palette, ⌘P too, and the outline tracks the cursor', async ({ page }) => {
+    await createProjectAndOpenEditor(page, 'Sidebar E2E')
+    await addMainFile(page)
+
+    await page.locator('#sidebar-find-file').click()
+    await expect(page.locator('#command-palette')).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(page.locator('#command-palette')).not.toBeVisible()
+
+    const cm = page.locator('#editor-container .cm-content')
+    await cm.click()
+    await page.keyboard.press('ControlOrMeta+p')
+    await expect(page.locator('#command-palette')).toBeVisible()
+    await page.keyboard.press('Escape')
+
+    await cm.click()
+    await page.keyboard.press('ControlOrMeta+a')
+    await page.keyboard.type('= Title\n\n== Alpha\ntext\n\n== Beta\nmore')
+    const outline = page.locator('#outline .ts-outline__item')
+    await expect(outline).toHaveCount(3)
+    // The caret sits on the last line, under "Beta".
+    await expect(outline.filter({ hasText: 'Beta' })).toHaveClass(/is-active/)
+    await expect(outline.filter({ hasText: 'Alpha' })).not.toHaveClass(/is-active/)
+
+    // Moving the caret onto "text" (line 4) lights Alpha instead.
+    await cm.locator('.cm-line').nth(3).click()
+    await expect(outline.filter({ hasText: 'Alpha' })).toHaveClass(/is-active/)
+    await expect(outline.filter({ hasText: 'Beta' })).not.toHaveClass(/is-active/)
+
+    // Outline sits at the sidebar's foot, under the files.
+    const files = await page.locator('#file-tree-main').boundingBox()
+    const outlineBox = await page.locator('.ts-side__outline').boundingBox()
+    expect(outlineBox.y).toBeGreaterThan(files.y + files.height)
+  })
+
   test('command shortcut hint adapts to the OS (⌘ on Mac, Ctrl elsewhere)', async ({ page }) => {
     // Force a Windows-class platform before any script runs.
     await page.addInitScript(() => {
