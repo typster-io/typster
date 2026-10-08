@@ -286,10 +286,12 @@ test.describe('Product UI redesign', () => {
     }
   })
 
-  test('dragging a file over the sidebar lights it as the drop target', async ({ page }) => {
+  test('dragging a file anywhere over the window lights the sidebar as the drop target', async ({ page }) => {
     await createProjectAndOpenEditor(page, 'Drop Light E2E')
     await addMainFile(page)
+    const shell = page.locator('#editor-shell')
     const side = page.locator('#editor-sidebar')
+    const preview = page.locator('.ts-preview')
     const row = page.locator('#sidebar-upload')
     await expect(row).toHaveText(/Upload file/)
 
@@ -301,8 +303,9 @@ test.describe('Product UI redesign', () => {
     })
     const zone = page.locator('#sidebar-dropzone')
     await expect(zone).toBeHidden()
-    await side.dispatchEvent('dragenter', { dataTransfer: dt })
-    await expect(side).toHaveClass(/phx-drop-target-active/)
+    // Entering over the preview, far from the sidebar, is enough.
+    await preview.dispatchEvent('dragenter', { dataTransfer: dt })
+    await expect(shell).toHaveClass(/phx-drop-target-active/)
     // The overlay covers the whole panel, not just the row.
     await expect(zone).toBeVisible()
     await expect(zone).toHaveText(/Drop to add/)
@@ -313,8 +316,9 @@ test.describe('Product UI redesign', () => {
     const scrim = () => page.evaluate(() => getComputedStyle(document.querySelector('.ts-editor'), '::after').position)
     expect(await scrim()).toBe('fixed')
 
-    await side.dispatchEvent('dragleave', { dataTransfer: dt })
-    await expect(side).not.toHaveClass(/phx-drop-target-active/)
+    // Leaving the window (no related target) clears everything.
+    await shell.dispatchEvent('dragleave', { dataTransfer: dt, relatedTarget: null, clientX: 0, clientY: 0 })
+    await expect(shell).not.toHaveClass(/phx-drop-target-active/)
     await expect(zone).toBeHidden()
     expect(await scrim()).not.toBe('fixed')
   })
