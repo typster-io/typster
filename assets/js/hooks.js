@@ -91,7 +91,11 @@ export const CodeMirror = {
         // preview click just caused are skipped: the first would drag the
         // preview while typing, the second would answer a click with a scroll.
         clearTimeout(this.previewSyncTimer)
-        if (viaEdit || this.suppressPreviewSync) return
+        if (viaEdit) return
+        if (this.suppressPreviewSync) {
+          this.suppressPreviewSync = false
+          return
+        }
         this.previewSyncTimer = setTimeout(() => {
           syncPreviewToCursor({ file: this.mainPath, line, col })
         }, PREVIEW_SYNC_DELAY)
@@ -144,12 +148,14 @@ export const CodeMirror = {
   // one: the server is asked to open it and the move completes once its
   // buffer has mounted (the preview click path, #149).
   gotoLocation({ file, line, col, source }) {
+    // The caret move this goto causes must not scroll the preview back to
+    // where the click came from: skip exactly that one cursor callback.
     if (source === "preview") {
       this.suppressPreviewSync = true
       clearTimeout(this.suppressTimer)
       this.suppressTimer = setTimeout(() => {
         this.suppressPreviewSync = false
-      }, PREVIEW_SYNC_DELAY * 2)
+      }, 1000)
     }
     const target = file ? file.replace(/^\/+/, "") : null
     const active = this.mainPath.replace(/^\/+/, "")
@@ -157,8 +163,30 @@ export const CodeMirror = {
       this.editorInstance.runCommand("goto", { line, col })
       return
     }
+    // A read-only view (a shared project) has no file switching to offer.
+    if (this.readonly) return
+    // Switching buffers destroys this editor; a save still waiting on its
+    // debounce would be lost, so push it ahead of the switch.
+    this.editorInstance.flushAutosave()
     this.pendingGoto = { path: target, line, col }
     this.pushEvent("open_path", { path: target })
+  },
+
+  // The file the preview compiles: a deliberate selection (tree, tab, a new
+  // file) of a Typst file makes it the document; a jump from the preview, a
+  // closed tab, a deleted file, or opening a data file (CSV, BibTeX, a note)
+  // keep the current one as long as it is a Typst file that still exists.
+  chooseEntry(reason) {
+    const sources = (this.currentOptions && this.currentOptions.project.sources) || []
+    const clean = (p) => String(p || "").replace(/^\/+/, "")
+    const current = clean(this.entryPath)
+    const keepable =
+      current &&
+      /\.typ$/i.test(current) &&
+      (current === clean(this.mainPath) || sources.some((src) => clean(src.path) === current))
+    const chosen = reason === "select" || reason === "create"
+    if (!keepable || (chosen && /\.typ$/i.test(clean(this.mainPath)))) return this.mainPath
+    return this.entryPath
   },
 
   mounted() {
@@ -174,6 +202,7 @@ export const CodeMirror = {
     // a jump from the preview into an `#include`d file leaves it alone, so the
     // preview keeps showing the document rather than the chapter on its own.
     this.entryPath = this.mainPath
+    this.readonly = options.readonly
     this.collab = options.collab
     // The element is `phx-update="ignore"`, so `data-project-assets` is frozen
     // at mount. The server pushes `assets_updated` on every upload/delete;
@@ -216,7 +245,7 @@ export const CodeMirror = {
       }
     })
 
-    this.handleEvent("file_changed", ({ file_id, content, language, path }) => {
+    this.handleEvent("file_changed", ({ file_id, content, language, path, reason }) => {
       const newFileId = file_id || null
       const newContent = parseContent(content || "")
       const options = { ...editorOptions(this.el), ...this.editorCallbacks() }
@@ -230,7 +259,7 @@ export const CodeMirror = {
       const viaPreview = !!pending && pending.path === this.mainPath.replace(/^\/+/, "")
       if (!viaPreview) this.pendingGoto = null
       const entryBefore = this.entryPath
-      this.entryPath = viaPreview && this.entryPath ? this.entryPath : this.mainPath
+      this.entryPath = this.chooseEntry(reason || (viaPreview ? "jump" : "select"))
       options.project.entryPath = this.entryPath
 
       this.el.style.display = newFileId ? "" : "none"
@@ -240,6 +269,10 @@ export const CodeMirror = {
         this.previousFileId = newFileId
         this.cleanupThemeHandlers()
         if (this.editorInstance) {
+          // A save still waiting on its debounce belongs to the buffer being
+          // torn down; the server stores it even though it is no longer
+          // the current file.
+          this.editorInstance.flushAutosave()
           destroyEditor(this.editorInstance)
           this.editorInstance = null
         }
@@ -267,9 +300,32 @@ export const CodeMirror = {
 
       if (viaPreview && this.editorInstance) {
         this.pendingGoto = null
-        this.editorInstance.runCommand("goto", { line: pending.line, col: pending.col })
+        // A collaborative buffer fills in asynchronously; wait for its text.
+        const instance = this.editorInstance
+        instance.ready.then(() => {
+          if (this.editorInstance === instance) instance.runCommand("goto", { line: pending.line, col: pending.col })
+        })
       }
     })
+
+    // The server re-renders `data-project-sources` on every change to the
+    // project's files (a save, a new, moved or deleted file), and LiveView
+    // merges data attributes even on this ignored element. Keep the compile
+    // options current, and if the previewed document vanished, or a sibling
+    // the document reads changed, compile again.
+    this.sourcesObserver = new MutationObserver(() => {
+      if (!this.currentOptions || !this.editorInstance) return
+      const sources = parseJsonDataset(this.el.dataset.projectSources, [])
+      const active = this.mainPath.replace(/^\/+/, "")
+      const others = (list) => JSON.stringify(list.filter((src) => String(src.path || "").replace(/^\/+/, "") !== active))
+      const changed = others(sources) !== others(this.currentOptions.project.sources || [])
+      this.currentOptions.project.sources = sources
+      const entryBefore = this.entryPath
+      this.entryPath = this.chooseEntry("refresh")
+      this.currentOptions.project.entryPath = this.entryPath
+      if (changed || this.entryPath !== entryBefore) this.editorInstance.compile()
+    })
+    this.sourcesObserver.observe(this.el, { attributes: true, attributeFilter: ["data-project-sources"] })
 
     this.themeChangeHandler = () => {
       if (this.editorInstance && this.editorInstance.updateTheme) {
@@ -341,6 +397,7 @@ export const CodeMirror = {
     this.cleanupThemeHandlers()
     clearTimeout(this.previewSyncTimer)
     clearTimeout(this.suppressTimer)
+    if (this.sourcesObserver) this.sourcesObserver.disconnect()
     if (this.commandHandler) {
       window.removeEventListener("phx:editor-command", this.commandHandler)
       this.commandHandler = null
