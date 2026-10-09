@@ -18,6 +18,22 @@ import typstLang from "@shikijs/langs/typst"
 import githubLight from "@shikijs/themes/github-light"
 import githubDark from "@shikijs/themes/github-dark"
 
+// The grammar lets comments nest inside a `//` line comment; under the
+// JavaScript regex engine a second `//` on the same line (`// a // b`) then
+// opens a nested comment that never closes and paints the rest of the file
+// grey. Nothing inside a line comment needs sub-tokens, so drop them.
+function withoutNestedLineComments(lang) {
+  const copy = JSON.parse(JSON.stringify(lang))
+  const walk = (node) => {
+    if (!node || typeof node !== "object") return
+    if (Array.isArray(node)) return node.forEach(walk)
+    if (node.name === "comment.line.double-slash.typst") delete node.patterns
+    for (const key of Object.keys(node)) walk(node[key])
+  }
+  walk(copy)
+  return copy
+}
+
 const LIGHT_THEME = "github-light"
 const DARK_THEME = "github-dark"
 const MAX_CHARS = 200_000 // skip highlighting for very large documents
@@ -34,7 +50,7 @@ function ensureHighlighter() {
   if (!highlighterPromise) {
     highlighterPromise = createHighlighterCore({
       themes: [githubLight, githubDark],
-      langs: [typstLang],
+      langs: [withoutNestedLineComments(typstLang)],
       engine: createJavaScriptRegexEngine({ forgiving: true })
     })
       .then((hl) => {
