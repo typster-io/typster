@@ -223,17 +223,23 @@ function vfsPath(path) {
 // than a flattened "/main.typ", so files in subdirectories keep their directory
 // and relative `#import`s resolve. The buffer's twin in `sources` (the persisted
 // copy) is skipped so the live, possibly-unsaved buffer wins.
+//
+// `project.entryPath` names the file to compile when it is not the buffer: a
+// jump from the preview into an `#include`d chapter keeps rendering the
+// document that chapter belongs to (#149). It is only honoured when that file
+// is among the sources; otherwise the buffer is the entrypoint as before.
 async function loadSources(content, project) {
-  const main = vfsPath(project?.mainPath)
+  const buffer = vfsPath(project?.mainPath)
+  const sources = Array.isArray(project?.sources) ? project.sources : []
+  const entry = project?.entryPath ? vfsPath(project.entryPath) : buffer
+  const main = entry !== buffer && sources.some((s) => vfsPath(s.path) === entry) ? entry : buffer
   $typst.setMainFilePath(main)
-  await $typst.addSource(main, content || "")
+  await $typst.addSource(buffer, content || "")
 
-  if (project?.sources) {
-    for (const source of project.sources) {
-      const path = vfsPath(source.path)
-      if (path !== main) {
-        await $typst.addSource(path, source.content || "")
-      }
+  for (const source of sources) {
+    const path = vfsPath(source.path)
+    if (path !== buffer) {
+      await $typst.addSource(path, source.content || "")
     }
   }
 
