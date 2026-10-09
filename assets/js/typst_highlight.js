@@ -22,15 +22,25 @@ import githubDark from "@shikijs/themes/github-dark"
 // JavaScript regex engine a second `//` on the same line (`// a // b`) then
 // opens a nested comment that never closes and paints the rest of the file
 // grey. Nothing inside a line comment needs sub-tokens, so drop them.
+// A `//` inside a `/* */` block suffers the same fate, so block comments
+// only nest block comments (Typst does allow those).
 function withoutNestedLineComments(lang) {
   const copy = JSON.parse(JSON.stringify(lang))
+  const blocks = []
   const walk = (node) => {
     if (!node || typeof node !== "object") return
     if (Array.isArray(node)) return node.forEach(walk)
     if (node.name === "comment.line.double-slash.typst") delete node.patterns
+    if (node.name === "comment.block.typst") blocks.push(node)
     for (const key of Object.keys(node)) walk(node[key])
   }
   walk(copy)
+  // The package exports a list of grammars; patch each one's repository.
+  for (const grammar of Array.isArray(copy) ? copy : [copy]) {
+    if (!blocks.length || !grammar.repository) continue
+    grammar.repository["comment-block-only"] = { ...blocks[0], patterns: [{ include: "#comment-block-only" }] }
+  }
+  for (const b of blocks) b.patterns = [{ include: "#comment-block-only" }]
   return copy
 }
 
