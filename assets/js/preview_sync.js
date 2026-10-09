@@ -75,18 +75,23 @@ function resolveInclude(from, target) {
 }
 
 // ── Virtual document ─────────────────────────────────────────────────────────
-// The project's sources in reading order: the main file with each `#include`d
-// file spliced in right after its include line. `search` is `text` with
-// newlines turned into spaces (same length, so offsets agree) because a
-// rendered line freely spans source line breaks.
+// The project's sources in reading order: the entry file with each `#include`d
+// file spliced in right after its include line, then every other text source
+// (CSV data, `#import`ed modules) as an appendix, so text the document pulls
+// from a data file still resolves to its row. `primaryEnd` marks where the
+// appendix starts: matches there never move the reading position. `search`
+// is `text` with newlines turned into spaces (same length, so offsets agree)
+// because a rendered line freely spans source line breaks.
 
-export function buildVirtualDoc(mainPath, mainContent, sources) {
+export function buildVirtualDoc(bufferPath, bufferContent, sources, entryPath) {
   const byPath = new Map()
   for (const s of Array.isArray(sources) ? sources : []) {
     if (s && typeof s.path === "string") byPath.set(cleanPath(s.path), s.content || "")
   }
-  const main = cleanPath(mainPath) || "main.typ"
-  byPath.set(main, mainContent || "")
+  const buffer = cleanPath(bufferPath) || "main.typ"
+  byPath.set(buffer, bufferContent || "")
+  const entry = cleanPath(entryPath)
+  const main = entry && byPath.has(entry) ? entry : buffer
 
   const lines = []
   const visited = new Set()
@@ -102,14 +107,19 @@ export function buildVirtualDoc(mainPath, mainContent, sources) {
     })
   }
   expand(main, 0)
+  const primaryLines = lines.length
+  for (const file of byPath.keys()) expand(file, 0)
 
   const starts = []
   let text = ""
-  for (const l of lines) {
+  let primaryEnd = 0
+  for (let i = 0; i < lines.length; i++) {
+    if (i === primaryLines) primaryEnd = text.length
     starts.push(text.length)
-    text += l.text + "\n"
+    text += lines[i].text + "\n"
   }
-  return { lines, starts, text, search: text.replace(/\n/g, " ") }
+  if (primaryLines === lines.length) primaryEnd = text.length
+  return { lines, starts, text, search: text.replace(/\n/g, " "), primaryEnd }
 }
 
 function lineIndexAt(doc, offset) {
@@ -141,15 +151,20 @@ export function offsetOf(doc, file, line, col) {
 // ── Alignment ────────────────────────────────────────────────────────────────
 
 // Nearest occurrence of `needle` around `pos`: ahead within `forward` chars,
-// else behind within the backward window. -1 when neither.
-function findNear(hay, needle, pos, forward) {
+// else behind within the backward window, else (for a run with real text)
+// anywhere in the appendix of data files. -1 when none.
+function findNear(doc, needle, pos, forward) {
+  const hay = doc.search
   const from = Math.max(0, pos - BACKWARD_WINDOW)
   const seg = hay.slice(from, pos + forward + needle.length)
   const ahead = seg.indexOf(needle, pos - from)
   if (ahead >= 0) return from + ahead
   if (forward < 400) return -1
   const behind = seg.lastIndexOf(needle, pos - from)
-  return behind >= 0 ? from + behind : -1
+  if (behind >= 0) return from + behind
+  if (needle.length < 8) return -1
+  const appendix = hay.indexOf(needle, Math.max(doc.primaryEnd, pos + forward))
+  return appendix >= 0 ? appendix : -1
 }
 
 // Where an unanchored run belongs: between its matched neighbours, on the
@@ -157,6 +172,8 @@ function findNear(hay, needle, pos, forward) {
 // on a later line (a block of its own — an equation, a figure, a list bullet),
 // otherwise right where the previous run ended (inline math, a styled word).
 function inferOffset(doc, prev, next) {
+  if (prev && prev.end > doc.primaryEnd) prev = null
+  if (next && next.start > doc.primaryEnd) next = null
   if (!prev) return next ? next.start : 0
   const prevLine = lineIndexAt(doc, prev.end)
   const nextLine = next ? lineIndexAt(doc, next.start) : doc.lines.length
@@ -182,14 +199,14 @@ export function alignRuns(container, doc) {
       let hit = -1
       let len = 0
       for (const v of variants) {
-        hit = findNear(doc.search, v, pos, forward)
+        hit = findNear(doc, v, pos, forward)
         len = v.length
         if (hit >= 0) break
       }
       if (hit < 0) {
         const word = longestWord(text)
         if (word) {
-          hit = findNear(doc.search, word, pos, forward)
+          hit = findNear(doc, word, pos, forward)
           len = word.length
         }
       }
@@ -198,8 +215,9 @@ export function alignRuns(container, doc) {
         run.end = hit + len
         run.anchored = true
         // A match behind the cursor (a running header, a footnote) does not
-        // move the reading position backwards.
-        pos = Math.max(pos, run.end)
+        // move the reading position backwards, and one in the appendix of
+        // data files does not move it at all.
+        if (run.end <= doc.primaryEnd) pos = Math.max(pos, run.end)
       }
     }
     runs.push(run)
@@ -208,12 +226,12 @@ export function alignRuns(container, doc) {
   let prev = null
   for (let i = 0; i < runs.length; i++) {
     if (runs[i].anchored) {
-      prev = runs[i]
+      if (runs[i].start <= doc.primaryEnd) prev = runs[i]
       continue
     }
     let next = null
     for (let j = i + 1; j < runs.length; j++) {
-      if (runs[j].anchored) {
+      if (runs[j].anchored && runs[j].start <= doc.primaryEnd) {
         next = runs[j]
         break
       }
@@ -250,7 +268,7 @@ function ensureAligned() {
   if (!rendered || !rendered.container.isConnected) return null
   if (!aligned) {
     const { container, content, project } = rendered
-    const doc = buildVirtualDoc(project.mainPath, content, project.sources)
+    const doc = buildVirtualDoc(project.mainPath, content, project.sources, project.entryPath)
     const runs = alignRuns(container, doc)
     aligned = { doc, runs, byEl: new Map(runs.map((r) => [r.el, r])) }
   }
