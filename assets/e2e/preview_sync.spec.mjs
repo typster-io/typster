@@ -203,6 +203,21 @@ test.describe('Preview ↔ source sync', () => {
     await expect(page.locator('#preview-error')).not.toBeVisible()
   })
 
+  test('re-selecting the open file from the tree keeps unsaved keystrokes', async ({ page }) => {
+    await createProjectAndOpenEditor(page, 'E2E Sync Reopen')
+    const cm = await createFile(page, 'main.typ')
+    await replaceBuffer(page, cm, '= Root\n\nParagraph about kestrels.\n')
+    await waitForSaved(page)
+
+    // Type, then click the file in the tree before the 500 ms autosave fires.
+    await page.keyboard.insertText(' Also pumas.')
+    await page.locator('#file-tree-main [phx-click="select_file"]').filter({ hasText: 'main.typ' }).first().click()
+
+    await expect(page.locator('#editor-container .cm-content')).toContainText('pumas')
+    await expect(page.locator('#save-status')).toHaveClass(/ts-savestat--saved/, { timeout: 15_000 })
+    await expect(run(page, 'pumas')).toBeVisible({ timeout: 30_000 })
+  })
+
   test('with reduced motion the flash still sits on its run after a scroll', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await createProjectAndOpenEditor(page, 'E2E Sync Reduced')

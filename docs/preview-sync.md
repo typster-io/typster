@@ -26,9 +26,12 @@ and flash it. Works across `#include`d files. Issue: typster-io/typster#149.
   `---` or an em dash, soft hyphens anywhere. A run that still misses drops a
   generated label ("Figure 1: ", "1.2 ") and tries again, then falls back to
   its longest word, which must match a whole word ahead of the position.
-  Short runs may only match right where the previous run ended, and only a
-  nearby or long match moves the reading position (a table of contents must
-  not drag it past the body).
+  Short runs may only match right where the previous run ended. A short run
+  found far ahead (a table-of-contents entry) is a *weak* match: it neither
+  claims the text, nor moves the reading position, nor bounds the placement
+  of its neighbours, so the body's own heading still finds its line. Regex
+  metacharacters and astral characters (emoji) in a run are escaped per code
+  point; soft hyphens are dropped from the search text with an offset map.
 - The same text rendered again with its source already taken (a running
   header, a footer) is a copy of the first occurrence and does not bound the
   placement of its neighbours.
@@ -66,7 +69,10 @@ and flash it. Works across `#include`d files. Issue: typster-io/typster#149.
   vanished. The PDF download is the entry document and takes its name.
 - A pending autosave is flushed before any buffer switch, and the server
   stores a save for a file that is no longer current, so the last edits
-  before a jump or a tree click are not lost.
+  before a jump or a tree click are not lost. Re-selecting the active file
+  pushes the pending save instead of taking the server's older copy. Moving
+  the open buffer in the tree sends `file_moved`, which updates the path the
+  compiler maps it at without re-creating the editor.
 - The Problems drawer's rows and "Jump to first" carry the diagnostic's file,
   so an error in another file opens it.
 - Source → preview runs 250 ms after a caret move that is not an edit, scrolls
