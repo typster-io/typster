@@ -29,6 +29,7 @@
   .ts-drawer { min-height: 110px; max-height: 180px; }
 
   .ts-side__find { min-height: 36px; }
+  .ts-side { --ts-find-h: 37px; }
   .ts-side__head { padding: 6px 12px 4px; }
   .ts-tree__item { padding: 3px 8px; }
   .ts-tree__dirbtn { padding: 3px 8px 3px 6px; }
@@ -42,6 +43,8 @@
   .ts-editor__panes.ts-window { border-radius: 0; border-right: 0; border-bottom: 0; border-left: 0; box-shadow: none; }
   .ts-formatbar__hint { display: none; }
   .ts-side__upload-row { display: none; }
+  /* stylelint-disable-next-line length-zero-no-unit -- calc() needs a unit */
+  .ts-side { --ts-foot-h: 0px; }
   .ts-statusbar { height: 22px; }
   .ts-drawer { min-height: 90px; max-height: 140px; }
   .ts-side__outline { max-height: 30%; }
