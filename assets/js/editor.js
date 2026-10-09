@@ -426,6 +426,14 @@ export function initEditor(container, initialContent, socket, fileId, options = 
   // language must follow — otherwise the compile/outline gates go stale and a
   // non-Typst file (e.g. .csv) would be compiled as Typst.
   let language = options.language || "typst"
+  // The buffer compiles when it is Typst, or when the preview's entry file is
+  // Typst and this buffer merely feeds it (a CSV opened by a preview jump).
+  const compiles = () => {
+    if (language === "typst") return true
+    const project = options.project || {}
+    const entry = project.entryPath
+    return !!entry && entry !== project.mainPath && /\.typ$/i.test(entry)
+  }
   const onCursor = typeof options.onCursor === "function" ? options.onCursor : null
   const onOutline = typeof options.onOutline === "function" ? options.onOutline : null
 
@@ -462,7 +470,7 @@ export function initEditor(container, initialContent, socket, fileId, options = 
         }, 500)
       }
 
-      if (language === "typst") {
+      if (compiles()) {
         clearTimeout(compileTimer)
         const delay = compileDelay()
         if (delay >= 0) {
@@ -559,11 +567,11 @@ export function initEditor(container, initialContent, socket, fileId, options = 
       editor.dispatch({ effects: setDiagData.of(cm) })
     },
     compile: () => {
-      // Only Typst files compile; the worker treats the active buffer as main.typ.
-      if (language === "typst") compileTypst(editor.state.doc.toString(), options.project || {})
+      // The worker maps the buffer at its own path and compiles the entry file.
+      if (compiles()) compileTypst(editor.state.doc.toString(), options.project || {})
     },
     download: () => {
-      if (language === "typst") {
+      if (compiles()) {
         downloadTypstPdf(editor.state.doc.toString(), options.project || {}, container.dataset.fileName)
       }
     },

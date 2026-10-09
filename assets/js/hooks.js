@@ -152,7 +152,7 @@ export const CodeMirror = {
       }, PREVIEW_SYNC_DELAY * 2)
     }
     const target = file ? file.replace(/^\/+/, "") : null
-    const active = (this.mainPath || "main.typ").replace(/^\/+/, "")
+    const active = this.mainPath.replace(/^\/+/, "")
     if (!target || target === active) {
       this.editorInstance.runCommand("goto", { line, col })
       return
@@ -170,6 +170,10 @@ export const CodeMirror = {
     // Track the open file's path so worker diagnostics (now labelled by real
     // path) can be matched back to this editor.
     this.mainPath = options.project.mainPath || "main.typ"
+    // The file the preview compiles. It follows the file the user opens, but
+    // a jump from the preview into an `#include`d file leaves it alone, so the
+    // preview keeps showing the document rather than the chapter on its own.
+    this.entryPath = this.mainPath
     this.collab = options.collab
     // The element is `phx-update="ignore"`, so `data-project-assets` is frozen
     // at mount. The server pushes `assets_updated` on every upload/delete;
@@ -222,11 +226,17 @@ export const CodeMirror = {
       options.project.mainPath = path || options.project.mainPath
       if (this.projectAssets) options.project.assets = this.projectAssets
       this.mainPath = options.project.mainPath || "main.typ"
-      this.currentOptions = options
+      const pending = this.pendingGoto
+      const viaPreview = !!pending && pending.path === this.mainPath.replace(/^\/+/, "")
+      if (!viaPreview) this.pendingGoto = null
+      const entryBefore = this.entryPath
+      this.entryPath = viaPreview && this.entryPath ? this.entryPath : this.mainPath
+      options.project.entryPath = this.entryPath
 
       this.el.style.display = newFileId ? "" : "none"
 
       if (this.previousFileId !== newFileId) {
+        this.currentOptions = options
         this.previousFileId = newFileId
         this.cleanupThemeHandlers()
         if (this.editorInstance) {
@@ -244,14 +254,18 @@ export const CodeMirror = {
           this.setupThemeHandlers()
         }
       } else if (this.editorInstance) {
+        // Same buffer: the editor keeps its options object, so refresh it in
+        // place. Re-opening the active file from the tree makes it the
+        // previewed document again, which needs a compile.
+        Object.assign(this.currentOptions.project, options.project)
         updateEditorContent(this.editorInstance, newContent)
         if (language && this.editorInstance.updateLanguage) {
           this.editorInstance.updateLanguage(language)
         }
+        if (this.entryPath !== entryBefore) this.editorInstance.compile()
       }
 
-      const pending = this.pendingGoto
-      if (pending && this.editorInstance && pending.path === this.mainPath.replace(/^\/+/, "")) {
+      if (viaPreview && this.editorInstance) {
         this.pendingGoto = null
         this.editorInstance.runCommand("goto", { line: pending.line, col: pending.col })
       }
