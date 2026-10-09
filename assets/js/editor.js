@@ -604,10 +604,11 @@ export function initEditor(container, initialContent, socket, fileId, options = 
     // Push a save that is still waiting on its debounce (before the buffer is
     // torn down for a switch, which would otherwise lose it).
     flushAutosave: () => {
-      if (!autosaveTimer) return
+      if (!autosaveTimer) return false
       clearTimeout(autosaveTimer)
       autosaveTimer = null
       if (fileId && socket) socket.pushEvent("autosave", { file_id: fileId, content: editor.state.doc.toString() })
+      return true
     },
     ready,
     destroy: () => {
