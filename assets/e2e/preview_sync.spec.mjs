@@ -94,6 +94,19 @@ test.describe('Preview ↔ source sync', () => {
     await expect(page.locator('.ts-tab.is-active .ts-tab__label')).toContainText('ch1.typ')
     await expect(page.locator('#status-cursor')).toHaveText(/Ln 3, Col 1\b/)
     await expect(page.locator('#editor-container .cm-activeLine')).toContainText('otters')
+
+    // The preview keeps compiling main.typ: the chapter is not rendered on its
+    // own, and editing it re-renders the whole document.
+    await page.keyboard.press('End')
+    await page.keyboard.insertText(' Added about badgers.')
+    await expect(run(page, 'badgers')).toBeVisible({ timeout: 30_000 })
+    await expect(run(page, 'kestrels')).toBeVisible()
+    await expect(page.locator('#preview-error')).not.toBeVisible()
+
+    // Opening a file from the tree makes it the previewed document again.
+    await page.locator('#file-tree-main [phx-click="select_file"]').filter({ hasText: 'ch1.typ' }).first().click()
+    await expect(run(page, 'badgers')).toBeVisible({ timeout: 30_000 })
+    await expect(run(page, 'kestrels')).toHaveCount(0)
   })
 
   test('a resting caret scrolls the preview to its run and flashes it', async ({ page }) => {
