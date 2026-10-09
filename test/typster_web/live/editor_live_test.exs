@@ -171,6 +171,44 @@ defmodule TypsterWeb.EditorLiveTest do
     assert view |> element(".ts-tab.is-active .ts-tab__label") |> render() =~ "main.typ"
   end
 
+  describe "preview-to-source sync (open_path)" do
+    test "opens the file at the clicked path and hands its buffer to the editor",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ", content: "#include \"chapters/intro.typ\""})
+      intro = file_fixture(project, user, %{path: "chapters/intro.typ", content: "= Intro"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "open_path", %{"path" => "chapters/intro.typ"})
+
+      assert view |> element(".ts-tab.is-active .ts-tab__label") |> render() =~ "intro.typ"
+      assert_push_event(view, "file_changed", %{file_id: file_id, path: "chapters/intro.typ"})
+      assert file_id == intro.id
+      assert_push_event(view, "content_updated", %{content: "= Intro"})
+    end
+
+    test "a leading slash is tolerated, as the compiler reports paths rooted",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      file_fixture(project, user, %{path: "notes.typ"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "open_path", %{"path" => "/notes.typ"})
+
+      assert_push_event(view, "file_changed", %{path: "notes.typ"})
+    end
+
+    test "an unknown path leaves the editor where it is",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "open_path", %{"path" => "missing.typ"})
+
+      assert view |> element(".ts-tab.is-active .ts-tab__label") |> render() =~ "main.typ"
+      refute_push_event(view, "file_changed", %{})
+    end
+  end
+
   test "new file is seeded into the folder of the active file",
        %{conn: conn, user: user, project: project} do
     file_fixture(project, user, %{path: "sections/intro.typ"})

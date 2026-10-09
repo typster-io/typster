@@ -434,23 +434,27 @@ defmodule TypsterWeb.EditorLive.Index do
     file = Files.get_file!(scope, file_id)
 
     if Files.editable_file?(file) do
-      {:noreply,
-       socket
-       |> open_tab(file_id)
-       |> assign(:current_file, file)
-       |> assign(:active_dir, file_dir(file))
-       |> assign(:content, file.content || "")
-       |> assign(:editor_language, editor_language(file))
-       |> assign(:save_status, "saved")
-       |> push_event("file_changed", %{
-         file_id: file_id,
-         path: file.path,
-         content: file.content || "",
-         language: editor_language(file)
-       })
-       |> push_event("content_updated", %{content: file.content || ""})}
+      {:noreply, open_file(socket, file)}
     else
       {:noreply, put_flash(socket, :error, gettext("editor.flash.binary_asset"))}
+    end
+  end
+
+  # The preview resolves a clicked spot to a project path (preview-to-source
+  # sync, #149); open that file so the client can move the cursor in it. An
+  # unknown or non-editable path is a no-op: the click simply does nothing.
+  @impl true
+  def handle_event("open_path", %{"path" => path}, socket) do
+    path = String.trim_leading(to_string(path), "/")
+
+    case Enum.find(socket.assigns.file_tree, &(&1.path == path)) do
+      %Typster.Projects.File{} = file ->
+        if Files.editable_file?(file),
+          do: {:noreply, open_file(socket, file)},
+          else: {:noreply, socket}
+
+      _ ->
+        {:noreply, socket}
     end
   end
 
@@ -1302,6 +1306,24 @@ defmodule TypsterWeb.EditorLive.Index do
       </div>
     </div>
     """
+  end
+
+  # Make `file` the active buffer: open its tab and hand the client its content.
+  defp open_file(socket, file) do
+    socket
+    |> open_tab(file.id)
+    |> assign(:current_file, file)
+    |> assign(:active_dir, file_dir(file))
+    |> assign(:content, file.content || "")
+    |> assign(:editor_language, editor_language(file))
+    |> assign(:save_status, "saved")
+    |> push_event("file_changed", %{
+      file_id: file.id,
+      path: file.path,
+      content: file.content || "",
+      language: editor_language(file)
+    })
+    |> push_event("content_updated", %{content: file.content || ""})
   end
 
   # Append a file id to the open-tabs list (keeping order, no duplicates).
