@@ -207,6 +207,78 @@ defmodule TypsterWeb.EditorLiveTest do
       assert view |> element(".ts-tab.is-active .ts-tab__label") |> render() =~ "main.typ"
       refute_push_event(view, "file_changed", %{})
     end
+
+    test "a malformed payload is ignored instead of crashing the view",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "open_path", %{"path" => %{"nested" => true}})
+      render_hook(view, "open_path", %{})
+
+      assert Process.alive?(view.pid)
+      refute_push_event(view, "file_changed", %{})
+    end
+
+    test "the opened file is re-read, so another session's save is not overwritten",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      intro = file_fixture(project, user, %{path: "chapters/intro.typ", content: "= Intro v1"})
+      view = open_editor(conn, project)
+
+      scope = Typster.Accounts.Scope.for_user(user)
+      {:ok, _} = Typster.Files.update_file_content(scope, intro, "= Intro v2")
+
+      render_hook(view, "open_path", %{"path" => "chapters/intro.typ"})
+
+      assert_push_event(view, "content_updated", %{content: "= Intro v2"})
+    end
+
+    test "a path deleted since mount is a no-op",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      intro = file_fixture(project, user, %{path: "chapters/intro.typ"})
+      view = open_editor(conn, project)
+
+      scope = Typster.Accounts.Scope.for_user(user)
+      {:ok, _} = Typster.Files.delete_file(scope, intro)
+
+      render_hook(view, "open_path", %{"path" => "chapters/intro.typ"})
+
+      assert view |> element(".ts-tab.is-active .ts-tab__label") |> render() =~ "main.typ"
+      refute_push_event(view, "file_changed", %{})
+    end
+  end
+
+  describe "autosave of a buffer that is no longer current" do
+    test "is stored and refreshes the project sources without touching the active buffer",
+         %{conn: conn, user: user, project: project} do
+      main = file_fixture(project, user, %{path: "main.typ", content: "= Main"})
+      other = file_fixture(project, user, %{path: "notes.typ", content: "= Notes"})
+      view = open_editor(conn, project)
+
+      # Switch to notes.typ, then the flushed save for main.typ arrives.
+      render_hook(view, "open_path", %{"path" => "notes.typ"})
+      render_hook(view, "autosave", %{"file_id" => main.id, "content" => "= Main edited"})
+
+      scope = Typster.Accounts.Scope.for_user(user)
+      assert Typster.Files.get_file!(scope, main.id).content == "= Main edited"
+      assert Typster.Files.get_file!(scope, other.id).content == "= Notes"
+      assert view |> element(".ts-tab.is-active .ts-tab__label") |> render() =~ "notes.typ"
+    end
+
+    test "a file of another project is rejected",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      foreign_project = project_fixture(user, %{name: "Elsewhere"})
+      foreign = file_fixture(foreign_project, user, %{path: "main.typ", content: "= Keep"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "autosave", %{"file_id" => foreign.id, "content" => "= Clobbered"})
+
+      scope = Typster.Accounts.Scope.for_user(user)
+      assert Typster.Files.get_file!(scope, foreign.id).content == "= Keep"
+    end
   end
 
   test "new file is seeded into the folder of the active file",
