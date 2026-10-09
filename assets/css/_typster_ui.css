@@ -515,10 +515,14 @@ html:not(.is-mac) .ts-other { display: inline-flex; }
 .ts-side__dropzone { position: absolute; inset: 0; z-index: 5; display: none; flex-direction: column; align-items: center; justify-content: center; gap: var(--mk-sp-2); padding: var(--mk-sp-4); pointer-events: none; background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--pri) 14%, transparent) 0 1px, color-mix(in oklab, var(--pri) 6%, transparent) 1px 10px); color: var(--pri-h); font: 600 12px 'Inter', system-ui, sans-serif; text-transform: uppercase; letter-spacing: .06em; text-align: center; }
 .ts-side__dropzone::before { content: ""; position: absolute; inset: calc(var(--ts-find-h) + var(--mk-sp-3)) var(--mk-sp-3) calc(var(--ts-foot-h) + var(--mk-sp-3)); border: 2px dashed var(--pri); border-radius: var(--r); }
 .ts-side__dropzone-label { position: relative; display: inline-flex; align-items: center; gap: var(--mk-sp-2); padding: var(--mk-sp-2) var(--mk-sp-4); border-radius: 9999px; background: color-mix(in oklab, var(--bg) 72%, transparent); }
-.ts-editor.phx-drop-target-active .ts-side__dropzone { display: flex; }
+.ts-editor.phx-drop-target-active .ts-side__dropzone { display: flex; animation: ts-fade 120ms var(--ease); }
 /* Scrim over everything but the sidebar; the panel is lifted above it. */
 .ts-editor.phx-drop-target-active .ts-side { z-index: 8; }
-.ts-editor.phx-drop-target-active::after { content: ""; position: fixed; inset: 0; z-index: 7; background: var(--mk-scrim); pointer-events: none; }
+.ts-editor.phx-drop-target-active::after { content: ""; position: fixed; inset: 0; z-index: 7; background: var(--mk-scrim); pointer-events: none; animation: ts-fade 120ms var(--ease); }
+@media (prefers-reduced-motion: reduce) {
+  .ts-editor.phx-drop-target-active .ts-side__dropzone,
+  .ts-editor.phx-drop-target-active::after { animation: none; }
+}
 
 /* ── Serif accent (mirrors landing <em>, Instrument Serif italic) ──────────── */
 .ts-serif { font-family: 'Instrument Serif', 'Times New Roman', serif; font-style: italic; font-weight: 400; color: var(--pri); letter-spacing: -0.01em; }
