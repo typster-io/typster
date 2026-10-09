@@ -281,7 +281,46 @@ test.describe('Product UI redesign', () => {
       expect(m.statusBottom).toBeLessThanOrEqual(height)
       expect(m.paneScrolls).toBe(true)
       if (height <= 760) expect(m.topbar).toBeLessThan(44)
+      if (height <= 600) await expect(page.locator('#sidebar-upload')).toBeHidden()
+      else await expect(page.locator('#sidebar-upload')).toBeVisible()
     }
+  })
+
+  test('dragging a file anywhere over the window lights the sidebar as the drop target', async ({ page }) => {
+    await createProjectAndOpenEditor(page, 'Drop Light E2E')
+    await addMainFile(page)
+    const shell = page.locator('#editor-shell')
+    const side = page.locator('#editor-sidebar')
+    const preview = page.locator('.ts-preview')
+    const row = page.locator('#sidebar-upload')
+    await expect(row).toHaveText(/Upload file/)
+
+    // LiveView lights a drop target on dragenter only when the drag carries files.
+    const dt = await page.evaluateHandle(() => {
+      const dt = new DataTransfer()
+      dt.items.add(new File(['x'], 'drop.png', { type: 'image/png' }))
+      return dt
+    })
+    const zone = page.locator('#sidebar-dropzone')
+    await expect(zone).toBeHidden()
+    // Entering over the preview, far from the sidebar, is enough.
+    await preview.dispatchEvent('dragenter', { dataTransfer: dt })
+    await expect(shell).toHaveClass(/phx-drop-target-active/)
+    // The overlay covers the whole panel, not just the row.
+    await expect(zone).toBeVisible()
+    await expect(zone).toHaveText(/Drop to add/)
+    const [sideBox, zoneBox] = await Promise.all([side.boundingBox(), zone.boundingBox()])
+    expect(Math.abs(zoneBox.height - sideBox.height)).toBeLessThan(2)
+    await expect(row).toHaveText(/Upload file/)
+    // The rest of the editor sits under a scrim while the panel is live.
+    const scrim = () => page.evaluate(() => getComputedStyle(document.querySelector('.ts-editor'), '::after').position)
+    expect(await scrim()).toBe('fixed')
+
+    // Leaving the window (no related target) clears everything.
+    await shell.dispatchEvent('dragleave', { dataTransfer: dt, relatedTarget: null, clientX: 0, clientY: 0 })
+    await expect(shell).not.toHaveClass(/phx-drop-target-active/)
+    await expect(zone).toBeHidden()
+    expect(await scrim()).not.toBe('fixed')
   })
 
   test('command shortcut hint adapts to the OS (⌘ on Mac, Ctrl elsewhere)', async ({ page }) => {

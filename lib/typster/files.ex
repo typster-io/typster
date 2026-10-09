@@ -88,6 +88,24 @@ defmodule Typster.Files do
   def asset_file?(path) when is_binary(path), do: asset_path?(path)
   def asset_file?(_), do: false
 
+  @doc """
+  Read an upload's temp file, confined to the system temp dir where LiveView
+  writes uploads — defense in depth against path traversal.
+  """
+  def read_upload!(path) do
+    tmp = Path.expand(System.tmp_dir!())
+    expanded = Path.expand(path)
+
+    unless String.starts_with?(expanded, tmp <> "/") do
+      raise ArgumentError, "upload path is outside the temp directory"
+    end
+
+    case :file.read_file(expanded) do
+      {:ok, content} -> content
+      {:error, reason} -> raise "could not read upload (#{:file.format_error(reason)})"
+    end
+  end
+
   def typst_file?(%File{path: path}), do: extension(path) == ".typ"
   def typst_file?(path) when is_binary(path), do: extension(path) == ".typ"
   def typst_file?(_), do: false

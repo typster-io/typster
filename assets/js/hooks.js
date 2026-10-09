@@ -346,6 +346,28 @@ export const CommandPalette = {
       }
     }
     window.addEventListener("keydown", this.keyHandler)
+
+    // The shell is the file drop target, so LiveView lights it on dragenter
+    // anywhere over the window. LiveView only clears it when a dragleave's
+    // coordinates fall outside the shell, which a drag that exits the window
+    // (or the browser chrome) does not guarantee: clear it ourselves when the
+    // drag leaves the document, ends, drops, or simply stops moving.
+    const clear = () => {
+      clearTimeout(this.dragTimer)
+      this.el.classList.remove("phx-drop-target-active")
+    }
+    this.dragHandlers = {
+      dragover: () => {
+        clearTimeout(this.dragTimer)
+        this.dragTimer = setTimeout(clear, 1500)
+      },
+      dragleave: (event) => { if (event.relatedTarget === null) clear() },
+      drop: clear,
+      dragend: clear
+    }
+    for (const [type, handler] of Object.entries(this.dragHandlers)) {
+      window.addEventListener(type, handler)
+    }
   },
 
   updated() {
@@ -354,6 +376,10 @@ export const CommandPalette = {
 
   destroyed() {
     if (this.keyHandler) window.removeEventListener("keydown", this.keyHandler)
+    clearTimeout(this.dragTimer)
+    for (const [type, handler] of Object.entries(this.dragHandlers || {})) {
+      window.removeEventListener(type, handler)
+    }
   }
 }
 

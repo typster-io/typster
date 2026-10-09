@@ -1,8 +1,10 @@
 defmodule TypsterWeb.ProjectLive.Index do
   use TypsterWeb, :live_view
 
+  alias Typster.Files
   alias Typster.Projects
   alias Typster.Sharing
+  alias Typster.Templates
 
   @accent_hexes %{
     "indigo" => "#4f46e5",
@@ -26,6 +28,14 @@ defmodule TypsterWeb.ProjectLive.Index do
      |> assign(:filter, "all")
      |> assign(:show_new_dialog, false)
      |> assign(:file_counts, Projects.file_counts(socket.assigns.current_scope))
+     |> assign(:templates, Templates.list_templates(socket.assigns.current_scope))
+     |> allow_upload(:template,
+       accept: :any,
+       max_entries: 1,
+       max_file_size: 2_000_000,
+       auto_upload: true,
+       progress: &handle_template_progress/3
+     )
      |> load_projects()}
   end
 
@@ -63,20 +73,34 @@ defmodule TypsterWeb.ProjectLive.Index do
   end
 
   @impl true
-  def handle_event("create_project", %{"name" => name}, socket) do
+  def handle_event("create_project", %{"name" => name} = params, socket) do
+    scope = socket.assigns.current_scope
     name = String.trim(name)
 
-    case Projects.create_project(socket.assigns.current_scope, %{name: name}) do
-      {:ok, _project} ->
+    case Projects.create_project(scope, %{name: name}) do
+      {:ok, project} ->
+        seed_from_template(scope, project, Map.get(params, "template", ""))
+
         {:noreply,
          socket
          |> assign(:show_new_dialog, false)
-         |> assign(:file_counts, Projects.file_counts(socket.assigns.current_scope))
+         |> assign(:file_counts, Projects.file_counts(scope))
          |> load_projects()}
 
       {:error, _changeset} ->
         {:noreply, socket}
     end
+  end
+
+  @impl true
+  def handle_event("validate_template", _params, socket), do: {:noreply, socket}
+
+  @impl true
+  def handle_event("delete_template", %{"id" => id}, socket) do
+    scope = socket.assigns.current_scope
+    template = Templates.get_template!(scope, id)
+    {:ok, _} = Templates.delete_template(scope, template)
+    {:noreply, assign(socket, :templates, Templates.list_templates(scope))}
   end
 
   @impl true
@@ -88,6 +112,45 @@ defmodule TypsterWeb.ProjectLive.Index do
   def handle_event("filter", %{"filter" => filter}, socket) do
     {:noreply, socket |> assign(:filter, filter) |> load_projects()}
   end
+
+  # A new project starts from the chosen template's content, as `main.typ` for
+  # a `.typ` template so the editor opens it first. "" means a blank project.
+  defp seed_from_template(_scope, _project, ""), do: :blank
+
+  defp seed_from_template(scope, project, template_id) do
+    template = Templates.get_template!(scope, template_id)
+
+    {:ok, _file} =
+      Files.create_file(scope, project.id, %{
+        path: Templates.seed_path(template),
+        content: template.content || ""
+      })
+
+    :seeded
+  end
+
+  # The dropzone takes one text source at a time and saves it straight away;
+  # binaries and unknown extensions are refused with a flash.
+  defp handle_template_progress(:template, %{done?: true} = entry, socket) do
+    scope = socket.assigns.current_scope
+
+    result =
+      consume_uploaded_entry(socket, entry, fn %{path: path} ->
+        {:ok, Templates.create_from_upload(scope, entry.client_name, Files.read_upload!(path))}
+      end)
+
+    socket = assign(socket, :templates, Templates.list_templates(scope))
+
+    case result do
+      {:ok, _template} ->
+        {:noreply, put_flash(socket, :info, gettext("projects.flash.template_saved"))}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, gettext("projects.flash.template_unsupported"))}
+    end
+  end
+
+  defp handle_template_progress(:template, _entry, socket), do: {:noreply, socket}
 
   # Refetches projects for the current filter + search and re-streams them.
   defp load_projects(socket) do

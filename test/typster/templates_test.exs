@@ -8,6 +8,20 @@ defmodule Typster.TemplatesTest do
     %{scope: Typster.Accounts.Scope.for_user(user)}
   end
 
+  test "create_from_upload keeps valid text sources and refuses the rest", %{scope: scope} do
+    assert {:ok, %{name: "notes.md"}} = Templates.create_from_upload(scope, "notes.md", "# hi")
+    assert {:error, :unsupported} = Templates.create_from_upload(scope, "logo.png", <<137, 80>>)
+    assert {:error, :unsupported} = Templates.create_from_upload(scope, "bad.typ", <<0, 255>>)
+    assert [%{name: "notes.md"}] = Templates.list_templates(scope)
+  end
+
+  test "seed_path turns a .typ template into main.typ and keeps other names", %{scope: scope} do
+    {:ok, typ} = Templates.create_template(scope, %{name: "ieee.typ", content: "= x"})
+    {:ok, bib} = Templates.create_template(scope, %{name: "refs.bib", content: "@a{}"})
+    assert Templates.seed_path(typ) == "main.typ"
+    assert Templates.seed_path(bib) == "refs.bib"
+  end
+
   test "create, list and delete templates scoped to the user", %{scope: scope} do
     assert Templates.list_templates(scope) == []
 

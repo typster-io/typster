@@ -243,6 +243,14 @@ defmodule TypsterWeb.EditorLiveTest do
     assert has_element?(view, "#asset-tree [id$=\"asset-entry-#{image.id}\"]")
     assert has_element?(view, "#sidebar-find-file", "Find file")
     assert has_element?(view, ".ts-side__outline .ts-side__head", "main.typ")
+    assert has_element?(view, "#editor-shell[phx-drop-target]")
+    refute has_element?(view, "#editor-sidebar[phx-drop-target]")
+
+    assert has_element?(
+             view,
+             ".ts-side__foot #sidebar-upload[for]",
+             "Upload file"
+           )
 
     view |> element("#assets-folder") |> render_click()
     assert has_element?(view, "#assets-folder[aria-expanded=false]")
@@ -411,27 +419,6 @@ defmodule TypsterWeb.EditorLiveTest do
       Enum.find(Typster.Files.get_file_tree(scope, project.id), &(&1.path == "dropped.typ"))
 
     assert created.content == "= Dropped in"
-  end
-
-  test "using a template stages its content into the file you create",
-       %{conn: conn, user: user, project: project} do
-    scope = Typster.Accounts.Scope.for_user(user)
-
-    {:ok, tpl} =
-      Typster.Templates.create_template(scope, %{name: "ieee.typ", content: "= From tpl"})
-
-    file_fixture(project, user, %{path: "main.typ"})
-    view = open_editor(conn, project)
-
-    view
-    |> element("button[phx-click='use_template'][phx-value-id='#{tpl.id}']")
-    |> render_click()
-
-    assert has_element?(view, "#new-file-draft")
-    view |> form("#new-file-form", %{path: "paper.typ"}) |> render_submit()
-
-    created = Enum.find(Typster.Files.get_file_tree(scope, project.id), &(&1.path == "paper.typ"))
-    assert created.content == "= From tpl"
   end
 
   test "file rows render colored type chips by extension",
@@ -697,29 +684,7 @@ defmodule TypsterWeb.EditorLiveTest do
       assert url =~ ~r"^/projects/#{project.id}/assets/[0-9a-f-]+/raw$"
     end
 
-    test "a font dropped on the template zone becomes an asset, not a template", %{
-      conn: conn,
-      user: user,
-      project: project
-    } do
-      file_fixture(project, user, %{path: "main.typ"})
-      view = open_editor(conn, project)
-      bytes = File.read!("assets/e2e/fixtures/NotoSansLycian-Regular.ttf")
-
-      input =
-        file_input(view, "#template-upload-form", :template, [
-          %{name: "Espruar.otf", content: bytes, type: "font/otf"}
-        ])
-
-      render_upload(input, "Espruar.otf")
-
-      assert has_element?(view, "[id*='asset-entry'] .ts-filechip--font")
-      assert render(view) =~ "Espruar.otf"
-      assert Typster.Templates.list_templates(Typster.Accounts.Scope.for_user(user)) == []
-      assert_push_event(view, "assets_updated", %{assets: [%{kind: "font"}]})
-    end
-
-    test "binary bytes under a text extension are rejected on the template zone", %{
+    test "binary bytes under a text extension are rejected on the drop zone", %{
       conn: conn,
       user: user,
       project: project
@@ -728,7 +693,7 @@ defmodule TypsterWeb.EditorLiveTest do
       view = open_editor(conn, project)
 
       input =
-        file_input(view, "#template-upload-form", :template, [
+        file_input(view, "#dropped-upload-form", :dropped, [
           %{
             name: "not-text.typ",
             content: <<0, 1, 2, 255, 254>>,
@@ -738,11 +703,17 @@ defmodule TypsterWeb.EditorLiveTest do
 
       render_upload(input, "not-text.typ")
 
-      assert Typster.Templates.list_templates(Typster.Accounts.Scope.for_user(user)) == []
+      scope = Typster.Accounts.Scope.for_user(user)
+
+      refute Enum.any?(
+               Typster.Files.get_file_tree(scope, project.id),
+               &(&1.path == "not-text.typ")
+             )
+
       assert render(view) =~ "Unsupported file format."
     end
 
-    test "the upload icon and template label point at their file inputs", %{
+    test "the sidebar upload row points at its file input", %{
       conn: conn,
       project: project
     } do
@@ -755,7 +726,7 @@ defmodule TypsterWeb.EditorLiveTest do
       assert Enum.all?(label_fors, &(&1 in input_ids))
     end
 
-    test "the Upload asset button path adds the font and pushes the asset list", %{
+    test "a font picked from the sidebar upload row is added and pushed", %{
       conn: conn,
       user: user,
       project: project
@@ -765,18 +736,38 @@ defmodule TypsterWeb.EditorLiveTest do
       bytes = File.read!("assets/e2e/fixtures/NotoSansLycian-Regular.ttf")
 
       input =
-        file_input(view, "#asset-upload-form", :asset, [
+        file_input(view, "#dropped-upload-form", :dropped, [
           %{name: "Button.ttf", content: bytes, type: "font/ttf"}
         ])
 
       render_upload(input, "Button.ttf")
-      view |> form("#asset-upload-form") |> render_submit()
 
       row = "[id*='asset-entry']"
       assert has_element?(view, "#{row}.is-asset .ts-filechip--font")
       refute has_element?(view, "#{row}.is-disabled")
       assert render(view) =~ "Button.ttf"
       assert_push_event(view, "assets_updated", %{assets: [%{kind: "font"}]})
+    end
+
+    test "a pick over the size limit is cancelled with a flash, not a crash", %{
+      conn: conn,
+      user: user,
+      project: project
+    } do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+
+      input =
+        file_input(view, "#dropped-upload-form", :dropped, [
+          %{name: "huge.pdf", content: :binary.copy(<<0>>, 20_000_001), type: "application/pdf"}
+        ])
+
+      assert {:error, [[_ref, :too_large]]} = render_upload(input, "huge.pdf")
+      # The browser sends the form's change event with the rejected entry; the
+      # test client only preflights, so push it by hand.
+      assert render_change(view, "validate_dropped", %{}) =~ "huge.pdf is over the 20 MB limit"
+      assert has_element?(view, "#sidebar-upload", "Upload file")
+      refute has_element?(view, "#sidebar-upload.is-busy")
     end
 
     test "malformed font reports are ignored", %{conn: conn, user: user, project: project} do

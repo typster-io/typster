@@ -1,5 +1,13 @@
 <Layouts.app flash={@flash} current_scope={@current_scope} nav={false}>
-  <div class="ts-editor" id="editor-shell" phx-hook="CommandPalette">
+  <%!-- The whole shell is the file drop target: a file dragged anywhere over
+        the window dims the editor and lights the sidebar as the place to drop,
+        and a drop anywhere lands in the project through the `dropped` input. --%>
+  <div
+    class="ts-editor"
+    id="editor-shell"
+    phx-hook="CommandPalette"
+    phx-drop-target={@uploads.dropped.ref}
+  >
     <%!-- Top bar v3.1 — merged chrome: project · breadcrumb · omnibox · compile · account --%>
     <div class="ts-tb" id="editor-topbar" phx-hook="LucideIcons">
       <.link
@@ -213,7 +221,18 @@
     <div class="ts-editor__body">
       <div class="ts-window ts-editor__panes">
         <%!-- Sidebar: file tree + outline + assets --%>
-        <aside class="ts-side" id="editor-sidebar" phx-hook="LucideIcons">
+        <aside
+          class="ts-side"
+          id="editor-sidebar"
+          phx-hook="LucideIcons"
+        >
+          <%!-- Shown by CSS while a file from the desktop hovers the window. --%>
+          <div class="ts-side__dropzone" id="sidebar-dropzone" aria-hidden="true">
+            <span class="ts-side__dropzone-label">
+              <.icon name="hero-arrow-down-tray" class="size-4" />
+              {gettext("editor.upload_drop")}
+            </span>
+          </div>
           <button
             type="button"
             id="sidebar-find-file"
@@ -407,7 +426,7 @@
 
               <%!-- Uploaded assets: a virtual `assets/` folder under the files,
                     since that is the path Typst references them by. --%>
-              <div class="ts-tree ts-tree--assets" phx-drop-target={@uploads.dropped.ref}>
+              <div class="ts-tree ts-tree--assets">
                 <div class="ts-tree__item ts-tree__dir ts-tree__dir--assets">
                   <button
                     type="button"
@@ -423,14 +442,6 @@
                     <span class="ts-filechip ts-filechip--folder" aria-hidden="true"></span>
                     <span class="truncate flex-1">{Typster.Assets.reference_dir()}</span>
                   </button>
-                  <label
-                    for={@uploads.asset.ref}
-                    class="ts-tree__act ts-tree__act--upload"
-                    aria-label={gettext("editor.upload_asset")}
-                    title={gettext("editor.upload_asset")}
-                  >
-                    <.icon name="hero-arrow-up-tray" class="size-3" />
-                  </label>
                 </div>
                 <ul
                   :if={@assets_open}
@@ -451,78 +462,8 @@
                     depth={1}
                   />
                 </ul>
-                <.form
-                  id="asset-upload-form"
-                  for={%{}}
-                  phx-change="validate_upload"
-                  phx-submit="save_upload"
-                >
-                  <.live_file_input upload={@uploads.asset} class="hidden" />
-                  <div :if={@uploads.asset.entries != []} class="ts-side__upload">
-                    <button
-                      id="upload-asset-button"
-                      type="submit"
-                      class="ts-btn ts-btn--primary ts-btn--sm ts-side__upload-btn"
-                    >
-                      <.icon name="hero-arrow-up-tray" class="size-3" />
-                      {ngettext(
-                        "Upload %{count} file",
-                        "Upload %{count} files",
-                        length(@uploads.asset.entries)
-                      )}
-                    </button>
-                  </div>
-                </.form>
               </div>
             <% end %>
-
-            <div class="ts-side__head">
-              <span>{gettext("editor.templates")}</span>
-              <span :if={@templates != []} class="ts-side__count">{length(@templates)}</span>
-            </div>
-
-            <div class="ts-tpl">
-              <div :for={tpl <- @templates} class="ts-tpl__row">
-                <% kind = TypsterWeb.FileTree.file_chip_kind(tpl.name) %>
-                <span class={["ts-filechip", "ts-filechip--#{kind}"]}>
-                  {TypsterWeb.FileTree.chip_glyph(kind)}
-                </span>
-                <span class="ts-tpl__name truncate">{tpl.name}</span>
-                <button
-                  type="button"
-                  class="ts-tree__act"
-                  phx-click="use_template"
-                  phx-value-id={tpl.id}
-                  aria-label={gettext("editor.tpl.use")}
-                  title={gettext("editor.tpl.use")}
-                >
-                  <.icon name="hero-arrow-right" class="size-3" />
-                </button>
-                <button
-                  type="button"
-                  class="ts-tree__act ts-tree__act--danger"
-                  phx-click="delete_template"
-                  phx-value-id={tpl.id}
-                  phx-confirm={gettext("editor.tpl.delete_confirm")}
-                  aria-label={gettext("editor.tree.delete")}
-                  title={gettext("editor.tree.delete")}
-                >
-                  <.icon name="hero-trash" class="size-3" />
-                </button>
-              </div>
-
-              <.form id="template-upload-form" for={%{}} phx-change="validate_template">
-                <.live_file_input upload={@uploads.template} class="hidden" />
-                <label
-                  for={@uploads.template.ref}
-                  class="ts-tpl__drop"
-                  phx-drop-target={@uploads.template.ref}
-                >
-                  <.icon name="hero-arrow-up-tray" class="size-3.5" />
-                  <span>{gettext("editor.tpl.upload")}</span>
-                </label>
-              </.form>
-            </div>
           </div>
 
           <div class="ts-side__outline">
@@ -555,12 +496,32 @@
               </li>
             </ul>
           </div>
+
+          <%!-- Pinned upload row: opens the picker for any file the project takes
+                (text files land in Files, the rest under assets); picks and drops
+                upload on their own through the `dropped` input in the source pane.
+                While a file is dragged over the sidebar the whole panel lights up
+                (see `.ts-side__dropzone`). --%>
+          <div class="ts-side__foot">
+            <label
+              for={@uploads.dropped.ref}
+              id="sidebar-upload"
+              class={["ts-side__upload-row", @uploads.dropped.entries != [] && "is-busy"]}
+            >
+              <.icon name="hero-arrow-up-tray" class="size-3.5" />
+              <span>
+                {if @uploads.dropped.entries == [],
+                  do: gettext("editor.upload_file"),
+                  else: gettext("editor.uploading")}
+              </span>
+            </label>
+          </div>
         </aside>
 
         <%!-- Source pane: tab bar + formatting toolbar + CodeMirror --%>
-        <section class="ts-source" phx-drop-target={@uploads.dropped.ref}>
+        <section class="ts-source">
           <.form id="dropped-upload-form" for={%{}} phx-change="validate_dropped" class="hidden">
-            <.live_file_input upload={@uploads.dropped} id="dropped-file-input" />
+            <.live_file_input upload={@uploads.dropped} />
           </.form>
           <div class="ts-source__tabs" id="editor-tabs" phx-hook="LucideIcons">
             <%= for file <- open_tabs(@file_tree, @open_file_ids) do %>

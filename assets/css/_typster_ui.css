@@ -236,8 +236,6 @@
 /* The virtual assets folder: its row is a toggle button beside an upload label. */
 .ts-tree__dir--assets { padding: 0 2px 0 0; gap: 0; }
 .ts-tree__dirbtn { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; padding: 5px 8px 5px 6px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-.ts-tree__act--upload { color: var(--fg4); cursor: pointer; }
-.ts-tree__item:hover .ts-tree__act--upload { color: var(--fg2); }
 .ts-tree__badge { flex-shrink: 0; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9999px; display: inline-grid; place-items: center; background: var(--mk-error); color: #fff; font: 600 10px 'JetBrains Mono', ui-monospace, monospace; }
 .ts-tree__smart { margin-left: 4px; color: var(--fg4); font: 11px 'JetBrains Mono', ui-monospace, monospace; flex-shrink: 0; }
 
@@ -471,8 +469,11 @@ html:not(.is-mac) .ts-other { display: inline-flex; }
 .ts-kbd svg { width: 11px; height: 11px; }
 .ts-kbd--combo { gap: 3px; }
 
-/* ── Your templates ───────────────────────────────────────────────────────── */
-.ts-tpl { padding: 4px 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+/* ── Template library (projects page) ─────────────────────────────────────── */
+.ts-tpl-panel { margin-top: var(--mk-sp-7); max-width: 560px; }
+.ts-tpl-panel__head { display: flex; align-items: baseline; gap: var(--mk-sp-2); }
+.ts-tpl-panel__sub { font: 13px/1.5 'Inter', system-ui, sans-serif; color: var(--fg3); margin: 2px 0 var(--mk-sp-3); }
+.ts-tpl { padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .ts-tpl__row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--r-sm); background: var(--bg2); border: 1px solid var(--bd); }
 .ts-tpl__name { flex: 1; min-width: 0; font: 500 12.5px 'JetBrains Mono', ui-monospace, monospace; color: var(--fg); }
 .ts-tpl__drop { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border: 1.5px dashed var(--bd2); border-radius: var(--r-sm); color: var(--fg3); font: 12px 'Inter', system-ui, sans-serif; cursor: pointer; transition: border-color 150ms var(--ease), color 150ms var(--ease); }
@@ -492,9 +493,36 @@ html:not(.is-mac) .ts-other { display: inline-flex; }
 .ts-diag__msg { font: 13px/1.5 'Inter', system-ui, sans-serif; color: var(--fg); overflow-wrap: anywhere; white-space: pre-wrap; }
 .ts-diag__hint { font: 12px 'Inter', system-ui, sans-serif; color: var(--fg3); margin-top: 3px; }
 
-/* ── Sidebar upload zone (shown once files are picked for the assets folder) ─ */
-.ts-side__upload { padding: var(--mk-sp-1) var(--mk-sp-2) var(--mk-sp-2) 34px; }
-.ts-side__upload-btn { width: 100%; justify-content: center; }
+/* ── Sidebar foot: pinned "Upload file" row under the outline ─────────────────
+   Opens the asset picker. Picks and drops upload on their own; the row reads
+   "Uploading" meanwhile. */
+.ts-side__foot { flex-shrink: 0; border-top: 1px solid var(--bd); }
+.ts-side__upload-row { display: flex; align-items: center; gap: var(--mk-sp-2); min-height: 30px; padding: 0 14px; color: var(--fg3); font: 600 11px 'Inter', system-ui, sans-serif; text-transform: uppercase; letter-spacing: .06em; cursor: pointer; transition: color 150ms var(--ease), background 150ms var(--ease); }
+.ts-side__upload-row:hover { color: var(--fg); background: var(--bd2); }
+.ts-side__upload-row.is-busy { color: var(--pri-h); pointer-events: none; }
+
+/* ── Sidebar drop overlay ─────────────────────────────────────────────────────
+   The editor shell is the drop target for files dragged in from the desktop.
+   LiveView marks it `.phx-drop-target-active` while a file hovers anywhere
+   over the window. Then: the editor goes under a scrim, and the sidebar is
+   hatched with translucent accent stripes and a dashed frame, with the file
+   list still showing through, so the invited target reads as the whole left
+   half. Both layers take no pointer events, so drag events keep landing on
+   the elements underneath. */
+/* Row heights the frame keeps clear of (find row above, upload row below);
+   the compact breakpoints override them. */
+.ts-side { position: relative; --ts-find-h: 45px; --ts-foot-h: 31px; }
+.ts-side__dropzone { position: absolute; inset: 0; z-index: 5; display: none; flex-direction: column; align-items: center; justify-content: center; gap: var(--mk-sp-2); padding: var(--mk-sp-4); pointer-events: none; background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--pri) 14%, transparent) 0 1px, color-mix(in oklab, var(--pri) 6%, transparent) 1px 10px); color: var(--pri-h); font: 600 12px 'Inter', system-ui, sans-serif; text-transform: uppercase; letter-spacing: .06em; text-align: center; }
+.ts-side__dropzone::before { content: ""; position: absolute; inset: calc(var(--ts-find-h) + var(--mk-sp-1)) var(--mk-sp-1) calc(var(--ts-foot-h) + var(--mk-sp-1)); border: 2px dashed var(--pri); border-radius: var(--r-sm); }
+.ts-side__dropzone-label { position: relative; display: inline-flex; align-items: center; gap: var(--mk-sp-2); padding: var(--mk-sp-2) var(--mk-sp-4); border-radius: 9999px; background: color-mix(in oklab, var(--bg) 72%, transparent); }
+.ts-editor.phx-drop-target-active .ts-side__dropzone { display: flex; animation: ts-fade 120ms var(--ease); }
+/* Scrim over everything but the sidebar; the panel is lifted above it. */
+.ts-editor.phx-drop-target-active .ts-side { z-index: 8; }
+.ts-editor.phx-drop-target-active::after { content: ""; position: fixed; inset: 0; z-index: 7; background: var(--mk-scrim); pointer-events: none; animation: ts-fade 120ms var(--ease); }
+@media (prefers-reduced-motion: reduce) {
+  .ts-editor.phx-drop-target-active .ts-side__dropzone,
+  .ts-editor.phx-drop-target-active::after { animation: none; }
+}
 
 /* ── Serif accent (mirrors landing <em>, Instrument Serif italic) ──────────── */
 .ts-serif { font-family: 'Instrument Serif', 'Times New Roman', serif; font-style: italic; font-weight: 400; color: var(--pri); letter-spacing: -0.01em; }

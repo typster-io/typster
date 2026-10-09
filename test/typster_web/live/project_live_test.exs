@@ -48,6 +48,87 @@ defmodule TypsterWeb.ProjectLiveTest do
     assert has_element?(view, "#filter-starred.is-active")
   end
 
+  describe "template library" do
+    setup %{conn: conn} do
+      user = Typster.AccountsFixtures.user_fixture()
+      %{conn: log_in_user(conn, user), user: user, scope: Typster.Accounts.Scope.for_user(user)}
+    end
+
+    test "a dropped text source is saved and listed", %{conn: conn, scope: scope} do
+      {:ok, view, _html} = live(conn, ~p"/projects")
+      assert has_element?(view, "#templates-panel #template-upload-form")
+
+      input =
+        file_input(view, "#template-upload-form", :template, [
+          %{name: "ieee.typ", content: "= IEEE paper", type: "text/plain"}
+        ])
+
+      render_upload(input, "ieee.typ")
+
+      assert [%{name: "ieee.typ", content: "= IEEE paper"}] =
+               Typster.Templates.list_templates(scope)
+
+      assert has_element?(view, "#templates-panel .ts-tpl__row", "ieee.typ")
+      assert render(view) =~ "Template saved."
+    end
+
+    test "binaries and unknown extensions are refused", %{conn: conn, scope: scope} do
+      {:ok, view, _html} = live(conn, ~p"/projects")
+
+      input =
+        file_input(view, "#template-upload-form", :template, [
+          %{name: "logo.png", content: <<137, 80, 78, 71>>, type: "image/png"}
+        ])
+
+      render_upload(input, "logo.png")
+
+      assert Typster.Templates.list_templates(scope) == []
+      refute has_element?(view, "#templates-panel .ts-tpl__row")
+      assert render(view) =~ "Only text sources"
+    end
+
+    test "a template can be removed from the list", %{conn: conn, scope: scope} do
+      {:ok, tpl} = Typster.Templates.create_template(scope, %{name: "cv.typ", content: "= CV"})
+      {:ok, view, _html} = live(conn, ~p"/projects")
+
+      view |> element("#template-#{tpl.id} button[phx-click='delete_template']") |> render_click()
+
+      refute has_element?(view, "#template-#{tpl.id}")
+      assert Typster.Templates.list_templates(scope) == []
+    end
+
+    test "a new project can start from a template as main.typ", %{conn: conn, scope: scope} do
+      {:ok, tpl} =
+        Typster.Templates.create_template(scope, %{name: "ieee.typ", content: "= From tpl"})
+
+      {:ok, view, _html} = live(conn, ~p"/projects")
+
+      view |> element("#new-project-button") |> render_click()
+      assert has_element?(view, "#new-project-template option[value='#{tpl.id}']")
+
+      view
+      |> form("#new-project-form", %{name: "Seeded", template: tpl.id})
+      |> render_submit()
+
+      project = Enum.find(Typster.Projects.list_projects(scope), &(&1.name == "Seeded"))
+
+      assert [%{path: "main.typ", content: "= From tpl"}] =
+               Typster.Files.get_file_tree(scope, project.id)
+    end
+
+    test "a blank choice creates an empty project and the picker hides without templates",
+         %{conn: conn, scope: scope} do
+      {:ok, view, _html} = live(conn, ~p"/projects")
+      view |> element("#new-project-button") |> render_click()
+      refute has_element?(view, "#new-project-template")
+
+      view |> form("#new-project-form", %{name: "Blank"}) |> render_submit()
+
+      project = Enum.find(Typster.Projects.list_projects(scope), &(&1.name == "Blank"))
+      assert Typster.Files.get_file_tree(scope, project.id) == []
+    end
+  end
+
   test "editor prefers main.typ as the selected file", %{conn: conn} do
     user = Typster.AccountsFixtures.user_fixture()
     conn = log_in_user(conn, user)
