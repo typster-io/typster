@@ -1,9 +1,15 @@
+import { previewRendered } from "./preview_sync"
+
 let worker = null
 let previewContainer = null
 let pushEvent = null
 let compileStartedAt = null
 let pdfRequestSeq = 0
 const pendingPdfRequests = new Map()
+// Sources of each in-flight compile, keyed by its id: the worker echoes the id
+// with the SVG, so the preview sync aligns against exactly what was compiled.
+let compileRequestSeq = 0
+const pendingCompiles = new Map()
 
 // Typst diagnostics arrive as one multi-line string (the same text the CLI
 // prints). Parse it into structured items so the preview can show a readable
@@ -197,6 +203,12 @@ export function initTypstWorker(hook) {
 
             svgContainer.innerHTML = data.svg
 
+            // Pair the SVG with its sources; a newer compile may still be in
+            // flight, so only older entries are dropped.
+            const compiled = pendingCompiles.get(data.requestId)
+            for (const id of pendingCompiles.keys()) if (id <= data.requestId) pendingCompiles.delete(id)
+            if (compiled) previewRendered(svgContainer, compiled.content, compiled.project)
+
             dispatchEditorDiagnostics([])
 
             if (pushEvent) {
@@ -294,10 +306,13 @@ export function compileTypst(content, project = {}) {
 
   if (worker) {
     compileStartedAt = performance.now()
+    const requestId = ++compileRequestSeq
+    pendingCompiles.set(requestId, { content, project })
     worker.postMessage({
       type: "compile",
       content: content,
-      project: project
+      project: project,
+      requestId
     })
   }
 }
@@ -317,6 +332,7 @@ export function destroyTypstWorker() {
     worker = null
     previewContainer = null
     pushEvent = null
+    pendingCompiles.clear()
     window.typstWorker = null
   }
 }
