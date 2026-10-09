@@ -274,7 +274,9 @@ async function handleMessage(event, myId) {
       const svg = await $typst.svg({ mainFilePath: main })
       if (myId !== latestCompileId) return
 
-      self.postMessage({ type: "render", data: { svg } })
+      // Echo the compile's id so the client can pair the SVG with the exact
+      // sources it was built from (preview-to-source sync, #149).
+      self.postMessage({ type: "render", data: { svg, requestId } })
     } catch (error) {
       if (myId !== latestCompileId) return
       console.error("typst compile failed (raw):", error)
