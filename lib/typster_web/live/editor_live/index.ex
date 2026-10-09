@@ -134,7 +134,9 @@ defmodule TypsterWeb.EditorLive.Index do
     scope = socket.assigns.current_scope
     current = socket.assigns.current_file
 
-    with %Typster.Projects.File{} = file <- Files.get_file(scope, file_id),
+    with {:ok, _} <- Ecto.UUID.cast(file_id),
+         true <- is_binary(content),
+         %Typster.Projects.File{} = file <- Files.get_file(scope, file_id),
          true <- file.project_id == socket.assigns.project.id,
          {:ok, updated_file} <- Files.update_file_content(scope, file, content) do
       Revisions.create_revision(scope, file_id, content)
@@ -993,9 +995,15 @@ defmodule TypsterWeb.EditorLive.Index do
       |> assign(:project_sources, project_sources(file_tree))
       |> put_flash(:info, gettext("editor.flash.file_moved"))
 
-    if current && current.id == moved.id,
-      do: assign(socket, :current_file, moved),
-      else: socket
+    # The open buffer moved with it: tell the client its path (the editor
+    # keeps its text; only the path the compiler maps it at changes).
+    if current && current.id == moved.id do
+      socket
+      |> assign(:current_file, moved)
+      |> push_event("file_moved", %{file_id: moved.id, path: moved.path})
+    else
+      socket
+    end
   end
 
   # Open the inline draft targeting the active folder (shown as a static prefix,
