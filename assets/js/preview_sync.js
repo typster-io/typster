@@ -50,11 +50,11 @@ function normalizeRun(text) {
 
 // A regex that finds the run in the sources however they spell it: any
 // whitespace run (an indented continuation line, a tab, `~`) for a space,
-// straight or curly quotes, `---` or an em dash, `...` or an ellipsis, with a
-// soft hyphen allowed anywhere. Matching the source text, not a normalized
-// copy, keeps offsets exact.
+// straight or curly quotes, `---` or an em dash, `...` or an ellipsis. It
+// runs against `doc.search` (soft hyphens already dropped), so offsets map
+// back to the text exactly.
 const ESCAPE = /[.*+?^${}()|[\]\\\/]/g
-const SOURCE_SPACE = "(?:[\\s\\u00a0\\u202f~]|\\u00ad)+"
+const SOURCE_SPACE = "[\\s\\u00a0\\u202f~]+"
 
 function runPattern(text, whole) {
   const parts = []
@@ -80,15 +80,16 @@ function runPattern(text, whole) {
     } else if (rest[0] === "'") {
       parts.push("['\\u2018\\u2019]")
       i += 1
-    } else if ((m = rest.match(/^[^\s"'.\-]+/)) && !m[0].includes("--")) {
-      parts.push(m[0].replace(ESCAPE, "\\$&").split("").join("\\u00ad?"))
+    } else if ((m = rest.match(/^[^\s"'.\-]+/))) {
+      // Escape each code point on its own (a surrogate pair stays whole).
+      parts.push(Array.from(m[0], (ch) => ch.replace(ESCAPE, "\\$&")).join(""))
       i += m[0].length
     } else {
       parts.push(rest[0].replace(ESCAPE, "\\$&"))
       i += 1
     }
   }
-  const body = parts.join("\\u00ad?")
+  const body = parts.join("")
   const source = whole ? `(?<![\\p{L}\\p{N}_-])${body}(?![\\p{L}\\p{N}_-])` : body
   return new RegExp(source, "gu")
 }
@@ -163,7 +164,29 @@ export function buildVirtualDoc(bufferPath, bufferContent, sources, entryPath) {
     text += lines[i].text + "\n"
   }
   if (primaryLines === lines.length) primaryEnd = text.length
-  return { lines, starts, text, search: text.replace(/\n/g, " "), primaryEnd, primaryLines: appendixStart }
+
+  // `search` is `text` with newlines as spaces and soft hyphens removed (a
+  // regex allowing one between every character compiles far too slowly);
+  // `toText` maps a search offset back to a text offset, identity unless a
+  // soft hyphen was dropped.
+  let search = text.replace(/\n/g, " ")
+  let toText = (i) => i
+  let primaryEndS = primaryEnd
+  if (search.includes("\u00ad")) {
+    const map = new Int32Array(search.length + 1)
+    let out = ""
+    let j = 0
+    for (let i = 0; i < search.length; i++) {
+      if (i === primaryEnd) primaryEndS = j
+      if (search.charCodeAt(i) === 0xad) continue
+      map[j++] = i
+    }
+    if (primaryEnd >= search.length) primaryEndS = j
+    map[j] = search.length
+    search = search.replace(/\u00ad/g, "")
+    toText = (i) => map[Math.min(i, map.length - 1)]
+  }
+  return { lines, starts, text, search, toText, primaryEnd, primaryEndS, primaryLines: appendixStart }
 }
 
 function lineIndexAt(doc, offset) {
@@ -233,7 +256,7 @@ function findNear(doc, re, pos, forward, claimed, whole, maxLen) {
     if (behind) return behind
   }
   if (maxLen < 8) return null
-  return scan(Math.max(doc.primaryEnd, pos + forward), hay.length, false)
+  return scan(Math.max(doc.primaryEndS, pos + forward), hay.length, false)
 }
 
 // Lines that cannot be what a rendered run came from: blank, comments,
@@ -310,7 +333,7 @@ function placeGap(doc, prev, next, gap) {
 }
 
 // A generated label in front of the text ("Figure 1: ", "1.2 ", "Table 3. ").
-const LABEL_PREFIX = /^(?:[^\s:]{1,16}(?:\s+\d+(?:\.\d+)*)?:\s+|\d+(?:\.\d+)*\.?\s+)/
+const LABEL_PREFIX = /^(?:[^\s:]{1,16}(?:\s+\d+(?:\.\d+)*)?[:.]\s+|\d+(?:\.\d+)*\.?\s+)/
 
 // How far ahead a match may be and still move the reading position: a short
 // run (a table-of-contents entry, a heading repeated in the outline) found a
@@ -320,14 +343,14 @@ const LONG_RUN = 40
 
 export function alignRuns(container, doc) {
   const runs = []
-  const claimed = new Uint8Array(doc.search.length + 1)
+  const claimed = new Uint8Array(doc.search.length + 1) // in search offsets
   const firstBy = new Map() // normalized text -> first anchored run
   let pos = 0
   for (const sel of container.querySelectorAll(".tsel")) {
     if (sel.parentElement && sel.parentElement.closest(".tsel")) continue
     const el = sel.closest(".typst-text") || sel
     const text = normalizeRun(sel.textContent)
-    const run = { el, text, start: null, end: null, anchored: false, repeat: false }
+    const run = { el, text, start: null, end: null, anchored: false, repeat: false, weak: false }
 
     const forward = forwardWindow(text)
     if (forward > 0) {
@@ -343,16 +366,21 @@ export function alignRuns(container, doc) {
         if (word) hit = findNear(doc, runPattern(word, true), pos, forward, claimed, true, word.length * 2 + 16)
       }
       if (hit) {
-        claimed.fill(1, hit.start, hit.end)
-        run.start = hit.start
-        run.end = hit.end
+        run.start = doc.toText(hit.start)
+        run.end = doc.toText(hit.end)
         run.anchored = true
-        if (!firstBy.has(text)) firstBy.set(text, run)
-        // A match behind the position (a footnote) does not move it back, a
-        // far-ahead match of a short run does not move it forward, and one
-        // in the appendix of data files does not move it at all.
-        const near = hit.start - pos <= NEAR_AHEAD || text.length >= LONG_RUN
-        if (run.end <= doc.primaryEnd && near) pos = Math.max(pos, run.end)
+        // A short run found far ahead (a table-of-contents entry, a value
+        // that the body spells out later) is a weak match: it neither claims
+        // the text (the body's own copy still needs it), nor moves the
+        // reading position, nor bounds the placement of its neighbours.
+        run.weak = hit.start - pos > NEAR_AHEAD && text.length < LONG_RUN
+        if (!run.weak) {
+          claimed.fill(1, hit.start, hit.end)
+          if (!firstBy.has(text)) firstBy.set(text, run)
+          // A match behind the position (a footnote) does not move it back,
+          // one in the appendix of data files does not move it at all.
+          if (run.end <= doc.primaryEnd) pos = Math.max(pos, hit.end)
+        }
       } else if (firstBy.has(text)) {
         // The same text again with its source already taken: a running
         // header or footer. It is a copy of the first one.
@@ -368,7 +396,7 @@ export function alignRuns(container, doc) {
 
   // Unanchored runs are placed gap by gap, between the matched runs of the
   // document body (matches in the appendix and repeats do not bound a gap).
-  const bounds = (r) => r.anchored && !r.repeat && r.start <= doc.primaryEnd
+  const bounds = (r) => r.anchored && !r.repeat && !r.weak && r.start <= doc.primaryEnd
   let prev = null
   let i = 0
   while (i < runs.length) {
