@@ -148,19 +148,10 @@ export const CodeMirror = {
   // one: the server is asked to open it and the move completes once its
   // buffer has mounted (the preview click path, #149).
   gotoLocation({ file, line, col, source }) {
-    // The caret move this goto causes must not scroll the preview back to
-    // where the click came from: skip exactly that one cursor callback.
-    if (source === "preview") {
-      this.suppressPreviewSync = true
-      clearTimeout(this.suppressTimer)
-      this.suppressTimer = setTimeout(() => {
-        this.suppressPreviewSync = false
-      }, 1000)
-    }
     const target = file ? file.replace(/^\/+/, "") : null
     const active = this.mainPath.replace(/^\/+/, "")
     if (!target || target === active) {
-      this.editorInstance.runCommand("goto", { line, col })
+      this.runGoto({ line, col, source })
       return
     }
     // A read-only view (a shared project) has no file switching to offer.
@@ -168,16 +159,30 @@ export const CodeMirror = {
     // Switching buffers destroys this editor; a save still waiting on its
     // debounce would be lost, so push it ahead of the switch.
     this.editorInstance.flushAutosave()
-    this.pendingGoto = { path: target, line, col }
+    this.pendingGoto = { path: target, line, col, source }
     this.pushEvent("open_path", { path: target })
+  },
+
+  // Move the caret in the active buffer. The caret move a preview click
+  // causes must not scroll the preview back to where the click came from:
+  // skip exactly that one cursor callback (armed only here, where a goto
+  // really runs, so a jump that goes nowhere leaves nothing armed).
+  runGoto({ line, col, source }) {
+    if (source === "preview") {
+      this.suppressPreviewSync = true
+      clearTimeout(this.suppressTimer)
+      this.suppressTimer = setTimeout(() => {
+        this.suppressPreviewSync = false
+      }, 1000)
+    }
+    this.editorInstance.runCommand("goto", { line, col })
   },
 
   // The file the preview compiles: a deliberate selection (tree, tab, a new
   // file) of a Typst file makes it the document; a jump from the preview, a
   // closed tab, a deleted file, or opening a data file (CSV, BibTeX, a note)
   // keep the current one as long as it is a Typst file that still exists.
-  chooseEntry(reason) {
-    const sources = (this.currentOptions && this.currentOptions.project.sources) || []
+  chooseEntry(reason, sources) {
     const clean = (p) => String(p || "").replace(/^\/+/, "")
     const current = clean(this.entryPath)
     const keepable =
@@ -227,7 +232,13 @@ export const CodeMirror = {
 
     this.handleEvent("content_updated", ({ content }) => {
       // When collab is on, the Yjs doc owns the buffer; writing here too
-      // double-inserts (and compounds across reloads).
+      // double-inserts (and compounds across reloads). After a same-buffer
+      // re-open whose unsaved keystrokes were just pushed, the server's copy
+      // in this event is older than the buffer: skip it.
+      if (this.skipNextContentUpdate) {
+        this.skipNextContentUpdate = false
+        return
+      }
       if (this.editorInstance && !this.collab) {
         updateEditorContent(this.editorInstance, content)
       }
@@ -259,7 +270,7 @@ export const CodeMirror = {
       const viaPreview = !!pending && pending.path === this.mainPath.replace(/^\/+/, "")
       if (!viaPreview) this.pendingGoto = null
       const entryBefore = this.entryPath
-      this.entryPath = this.chooseEntry(reason || (viaPreview ? "jump" : "select"))
+      this.entryPath = this.chooseEntry(reason || (viaPreview ? "jump" : "select"), options.project.sources)
       options.project.entryPath = this.entryPath
 
       this.el.style.display = newFileId ? "" : "none"
@@ -288,10 +299,13 @@ export const CodeMirror = {
         }
       } else if (this.editorInstance) {
         // Same buffer: the editor keeps its options object, so refresh it in
-        // place. Re-opening the active file from the tree makes it the
+        // place. Keystrokes still waiting on their save are newer than the
+        // content the server sent; push them instead of taking the server's
+        // copy. Re-opening the active file from the tree makes it the
         // previewed document again, which needs a compile.
         Object.assign(this.currentOptions.project, options.project)
-        updateEditorContent(this.editorInstance, newContent)
+        if (this.editorInstance.flushAutosave()) this.skipNextContentUpdate = true
+        else updateEditorContent(this.editorInstance, newContent)
         if (language && this.editorInstance.updateLanguage) {
           this.editorInstance.updateLanguage(language)
         }
@@ -303,9 +317,21 @@ export const CodeMirror = {
         // A collaborative buffer fills in asynchronously; wait for its text.
         const instance = this.editorInstance
         instance.ready.then(() => {
-          if (this.editorInstance === instance) instance.runCommand("goto", { line: pending.line, col: pending.col })
+          if (this.editorInstance === instance) this.runGoto(pending)
         })
       }
+    })
+
+    // The open buffer was moved in the tree: its text stays, only the path
+    // the compiler maps it at changes (and the previewed document's name,
+    // when it was that file).
+    this.handleEvent("file_moved", ({ path }) => {
+      if (!path || !this.currentOptions) return
+      const wasEntry = this.entryPath === this.mainPath
+      this.mainPath = path
+      this.currentOptions.project.mainPath = path
+      if (wasEntry) this.entryPath = path
+      this.currentOptions.project.entryPath = this.entryPath
     })
 
     // The server re-renders `data-project-sources` on every change to the
@@ -321,7 +347,7 @@ export const CodeMirror = {
       const changed = others(sources) !== others(this.currentOptions.project.sources || [])
       this.currentOptions.project.sources = sources
       const entryBefore = this.entryPath
-      this.entryPath = this.chooseEntry("refresh")
+      this.entryPath = this.chooseEntry("refresh", sources)
       this.currentOptions.project.entryPath = this.entryPath
       if (changed || this.entryPath !== entryBefore) this.editorInstance.compile()
     })
