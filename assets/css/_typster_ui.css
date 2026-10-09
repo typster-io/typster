@@ -510,7 +510,7 @@ html:not(.is-mac) .ts-other { display: inline-flex; }
    half. Both layers take no pointer events, so drag events keep landing on
    the elements underneath. */
 .ts-side { position: relative; }
-.ts-side__dropzone { position: absolute; inset: 0; z-index: 5; display: none; flex-direction: column; align-items: center; justify-content: center; gap: var(--mk-sp-2); padding: var(--mk-sp-4); pointer-events: none; background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--pri) 22%, transparent) 0 6px, color-mix(in oklab, var(--pri) 6%, transparent) 6px 14px); color: var(--pri-h); font: 600 12px 'Inter', system-ui, sans-serif; text-transform: uppercase; letter-spacing: .06em; text-align: center; }
+.ts-side__dropzone { position: absolute; inset: 0; z-index: 5; display: none; flex-direction: column; align-items: center; justify-content: center; gap: var(--mk-sp-2); padding: var(--mk-sp-4); pointer-events: none; background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--pri) 14%, transparent) 0 1px, color-mix(in oklab, var(--pri) 6%, transparent) 1px 10px); color: var(--pri-h); font: 600 12px 'Inter', system-ui, sans-serif; text-transform: uppercase; letter-spacing: .06em; text-align: center; }
 .ts-side__dropzone::before { content: ""; position: absolute; inset: var(--mk-sp-2); border: 2px dashed var(--pri); border-radius: var(--r-sm); }
 .ts-side__dropzone-label { position: relative; display: inline-flex; align-items: center; gap: var(--mk-sp-2); padding: var(--mk-sp-2) var(--mk-sp-4); border-radius: 9999px; background: color-mix(in oklab, var(--bg) 72%, transparent); }
 .ts-editor.phx-drop-target-active .ts-side__dropzone { display: flex; }
