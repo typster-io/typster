@@ -304,7 +304,7 @@ async function handleMessage(event, myId) {
       }
 
       const message = (structured && structured[0] && structured[0].message) || formatError(error)
-      self.postMessage({ type: "error", data: { message, diagnostics: structured } })
+      self.postMessage({ type: "error", data: { message, diagnostics: structured, requestId } })
     }
   } else if (type === "pdf") {
     // Export bypasses latestCompileId: a download is an explicit one-off and must
