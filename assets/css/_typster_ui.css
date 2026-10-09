@@ -424,7 +424,15 @@
 /* ── Preview pane ─────────────────────────────────────────────────────────── */
 .ts-preview { display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: var(--bg2); }
 .ts-preview__bar { display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-bottom: 1px solid var(--bd); background: var(--bg); font: 500 12px 'Inter', system-ui, sans-serif; color: var(--fg2); flex-shrink: 0; }
-.ts-preview__scroll { flex: 1; overflow: auto; padding: 24px; display: flex; flex-direction: column; align-items: safe center; gap: 12px; }
+.ts-preview__scroll { position: relative; flex: 1; overflow: auto; padding: 24px; display: flex; flex-direction: column; align-items: safe center; gap: 12px; }
+/* Preview ↔ source sync (#149): the accent-tinted band that flashes over the
+   rendered run holding the editor's caret. Placed by JS through custom
+   properties (its box comes from the SVG's layout), it fades out on its own. */
+.ts-preview__flash { position: absolute; left: var(--flash-left); top: var(--flash-top); width: var(--flash-width); height: var(--flash-height); margin: -2px -4px; padding: 2px 4px; box-sizing: content-box; border-radius: 3px; background: var(--mk-pri-100); outline: 1px solid var(--mk-pri); pointer-events: none; z-index: 2; animation: ts-preview-flash 1.1s var(--ease) forwards; }
+@keyframes ts-preview-flash { 0% { opacity: 0; } 12% { opacity: 1; } 55% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .ts-preview__flash { animation: ts-preview-flash 1.1s steps(1, end) forwards; }
+}
 .ts-preview__placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; color: var(--fg3); font: 13px 'Inter', system-ui, sans-serif; }
 .ts-preview__ms { font: 11px 'JetBrains Mono', ui-monospace, monospace; color: var(--fg4); }
 

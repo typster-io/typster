@@ -314,11 +314,13 @@ function insertSnippet(view, snippet, placeholder) {
   view.focus()
 }
 
-function gotoLine(view, lineNumber) {
+function gotoLine(view, lineNumber, column) {
   const total = view.state.doc.lines
   const n = Math.min(Math.max(parseInt(lineNumber, 10) || 1, 1), total)
   const line = view.state.doc.line(n)
-  view.dispatch({ selection: { anchor: line.from }, scrollIntoView: true })
+  const col = Math.max(parseInt(column, 10) || 1, 1) - 1
+  const anchor = Math.min(line.from + col, line.to)
+  view.dispatch({ selection: { anchor }, scrollIntoView: true })
   view.focus()
 }
 
@@ -340,7 +342,7 @@ function runEditorCommand(view, language, cmd, arg = {}) {
       insertSnippet(view, m[cmd].snippet, m[cmd].placeholder)
       break
     case "goto":
-      gotoLine(view, arg.line)
+      gotoLine(view, arg.line, arg.col)
       break
     default:
       break
@@ -440,7 +442,9 @@ export function initEditor(container, initialContent, socket, fileId, options = 
   const updateListener = EditorView.updateListener.of((update) => {
     if (onCursor && (update.docChanged || update.selectionSet)) {
       const { line, col } = cursorPosition(update.state)
-      onCursor(line, col)
+      // The third argument says whether the caret moved because the text
+      // changed: typing must not drag the preview around, moving the caret may.
+      onCursor(line, col, update.docChanged)
     }
 
     if (update.docChanged) {
@@ -521,10 +525,11 @@ export function initEditor(container, initialContent, socket, fileId, options = 
     compileTypst(initialContent, options.project || {})
   }
 
-  // Seed cursor + outline from the initial document.
+  // Seed cursor + outline from the initial document. The seed is flagged like
+  // an edit: it is not a caret move the preview should follow.
   if (onCursor) {
     const { line, col } = cursorPosition(editor.state)
-    onCursor(line, col)
+    onCursor(line, col, true)
   }
   emitOutline(initialContent || "")
 

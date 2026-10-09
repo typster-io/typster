@@ -1,5 +1,9 @@
 import { initEditor, updateEditorContent, destroyEditor } from "./editor"
 import { initTypstWorker, destroyTypstWorker, compileTypst } from "./typst_worker"
+import { installPreviewSync, syncPreviewToCursor } from "./preview_sync"
+
+// How long the caret must rest before the preview follows it (#149).
+const PREVIEW_SYNC_DELAY = 250
 
 function parseContent(content) {
   return content || ""
@@ -78,11 +82,19 @@ export const OutlineList = {
 export const CodeMirror = {
   editorCallbacks() {
     return {
-      onCursor: (line, col) => {
+      onCursor: (line, col, viaEdit) => {
         const el = document.getElementById("status-cursor")
         if (el) el.textContent = `Ln ${line}, Col ${col}`
         this.lastCursorLine = line
         updateCrumbSymbol(this.lastOutline, line)
+        // Follow a resting caret in the preview. Edits and the caret move a
+        // preview click just caused are skipped: the first would drag the
+        // preview while typing, the second would answer a click with a scroll.
+        clearTimeout(this.previewSyncTimer)
+        if (viaEdit || this.suppressPreviewSync) return
+        this.previewSyncTimer = setTimeout(() => {
+          syncPreviewToCursor({ file: this.mainPath, line, col })
+        }, PREVIEW_SYNC_DELAY)
       },
       onOutline: (items) => {
         this.lastOutline = items
@@ -95,13 +107,15 @@ export const CodeMirror = {
   setupCommandHandler() {
     this.commandHandler = (event) => {
       if (!this.editorInstance) return
-      const { cmd, line } = event.detail || {}
+      const { cmd, line, col, file, source } = event.detail || {}
       if (cmd === "compile") {
         this.editorInstance.compile()
       } else if (cmd === "download") {
         this.editorInstance.download()
       } else if (cmd === "search") {
         this.editorInstance.openSearch()
+      } else if (cmd === "goto") {
+        this.gotoLocation({ file, line, col, source })
       } else if (cmd) {
         this.editorInstance.runCommand(cmd, { line })
       }
@@ -124,6 +138,27 @@ export const CodeMirror = {
       this.editorInstance.setDiagnostics(own)
     }
     window.addEventListener("typst:diagnostics", this.diagnosticsHandler)
+  },
+
+  // Move the caret to `line`/`col`, in another project file when `file` names
+  // one: the server is asked to open it and the move completes once its
+  // buffer has mounted (the preview click path, #149).
+  gotoLocation({ file, line, col, source }) {
+    if (source === "preview") {
+      this.suppressPreviewSync = true
+      clearTimeout(this.suppressTimer)
+      this.suppressTimer = setTimeout(() => {
+        this.suppressPreviewSync = false
+      }, PREVIEW_SYNC_DELAY * 2)
+    }
+    const target = file ? file.replace(/^\/+/, "") : null
+    const active = (this.mainPath || "main.typ").replace(/^\/+/, "")
+    if (!target || target === active) {
+      this.editorInstance.runCommand("goto", { line, col })
+      return
+    }
+    this.pendingGoto = { path: target, line, col }
+    this.pushEvent("open_path", { path: target })
   },
 
   mounted() {
@@ -214,6 +249,12 @@ export const CodeMirror = {
           this.editorInstance.updateLanguage(language)
         }
       }
+
+      const pending = this.pendingGoto
+      if (pending && this.editorInstance && pending.path === this.mainPath.replace(/^\/+/, "")) {
+        this.pendingGoto = null
+        this.editorInstance.runCommand("goto", { line: pending.line, col: pending.col })
+      }
     })
 
     this.themeChangeHandler = () => {
@@ -284,6 +325,8 @@ export const CodeMirror = {
 
   destroyed() {
     this.cleanupThemeHandlers()
+    clearTimeout(this.previewSyncTimer)
+    clearTimeout(this.suppressTimer)
     if (this.commandHandler) {
       window.removeEventListener("phx:editor-command", this.commandHandler)
       this.commandHandler = null
@@ -302,6 +345,7 @@ export const CodeMirror = {
 export const Preview = {
   mounted() {
     initTypstWorker(this)
+    this.uninstallSync = installPreviewSync(this.el)
 
     const editorContainer = document.getElementById("editor-container")
     if (editorContainer) {
@@ -322,6 +366,7 @@ export const Preview = {
   },
 
   destroyed() {
+    if (this.uninstallSync) this.uninstallSync()
     destroyTypstWorker()
   }
 }
