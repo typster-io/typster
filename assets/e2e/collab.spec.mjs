@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { uniqueProjectName, projectRow } from './unique_project.mjs'
 
 // Live collaborative editing (Yjs over a Phoenix channel). Two editor pages in
 // one authenticated context are two distinct Yjs clients on the same server
@@ -12,6 +13,7 @@ import { test, expect } from '@playwright/test'
 test.skip(process.env.TYPSTER_COLLAB !== '1', 'collaboration disabled (set TYPSTER_COLLAB=1)')
 
 async function createProjectAndOpenEditor(page, name) {
+  name = uniqueProjectName(name)
   await page.goto('/projects')
   await page.waitForFunction(() => window.liveSocket?.isConnected?.(), null, { timeout: 10_000 })
   await page.locator('#new-project-button').click()
@@ -20,7 +22,7 @@ async function createProjectAndOpenEditor(page, name) {
   await page.locator('.ts-dialog button[type="submit"]').click()
   await expect(page.locator('.ts-dialog')).not.toBeVisible()
 
-  const row = page.locator('.ts-list__row').filter({ hasText: name })
+  const row = projectRow(page, name)
   await expect(row).toBeVisible()
   await row.getByRole('link', { name: 'Open' }).click()
   await expect(page).toHaveURL(/\/projects\/.+\/edit/)
@@ -73,7 +75,7 @@ test('live co-editing syncs both ways and renders remote cursors', async ({ cont
 
   // Editor A creates the project + file.
   const a = await context.newPage()
-  await createProjectAndOpenEditor(a, `collab-${Date.now()}`)
+  await createProjectAndOpenEditor(a, 'collab')
   await addMainFile(a)
   // The editor must be in collab mode for this test to mean anything.
   await expect(a.locator('#editor-container')).toHaveAttribute('data-collab', 'true')
@@ -115,7 +117,7 @@ test('two different users co-edit a shared file in real time', async ({ browser 
 
   // Owner A creates a project + file.
   const A = await loginAs(browser, emailA)
-  await createProjectAndOpenEditor(A.page, `shared-${stamp}`)
+  await createProjectAndOpenEditor(A.page, 'shared')
   await addMainFile(A.page)
   await expect(A.page.locator('#editor-container')).toHaveAttribute('data-collab', 'true')
 
