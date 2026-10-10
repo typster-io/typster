@@ -1,4 +1,9 @@
 import { test, expect } from '@playwright/test'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const here = dirname(fileURLToPath(import.meta.url))
 
 // Preview ↔ source sync (#149): a click in the rendered preview moves the
 // editor's caret to the matching source line (switching files when the text
@@ -143,6 +148,44 @@ test.describe('Preview ↔ source sync', () => {
     await expect(page.locator('#status-cursor')).toHaveText(/Ln 2\b/)
     await page.locator('#typst-svg-output .tsel').filter({ hasText: /^\s*\(\s*$/ }).first().click()
     await expect(page.locator('.ts-tab.is-active .ts-tab__label')).toContainText('birds.csv')
+  })
+
+  test('a picture jumps to its #image line and the caret there flashes it', async ({ page }) => {
+    await createProjectAndOpenEditor(page, 'E2E Sync Image')
+    const cm = await createFile(page, 'main.typ')
+    // A small red PNG, uploaded through the sidebar's picker.
+    const png = readFileSync(join(here, 'fixtures/dot.png'))
+    await page.locator('#dropped-upload-form input[type=file]').setInputFiles([{ name: 'dot.png', mimeType: 'image/png', buffer: png }])
+    await expect(page.locator('#asset-tree li').filter({ hasText: 'dot.png' })).toHaveCount(1)
+
+    await replaceBuffer(page, cm, '= Pictures\n\nParagraph about kestrels.\n\n#image("assets/dot.png", width: 4cm)\n\nParagraph about herons.\n')
+    const picture = page.locator('#typst-svg-output image').first()
+    await expect(picture).toBeVisible({ timeout: 30_000 })
+    await expect(run(page, 'herons')).toBeVisible()
+
+    await picture.click()
+    await expect(page.locator('#status-cursor')).toHaveText(/Ln 5, Col \d+/)
+    await expect(page.locator('#editor-container .cm-activeLine')).toContainText('#image')
+
+    // Caret on the paragraph after, then back on the #image line: the flash
+    // lands on the picture.
+    await cm.click()
+    await page.keyboard.press('Control+End')
+    await page.keyboard.press('ArrowUp')
+    await page.waitForTimeout(400)
+    await page.keyboard.press('ArrowUp')
+    await page.keyboard.press('ArrowUp')
+    const pane = page.locator('#preview-container')
+    await expect.poll(
+      () =>
+        pane.evaluate((el) => {
+          const flash = el.querySelector('.ts-preview__flash')
+          const img = el.querySelector('image')
+          if (!flash || !img) return Infinity
+          return Math.abs(flash.getBoundingClientRect().top - img.getBoundingClientRect().top)
+        }),
+      { timeout: 5_000 }
+    ).toBeLessThan(16)
   })
 
   test('generated text lands on the call that produced it', async ({ page }) => {
