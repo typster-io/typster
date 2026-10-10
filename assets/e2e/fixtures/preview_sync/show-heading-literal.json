@@ -1,0 +1,45 @@
+{
+ "shape": "show-heading-literal",
+ "about": "A heading shown through a show rule that adds literal text, and a show rule replacing a word",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "#show \"mi\": \"miles\"\n#show heading: it => block[#it.body (Chapter)]\n= Ascent\n\nWe walked 5 mi along the river.\n\n= Descent\n\nThen 3 mi downhill.\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Ascent (Chapter)",
+   "page": 0
+  },
+  {
+   "t": "We walked 5 ",
+   "page": 0
+  },
+  {
+   "t": "miles",
+   "page": 0
+  },
+  {
+   "t": " along the river.",
+   "page": 0
+  },
+  {
+   "t": "Descent (Chapter)",
+   "page": 0
+  },
+  {
+   "t": "Then 3 ",
+   "page": 0
+  },
+  {
+   "t": "miles",
+   "page": 0
+  },
+  {
+   "t": " downhill.",
+   "page": 0
+  }
+ ]
+}

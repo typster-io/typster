@@ -1,0 +1,113 @@
+{
+ "shape": "scripts",
+ "about": "Arabic words rendered in visual order, Hebrew, Chinese and Japanese lines (#34).",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "#set text(font: (\"Noto Sans Arabic\", \"Noto Sans Hebrew\", \"Noto Sans CJK SC\", \"Libertinus Serif\"))\n= Scripts\n\nمرحبا بالعالم هذا نص عربي طويل للاختبار.\n\nשלום עולם זהו טקסט בעברית לבדיקה.\n\n这是一个中文段落，用于测试预览同步功能是否正常工作。\n\n日本語の文章もここに書きます。\n\nEnglish closing line.\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Scripts",
+   "page": 0
+  },
+  {
+   "t": "للاختبار",
+   "page": 0
+  },
+  {
+   "t": " ",
+   "page": 0
+  },
+  {
+   "t": "طويل",
+   "page": 0
+  },
+  {
+   "t": " ",
+   "page": 0
+  },
+  {
+   "t": "عربي",
+   "page": 0
+  },
+  {
+   "t": " ",
+   "page": 0
+  },
+  {
+   "t": "نص",
+   "page": 0
+  },
+  {
+   "t": " ",
+   "page": 0
+  },
+  {
+   "t": "هذا",
+   "page": 0
+  },
+  {
+   "t": " ",
+   "page": 0
+  },
+  {
+   "t": "بالعالم",
+   "page": 0
+  },
+  {
+   "t": " ",
+   "page": 0
+  },
+  {
+   "t": "مرحبا",
+   "page": 0
+  },
+  {
+   "t": ".",
+   "page": 0
+  },
+  {
+   "t": "שלום עולם זהו טקסט בעברית לבדיקה",
+   "page": 0
+  },
+  {
+   "t": ".",
+   "page": 0
+  },
+  {
+   "t": "这是一个中文段落，用于测试预览同步功能是否正常工作。",
+   "page": 0
+  },
+  {
+   "t": "日本語",
+   "page": 0
+  },
+  {
+   "t": "の",
+   "page": 0
+  },
+  {
+   "t": "文章",
+   "page": 0
+  },
+  {
+   "t": "もここに",
+   "page": 0
+  },
+  {
+   "t": "書",
+   "page": 0
+  },
+  {
+   "t": "きます。",
+   "page": 0
+  },
+  {
+   "t": "English closing line.",
+   "page": 0
+  }
+ ]
+}

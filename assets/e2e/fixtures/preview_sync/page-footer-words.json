@@ -1,0 +1,61 @@
+{
+ "shape": "page-footer-words",
+ "about": "A context footer with several words after the page number, on two pages",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "#set page(height: 8cm, footer: context [Sheet #counter(page).display() of the log])\n= Watch\n\nEntry 1 notes the tide and the wind over the harbour mouth at dusk.\n\nEntry 2 notes the tide and the wind over the harbour mouth at dusk.\n\nEntry 3 notes the tide and the wind over the harbour mouth at dusk.\n\nEntry 4 notes the tide and the wind over the harbour mouth at dusk.\n\nEntry 5 notes the tide and the wind over the harbour mouth at dusk.\n\nEntry 6 notes the tide and the wind over the harbour mouth at dusk.\n\nEntry 7 notes the tide and the wind over the harbour mouth at dusk.\n\nEntry 8 notes the tide and the wind over the harbour mouth at dusk.\n\nEntry 9 notes the tide and the wind over the harbour mouth at dusk.\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Watch",
+   "page": 0
+  },
+  {
+   "t": "Entry 1 notes the tide and the wind over the harbour mouth at dusk.",
+   "page": 0
+  },
+  {
+   "t": "Entry 2 notes the tide and the wind over the harbour mouth at dusk.",
+   "page": 0
+  },
+  {
+   "t": "Entry 3 notes the tide and the wind over the harbour mouth at dusk.",
+   "page": 0
+  },
+  {
+   "t": "Entry 4 notes the tide and the wind over the harbour mouth at dusk.",
+   "page": 0
+  },
+  {
+   "t": "Entry 5 notes the tide and the wind over the harbour mouth at dusk.",
+   "page": 0
+  },
+  {
+   "t": "Entry 6 notes the tide and the wind over the harbour mouth at dusk.",
+   "page": 0
+  },
+  {
+   "t": "Entry 7 notes the tide and the wind over the harbour mouth at dusk.",
+   "page": 0
+  },
+  {
+   "t": "Entry 8 notes the tide and the wind over the harbour mouth at dusk.",
+   "page": 0
+  },
+  {
+   "t": "Sheet 1 of the log",
+   "page": 0
+  },
+  {
+   "t": "Entry 9 notes the tide and the wind over the harbour mouth at dusk.",
+   "page": 1
+  },
+  {
+   "t": "Sheet 2 of the log",
+   "page": 1
+  }
+ ]
+}

@@ -1,0 +1,29 @@
+{
+ "shape": "show-rule-element",
+ "about": "A heading rule adding (Draft), and a paragraph printing a let-bound value followed by the same literal",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "#show heading: it => block[#it.body (Draft)]\n#let s = \"Report\"\n= Intro\n\nSome intro words.\n\n#s (Draft)\n\nClosing words here.\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Intro (Draft)",
+   "page": 0
+  },
+  {
+   "t": "Some intro words.",
+   "page": 0
+  },
+  {
+   "t": "Report (Draft)",
+   "page": 0
+  },
+  {
+   "t": "Closing words here.",
+   "page": 0
+  }
+ ]
+}

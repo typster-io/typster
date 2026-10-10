@@ -1,0 +1,49 @@
+{
+ "shape": "yaml-records",
+ "about": "A #for over YAML records written one field per line, a value repeated in two records, printed as enum items",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "#let crew = yaml(\"crew.yaml\")\n= Crew\n\n#for m in crew [\n  + #m.name --- #m.role\n]\n\nThat is everyone.\n"
+  },
+  {
+   "path": "crew.yaml",
+   "content": "- name: Ines\n  role: botanist\n- name: Oskar\n  role: pilot\n- name: Mirela\n  role: botanist\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Crew",
+   "page": 0
+  },
+  {
+   "t": "1.",
+   "page": 0
+  },
+  {
+   "t": "Ines — botanist",
+   "page": 0
+  },
+  {
+   "t": "2.",
+   "page": 0
+  },
+  {
+   "t": "Oskar — pilot",
+   "page": 0
+  },
+  {
+   "t": "3.",
+   "page": 0
+  },
+  {
+   "t": "Mirela — botanist",
+   "page": 0
+  },
+  {
+   "t": "That is everyone.",
+   "page": 0
+  }
+ ]
+}

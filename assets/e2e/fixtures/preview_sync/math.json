@@ -1,0 +1,137 @@
+{
+ "shape": "math",
+ "about": "Inline and display math after a block comment and a spacing call: glyphs land on their own characters, a closing parenthesis on its own equation (#8 #33).",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "= Math\n\nThe formula $x^2 + y^2 = z^2$ is old.\n\n/* derivation\n   follows below */\n$ \"area\" = pi r^2 $\n\n#v(1em)\n$ sum_(i=1)^n i = (n(n+1))/2 $\n\nAfter math paragraph.\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Math",
+   "page": 0
+  },
+  {
+   "t": "The formula ",
+   "page": 0
+  },
+  {
+   "t": "𝑥",
+   "page": 0
+  },
+  {
+   "t": "2",
+   "page": 0
+  },
+  {
+   "t": "+",
+   "page": 0
+  },
+  {
+   "t": "𝑦",
+   "page": 0
+  },
+  {
+   "t": "2",
+   "page": 0
+  },
+  {
+   "t": "=",
+   "page": 0
+  },
+  {
+   "t": "𝑧",
+   "page": 0
+  },
+  {
+   "t": "2",
+   "page": 0
+  },
+  {
+   "t": " is old.",
+   "page": 0
+  },
+  {
+   "t": "area",
+   "page": 0
+  },
+  {
+   "t": "=",
+   "page": 0
+  },
+  {
+   "t": "𝜋",
+   "page": 0
+  },
+  {
+   "t": "𝑟",
+   "page": 0
+  },
+  {
+   "t": "2",
+   "page": 0
+  },
+  {
+   "t": "∑",
+   "page": 0
+  },
+  {
+   "t": "𝑛",
+   "page": 0
+  },
+  {
+   "t": "𝑖",
+   "page": 0
+  },
+  {
+   "t": "=",
+   "page": 0
+  },
+  {
+   "t": "1",
+   "page": 0
+  },
+  {
+   "t": "𝑖",
+   "page": 0
+  },
+  {
+   "t": "=",
+   "page": 0
+  },
+  {
+   "t": "𝑛",
+   "page": 0
+  },
+  {
+   "t": "(",
+   "page": 0
+  },
+  {
+   "t": "𝑛",
+   "page": 0
+  },
+  {
+   "t": "+",
+   "page": 0
+  },
+  {
+   "t": "1",
+   "page": 0
+  },
+  {
+   "t": ")",
+   "page": 0
+  },
+  {
+   "t": "2",
+   "page": 0
+  },
+  {
+   "t": "After math paragraph.",
+   "page": 0
+  }
+ ]
+}

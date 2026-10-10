@@ -1,0 +1,133 @@
+{
+ "shape": "footnotes",
+ "about": "A footnote called near the top of a full page (its text sits more than a page of source behind), a second one at a paragraph end, superscript markers and footnote-area numbers (#1 #29 #31).",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "= Notes\n\nOpening claim with a note.#footnote[The footnote body explains the opening claim.] Sentence 0 reports that the kestrel and the curlew were counted near site 0. Sentence 1 reports that the heron and the merlin were counted near site 1. Sentence 2 reports that the plover and the whimbrel were counted near site 2. Sentence 3 reports that the curlew and the godwit were counted near site 3. Sentence 4 reports that the godwit and the osprey were counted near site 4. Sentence 5 reports that the dunlin and the warbler were counted near site 5. Sentence 6 reports that the avocet and the dunlin were counted near site 6. Sentence 7 reports that the bittern and the puffin were counted near site 7. Sentence 8 reports that the egret and the wryneck were counted near site 8. Sentence 9 reports that the harrier and the avocet were counted near site 9. Sentence 10 reports that the merlin and the shrike were counted near site 10. Sentence 11 reports that the osprey and the kestrel were counted near site 11.\n\nSentence 12 reports that the puffin and the bittern were counted near site 12. Sentence 13 reports that the shrike and the siskin were counted near site 13. Sentence 14 reports that the siskin and the heron were counted near site 14. Sentence 15 reports that the twite and the egret were counted near site 15. Sentence 16 reports that the wigeon and the twite were counted near site 16. Sentence 17 reports that the whimbrel and the plover were counted near site 17. Sentence 18 reports that the warbler and the harrier were counted near site 18. Sentence 19 reports that the wryneck and the wigeon were counted near site 19. Sentence 20 reports that the kestrel and the curlew were counted near site 20. Sentence 21 reports that the heron and the merlin were counted near site 21. Sentence 22 reports that the plover and the whimbrel were counted near site 22. Sentence 23 reports that the curlew and the godwit were counted near site 23.\n\nSecond paragraph with another note.#footnote[Short second note.]\n\nFinal paragraph.\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Notes",
+   "page": 0
+  },
+  {
+   "t": "Opening claim with a note.",
+   "page": 0
+  },
+  {
+   "t": "1",
+   "page": 0
+  },
+  {
+   "t": " Sentence 0 reports that the kestrel and the curlew were counted near ",
+   "page": 0
+  },
+  {
+   "t": "site 0. Sentence 1 reports that the heron and the merlin were counted near site 1. Sentence 2 reports ",
+   "page": 0
+  },
+  {
+   "t": "that the plover and the whimbrel were counted near site 2. Sentence 3 reports that the curlew and ",
+   "page": 0
+  },
+  {
+   "t": "the godwit were counted near site 3. Sentence 4 reports that the godwit and the osprey were ",
+   "page": 0
+  },
+  {
+   "t": "counted near site 4. Sentence 5 reports that the dunlin and the warbler were counted near site 5. ",
+   "page": 0
+  },
+  {
+   "t": "Sentence 6 reports that the avocet and the dunlin were counted near site 6. Sentence 7 reports that ",
+   "page": 0
+  },
+  {
+   "t": "the bittern and the puffin were counted near site 7. Sentence 8 reports that the egret and the ",
+   "page": 0
+  },
+  {
+   "t": "wryneck were counted near site 8. Sentence 9 reports that the harrier and the avocet were counted ",
+   "page": 0
+  },
+  {
+   "t": "near site 9. Sentence 10 reports that the merlin and the shrike were counted near site 10. Sentence 11 ",
+   "page": 0
+  },
+  {
+   "t": "reports that the osprey and the kestrel were counted near site 11.",
+   "page": 0
+  },
+  {
+   "t": "Sentence 12 reports that the puffin and the bittern were counted near site 12. Sentence 13 reports ",
+   "page": 0
+  },
+  {
+   "t": "that the shrike and the siskin were counted near site 13. Sentence 14 reports that the siskin and the ",
+   "page": 0
+  },
+  {
+   "t": "heron were counted near site 14. Sentence 15 reports that the twite and the egret were counted near ",
+   "page": 0
+  },
+  {
+   "t": "site 15. Sentence 16 reports that the wigeon and the twite were counted near site 16. Sentence 17 ",
+   "page": 0
+  },
+  {
+   "t": "reports that the whimbrel and the plover were counted near site 17. Sentence 18 reports that the ",
+   "page": 0
+  },
+  {
+   "t": "warbler and the harrier were counted near site 18. Sentence 19 reports that the wryneck and the ",
+   "page": 0
+  },
+  {
+   "t": "wigeon were counted near site 19. Sentence 20 reports that the kestrel and the curlew were counted ",
+   "page": 0
+  },
+  {
+   "t": "near site 20. Sentence 21 reports that the heron and the merlin were counted near site 21. Sentence ",
+   "page": 0
+  },
+  {
+   "t": "22 reports that the plover and the whimbrel were counted near site 22. Sentence 23 reports that the ",
+   "page": 0
+  },
+  {
+   "t": "curlew and the godwit were counted near site 23.",
+   "page": 0
+  },
+  {
+   "t": "Second paragraph with another note.",
+   "page": 0
+  },
+  {
+   "t": "2",
+   "page": 0
+  },
+  {
+   "t": "Final paragraph.",
+   "page": 0
+  },
+  {
+   "t": "1",
+   "page": 0
+  },
+  {
+   "t": "The footnote body explains the opening claim.",
+   "page": 0
+  },
+  {
+   "t": "2",
+   "page": 0
+  },
+  {
+   "t": "Short second note.",
+   "page": 0
+  }
+ ]
+}

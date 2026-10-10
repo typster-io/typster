@@ -1,0 +1,65 @@
+{
+ "shape": "header",
+ "about": "A running header on every page whose text is also the title heading.",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "#set page(height: 7cm, header: [Field notes])\n= Field notes\n\nParagraph number 1 has some unique words here alpha0.\n\nParagraph number 2 has some unique words here alpha1.\n\nParagraph number 3 has some unique words here alpha2.\n\nParagraph number 4 has some unique words here alpha3.\n\nParagraph number 5 has some unique words here alpha4.\n\nParagraph number 6 has some unique words here alpha5.\n\nParagraph number 7 has some unique words here alpha6.\n\nParagraph number 8 has some unique words here alpha7.\n\nParagraph number 9 has some unique words here alpha8.\n\nParagraph number 10 has some unique words here alpha9.\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Field notes",
+   "page": 0
+  },
+  {
+   "t": "Field notes",
+   "page": 0
+  },
+  {
+   "t": "Paragraph number 1 has some unique words here alpha0.",
+   "page": 0
+  },
+  {
+   "t": "Paragraph number 2 has some unique words here alpha1.",
+   "page": 0
+  },
+  {
+   "t": "Paragraph number 3 has some unique words here alpha2.",
+   "page": 0
+  },
+  {
+   "t": "Paragraph number 4 has some unique words here alpha3.",
+   "page": 0
+  },
+  {
+   "t": "Paragraph number 5 has some unique words here alpha4.",
+   "page": 0
+  },
+  {
+   "t": "Paragraph number 6 has some unique words here alpha5.",
+   "page": 0
+  },
+  {
+   "t": "Paragraph number 7 has some unique words here alpha6.",
+   "page": 0
+  },
+  {
+   "t": "Field notes",
+   "page": 1
+  },
+  {
+   "t": "Paragraph number 8 has some unique words here alpha7.",
+   "page": 1
+  },
+  {
+   "t": "Paragraph number 9 has some unique words here alpha8.",
+   "page": 1
+  },
+  {
+   "t": "Paragraph number 10 has some unique words here alpha9.",
+   "page": 1
+  }
+ ]
+}

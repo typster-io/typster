@@ -1,0 +1,125 @@
+{
+ "shape": "csv-twice",
+ "about": "The same CSV printed twice: the second copy walks the rows again (#52).",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "= Twice\n\n#table(columns: 2, ..csv(\"s.csv\").flatten())\n\nThe same table again.\n\n#table(columns: 2, ..csv(\"s.csv\").flatten())\n\nAfter twice.\n"
+  },
+  {
+   "path": "s.csv",
+   "content": "name,status\nalpha,active\nbravo,retired\ncharlie,active\ndelta,retired\necho,active\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Twice",
+   "page": 0
+  },
+  {
+   "t": "name",
+   "page": 0
+  },
+  {
+   "t": "status",
+   "page": 0
+  },
+  {
+   "t": "alpha",
+   "page": 0
+  },
+  {
+   "t": "active",
+   "page": 0
+  },
+  {
+   "t": "bravo",
+   "page": 0
+  },
+  {
+   "t": "retired",
+   "page": 0
+  },
+  {
+   "t": "charlie",
+   "page": 0
+  },
+  {
+   "t": "active",
+   "page": 0
+  },
+  {
+   "t": "delta",
+   "page": 0
+  },
+  {
+   "t": "retired",
+   "page": 0
+  },
+  {
+   "t": "echo",
+   "page": 0
+  },
+  {
+   "t": "active",
+   "page": 0
+  },
+  {
+   "t": "The same table again.",
+   "page": 0
+  },
+  {
+   "t": "name",
+   "page": 0
+  },
+  {
+   "t": "status",
+   "page": 0
+  },
+  {
+   "t": "alpha",
+   "page": 0
+  },
+  {
+   "t": "active",
+   "page": 0
+  },
+  {
+   "t": "bravo",
+   "page": 0
+  },
+  {
+   "t": "retired",
+   "page": 0
+  },
+  {
+   "t": "charlie",
+   "page": 0
+  },
+  {
+   "t": "active",
+   "page": 0
+  },
+  {
+   "t": "delta",
+   "page": 0
+  },
+  {
+   "t": "retired",
+   "page": 0
+  },
+  {
+   "t": "echo",
+   "page": 0
+  },
+  {
+   "t": "active",
+   "page": 0
+  },
+  {
+   "t": "After twice.",
+   "page": 0
+  }
+ ]
+}

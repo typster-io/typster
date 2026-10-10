@@ -1,0 +1,65 @@
+{
+ "shape": "csv-prose",
+ "about": "Table header words that the prose after the table repeats (#50).",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "= Cities\n\n#table(columns: 3, ..csv(\"a.csv\").flatten())\n\nOslo is the biggest city in the table and its country is Norway.\n\nThe pop column is in thousands.\n"
+  },
+  {
+   "path": "a.csv",
+   "content": "city,country,pop\nOslo,Norway,700\nBergen,Norway,285\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Cities",
+   "page": 0
+  },
+  {
+   "t": "city",
+   "page": 0
+  },
+  {
+   "t": "country",
+   "page": 0
+  },
+  {
+   "t": "pop",
+   "page": 0
+  },
+  {
+   "t": "Oslo",
+   "page": 0
+  },
+  {
+   "t": "Norway",
+   "page": 0
+  },
+  {
+   "t": "700",
+   "page": 0
+  },
+  {
+   "t": "Bergen",
+   "page": 0
+  },
+  {
+   "t": "Norway",
+   "page": 0
+  },
+  {
+   "t": "285",
+   "page": 0
+  },
+  {
+   "t": "Oslo is the biggest city in the table and its country is Norway.",
+   "page": 0
+  },
+  {
+   "t": "The pop column is in thousands.",
+   "page": 0
+  }
+ ]
+}

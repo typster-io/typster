@@ -1,0 +1,37 @@
+{
+ "shape": "definition-literal",
+ "about": "A function whose definition prints literal text around its arguments, called twice",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "#let warn(msg, level: 1) = block[\n  #text(weight: \"bold\")[Achtung #level:] #msg\n]\n= Hinweise\n\n#warn(\"Akku schwach\", level: 2)\n\n#warn(\"Tür offen\")\n\nSonst alles gut.\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Hinweise",
+   "page": 0
+  },
+  {
+   "t": "Achtung 2:",
+   "page": 0
+  },
+  {
+   "t": " Akku schwach",
+   "page": 0
+  },
+  {
+   "t": "Achtung 1:",
+   "page": 0
+  },
+  {
+   "t": " Tür offen",
+   "page": 0
+  },
+  {
+   "t": "Sonst alles gut.",
+   "page": 0
+  }
+ ]
+}
