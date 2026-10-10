@@ -291,6 +291,12 @@ function placeGap(doc, prev, next, gap) {
   const point = (offset) => ({ start: offset, end: offset })
   const fallback = () =>
     next && nextLine > prevLine ? point(doc.starts[nextLine]) : prev ? point(prev.end) : point(next ? next.start : 0)
+  // Remember the stretch each run was placed in: a caret on a line in it
+  // whose own text matched nothing (`#csv(...)`) finds these runs.
+  for (const r of gap) {
+    r.gapFrom = from
+    r.gapTo = to
+  }
   if (to <= from) {
     for (const r of gap) Object.assign(r, fallback())
     return
@@ -419,8 +425,13 @@ export function alignRuns(container, doc) {
   return runs
 }
 
-// The run the cursor is in, else the nearest one after it, else before it.
-export function runForOffset(runs, offset) {
+// The run the caret is in. Failing that, the caret's line produced output
+// that matched nothing of its own (a `#csv(...)` whose rows resolved to the
+// data file, a value read from a module): the runs placed in the stretch of
+// lines around it are that output, the one sharing a word with the line
+// first, else the earliest. Else the nearest run after the caret, else
+// before it.
+export function runForOffset(runs, offset, doc) {
   let after = null
   let before = null
   for (const r of runs) {
@@ -430,6 +441,24 @@ export function runForOffset(runs, offset) {
       if (!after || r.start < after.start) after = r
     } else if (!before || r.end > before.end) {
       before = r
+    }
+  }
+  if (doc) {
+    const li = lineIndexAt(doc, offset)
+    const inGap = runs.filter((r) => r.gapFrom != null && r.gapFrom <= li && li < r.gapTo)
+    if (inGap.length) {
+      const words = new Set(wordsOf(doc.lines[li].text))
+      let best = null
+      let bestScore = 0
+      for (const r of inGap) {
+        let n = 0
+        for (const w of wordsOf(r.text)) if (words.has(w)) n++
+        if (n > bestScore) {
+          bestScore = n
+          best = r
+        }
+      }
+      return best || inGap[0]
     }
   }
   return after || before
@@ -535,11 +564,49 @@ export function syncPreviewToCursor({ file, line, col }) {
   if (!state) return false
   const offset = offsetOf(state.doc, file, line, col)
   if (offset == null) return false
-  const run = runForOffset(state.runs, offset)
+  const run = runForOffset(state.runs, offset, state.doc)
   if (!run) return false
   revealRun(run.el, run !== lastTarget)
   lastTarget = run
   return true
+}
+
+// Where in the run's source the click landed: the character under the pointer
+// (the text layer holds the run's text one-to-one with the matched source,
+// give or take collapsed whitespace), else the run's end. A run placed on a
+// line rather than matched (generated text) goes to that line's end.
+function clickedOffset(run, event) {
+  if (!run.anchored) return run.end
+  const sel = run.el.querySelector ? run.el.querySelector(".tsel") || run.el : run.el
+  let node = null
+  let offset = 0
+  if (document.caretPositionFromPoint) {
+    const p = document.caretPositionFromPoint(event.clientX, event.clientY)
+    if (p) {
+      node = p.offsetNode
+      offset = p.offset
+    }
+  } else if (document.caretRangeFromPoint) {
+    const r = document.caretRangeFromPoint(event.clientX, event.clientY)
+    if (r) {
+      node = r.startContainer
+      offset = r.startOffset
+    }
+  }
+  if (!node || !sel.contains(node)) return run.end
+  // Count the characters of the run's text before the hit, across its nodes.
+  let before = 0
+  const walker = document.createTreeWalker(sel, NodeFilter.SHOW_TEXT)
+  for (let t = walker.nextNode(); t; t = walker.nextNode()) {
+    if (t === node) {
+      before += offset
+      break
+    }
+    before += t.textContent.length
+  }
+  const lead = (sel.textContent.match(/^\s*/) || [""])[0].length
+  const idx = Math.max(0, before - lead)
+  return Math.min(run.start + idx, run.end)
 }
 
 // Preview → source: resolve the clicked run (or the nearest one) to a source
@@ -554,7 +621,7 @@ export function installPreviewSync(container) {
     const el = target && target.closest(".typst-text")
     const run = (el && state.byEl.get(el)) || nearestRun(state.runs, event.clientX, event.clientY)
     if (!run || run.start == null) return
-    const loc = locate(state.doc, run.start)
+    const loc = locate(state.doc, clickedOffset(run, event))
     if (!loc) return
     lastTarget = run
     window.dispatchEvent(
