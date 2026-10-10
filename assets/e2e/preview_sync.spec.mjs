@@ -74,14 +74,19 @@ test.describe('Preview ↔ source sync', () => {
     )
     await expect(run(page, 'herons')).toBeVisible({ timeout: 30_000 })
 
+    // The caret lands on the clicked character: Playwright clicks the run's
+    // centre, so the column sits inside the sentence, not at its start.
     await run(page, 'herons').click()
-
-    await expect(page.locator('#status-cursor')).toHaveText(/Ln 7, Col 1\b/)
+    await expect(page.locator('#status-cursor')).toHaveText(/Ln 7, Col (?:[2-9]|[12]\d)\b/)
     await expect(page.locator('#editor-container .cm-activeLine')).toContainText('herons')
 
+    // Clicking the start of a run puts the caret at its first character.
+    await run(page, 'herons').click({ position: { x: 1, y: 4 } })
+    await expect(page.locator('#status-cursor')).toHaveText(/Ln 7, Col [12]\b/)
+
     // A heading maps onto its own line, past the `== ` marker.
-    await run(page, 'Beta section').click()
-    await expect(page.locator('#status-cursor')).toHaveText(/Ln 5, Col 4\b/)
+    await run(page, 'Beta section').click({ position: { x: 1, y: 4 } })
+    await expect(page.locator('#status-cursor')).toHaveText(/Ln 5, Col [45]\b/)
   })
 
   test('clicking text from an included file opens that file at its line', async ({ page }) => {
@@ -100,10 +105,10 @@ test.describe('Preview ↔ source sync', () => {
     await expect(page.locator('.ts-formatbar__hint')).toContainText('main.typ')
     await expect(run(page, 'otters')).toBeVisible({ timeout: 30_000 })
 
-    await run(page, 'otters').click()
+    await run(page, 'otters').click({ position: { x: 1, y: 4 } })
 
     await expect(page.locator('.ts-tab.is-active .ts-tab__label')).toContainText('ch1.typ')
-    await expect(page.locator('#status-cursor')).toHaveText(/Ln 3, Col 1\b/)
+    await expect(page.locator('#status-cursor')).toHaveText(/Ln 3, Col [12]\b/)
     await expect(page.locator('#editor-container .cm-activeLine')).toContainText('otters')
 
     // The preview keeps compiling main.typ: the chapter is not rendered on its
@@ -127,13 +132,15 @@ test.describe('Preview ↔ source sync', () => {
     await replaceBuffer(page, cm, '= Filler\n\nA real sentence about kestrels.\n\n#lorem(60)\n\n== After\n\nAnother real sentence about herons.\n')
     await expect(run(page, 'herons')).toBeVisible({ timeout: 30_000 })
 
+    // Generated text has no character to land on; the caret goes to the
+    // end of the call's line.
     await run(page, 'ipsum').click()
-    await expect(page.locator('#status-cursor')).toHaveText(/Ln 5, Col 1\b/)
+    await expect(page.locator('#status-cursor')).toHaveText(/Ln 5, Col 11\b/)
 
     // A later line of the same paragraph maps to the same call, not to the
     // heading that follows it.
     await page.locator('#typst-svg-output .tsel').filter({ hasText: /\b(?:tempor|labore|dolore|magna|aliqua)\b/ }).last().click()
-    await expect(page.locator('#status-cursor')).toHaveText(/Ln 5, Col 1\b/)
+    await expect(page.locator('#status-cursor')).toHaveText(/Ln 5, Col 11\b/)
   })
 
   test('list bullets and heading numbers land on their own line', async ({ page }) => {
@@ -146,7 +153,9 @@ test.describe('Preview ↔ source sync', () => {
     )
     await expect(run(page, 'otters')).toBeVisible({ timeout: 30_000 })
 
-    // The generated "1." in front of the heading belongs to the heading line.
+    // The generated "1." in front of the heading belongs to the heading line
+    // (a marker has no character of its own; the caret goes to the line
+    // start the marker was placed at).
     await page.locator('#typst-svg-output .tsel').filter({ hasText: /^1\.$/ }).first().click()
     await expect(page.locator('#status-cursor')).toHaveText(/Ln 2, Col 1\b/)
 
