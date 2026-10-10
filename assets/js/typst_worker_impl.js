@@ -210,43 +210,85 @@ async function registerFonts(project) {
   }
 }
 
-// ── Project images ─────────────────────────────────────────────────────────
+// ── Project files ──────────────────────────────────────────────────────────
 //
-// Image assets arrive like fonts (`kind: "image"`, a `url` served by the app)
-// and are mapped as shadow files at their reference path, so
-// `#image("assets/logo.png")` resolves. Bytes are cached by path + size and
-// mapped on every compile (a cheap call once cached); an image that cannot be
-// fetched is simply absent, and the compiler reports the missing file.
+// Every asset that is not a registrable font arrives with a `url` served by
+// the app and is mapped as a shadow file at its reference path, so
+// `#image("assets/logo.png")`, an image of a PDF page or `#csv("assets/t.csv")`
+// resolves. No extension list decides what is readable: Typst does, and a file
+// it cannot use is reported by the compiler like any other bad input.
+//
+// Bytes are cached by URL. The URL names the asset row, and every upload is a
+// new row, so a replaced file with the same name and size is fetched afresh. A
+// URL that failed is not retried until the asset list changes, so a broken
+// file costs one request per manifest rather than one per keystroke. A file is
+// fetched eagerly once its name occurs in some source text, so a large upload
+// that nothing references is not downloaded while the document compiles
+// without it. A path built at runtime from pieces (`"img/" + name + ".png"`)
+// names no file in the text: when a compile fails to load a file, every file
+// not tried yet is fetched and the compile runs once more.
 
-const imageBytesCache = new Map()
+const fileBytesCache = new Map()
+const failedFileUrls = new Set()
+let fileManifest = ""
 
-function projectImages(project) {
+function projectFiles(project) {
   const assets = Array.isArray(project && project.assets) ? project.assets : []
   return assets.filter(
-    (a) => a && a.kind === "image" && typeof a.url === "string" && typeof a.reference_path === "string"
+    (a) => a && a.kind !== "font" && typeof a.url === "string" && typeof a.reference_path === "string"
   )
 }
 
-async function fetchImageBytes(asset) {
-  const key = fontCacheKey(asset)
-  if (imageBytesCache.has(key)) return imageBytesCache.get(key)
-  const response = await fetch(asset.url)
-  if (!response.ok) throw new Error(`Failed to fetch image ${asset.reference_path}: ${response.status}`)
-  const bytes = new Uint8Array(await response.arrayBuffer())
-  imageBytesCache.set(key, bytes)
-  return bytes
+// A new asset list forgives earlier failures (the file may have been
+// re-uploaded or storage recovered) and drops the bytes of files that left it.
+function syncFileManifest(files) {
+  const manifest = files.map((a) => `${a.reference_path}|${a.url}`).sort().join("\n")
+  if (manifest === fileManifest) return
+  fileManifest = manifest
+  failedFileUrls.clear()
+  const urls = new Set(files.map((a) => a.url))
+  for (const url of fileBytesCache.keys()) if (!urls.has(url)) fileBytesCache.delete(url)
 }
 
-async function mapImages(project) {
-  for (const asset of projectImages(project)) {
-    try {
-      const bytes = await fetchImageBytes(asset)
-      await $typst.mapShadow(vfsPath(asset.reference_path), bytes)
-    } catch (error) {
-      console.error("typst image fetch failed:", error)
-    }
-  }
+async function fetchFileBytes(asset) {
+  const response = await fetch(asset.url)
+  if (!response.ok) throw new Error(`Failed to fetch ${asset.reference_path}: ${response.status}`)
+  fileBytesCache.set(asset.url, new Uint8Array(await response.arrayBuffer()))
 }
+
+// Fetch, in parallel, the files some text names (every file when `texts` is
+// null) and that are neither cached nor known to fail, then return the files
+// whose bytes are available.
+async function loadFiles(project, texts) {
+  const files = projectFiles(project)
+  syncFileManifest(files)
+
+  const wanted = files.filter((asset) => {
+    if (fileBytesCache.has(asset.url) || failedFileUrls.has(asset.url)) return false
+    const name = asset.reference_path.split("/").pop()
+    return !texts || texts.some((text) => text.includes(name))
+  })
+  await Promise.all(
+    wanted.map((asset) =>
+      fetchFileBytes(asset).catch((error) => {
+        failedFileUrls.add(asset.url)
+        console.error("typst file fetch failed:", error)
+      })
+    )
+  )
+
+  return files.filter((asset) => fileBytesCache.has(asset.url))
+}
+
+// Whether fetching the files not tried yet, named in no source, made any of
+// them available.
+async function loadUnnamedFiles(project) {
+  const before = fileBytesCache.size
+  await loadFiles(project, null)
+  return fileBytesCache.size > before
+}
+
+const FILE_LOAD_ERROR = /failed to load file|file not found/i
 
 // Map a project-relative path ("chapters/ch1.typ") to the compiler's rooted VFS
 // path. Collapsing leading slashes keeps "/x.typ" and "x.typ" in agreement, and
@@ -273,16 +315,43 @@ async function loadSources(content, project) {
   const main = entry !== buffer && sources.some((s) => vfsPath(s.path) === entry) ? entry : buffer
   $typst.setMainFilePath(main)
   await $typst.addSource(buffer, content || "")
+  const mapped = new Set([buffer])
 
   for (const source of sources) {
     const path = vfsPath(source.path)
     if (path !== buffer) {
       await $typst.addSource(path, source.content || "")
+      mapped.add(path)
     }
   }
-  await mapImages(project)
 
+  const texts = [content || "", ...sources.map((s) => s.content || "")]
+  for (const asset of await loadFiles(project, texts)) {
+    const path = vfsPath(asset.reference_path)
+    await $typst.mapShadow(path, fileBytesCache.get(asset.url))
+    mapped.add(path)
+  }
+
+  await unmapStale(mapped)
   return main
+}
+
+// The compiler's file system outlives a compile, so a source or file that left
+// the project would keep resolving until a reload. Unmap every path the
+// previous load mapped and this one did not, so the compiler reports it
+// missing just as it would on a fresh page.
+let mappedPaths = new Set()
+
+async function unmapStale(mapped) {
+  for (const path of mappedPaths) {
+    if (mapped.has(path)) continue
+    try {
+      await $typst.unmapShadow(path)
+    } catch (error) {
+      console.error("typst unmap failed:", error)
+    }
+  }
+  mappedPaths = mapped
 }
 
 // Jobs run strictly one after another. typst.ts wraps a single wasm compiler
@@ -300,51 +369,66 @@ self.onmessage = function (event) {
   })
 }
 
+// `retry` allows one more compile after a failed file load fetched files no
+// source names, so a document never compiles more than twice per request.
+async function compile(content, project, requestId, myId, retry) {
+  try {
+    await ensureInitialized()
+    if (myId !== latestCompileId) return
+
+    await registerFonts(project)
+    if (myId !== latestCompileId) return
+
+    const main = await loadSources(content, project)
+    if (myId !== latestCompileId) return
+
+    const svg = await $typst.svg({ mainFilePath: main })
+    if (myId !== latestCompileId) return
+
+    // Echo the compile's id so the client can pair the SVG with the exact
+    // sources it was built from (preview-to-source sync, #149).
+    self.postMessage({ type: "render", data: { svg, requestId } })
+  } catch (error) {
+    if (myId !== latestCompileId) return
+
+    // The high-level svg() suppresses diagnostics, so the caught error is
+    // opaque. Recompile once with full diagnostics to recover the real
+    // error text (sources are re-mapped first in case state was reset).
+    let structured = null
+    try {
+      const main = await loadSources(content, project)
+      const compiler = await $typst.getCompiler()
+      const { diagnostics } = await compiler.compile({
+        mainFilePath: main,
+        diagnostics: "full"
+      })
+      structured = structureDiagnostics(diagnostics)
+    } catch (diagError) {
+      console.error("typst diagnostics recompile failed:", diagError)
+    }
+
+    // A file the compile could not load may be one whose path the document
+    // builds at runtime: compile again once the files no source names are in.
+    // The failure is logged only when no retry follows (the retry logs its
+    // own), so a document that loads on the second try logs nothing.
+    if (retry && structured && structured.some((d) => FILE_LOAD_ERROR.test(d.message)) && (await loadUnnamedFiles(project))) {
+      if (myId !== latestCompileId) return
+      return compile(content, project, requestId, myId, false)
+    }
+    console.error("typst compile failed (raw):", error)
+
+    const message = (structured && structured[0] && structured[0].message) || formatError(error)
+    self.postMessage({ type: "error", data: { message, diagnostics: structured, requestId } })
+  }
+}
+
 async function handleMessage(event, myId) {
   const { type, content, project, requestId } = event.data
 
   if (type === "compile") {
     // Superseded while queued: a newer keystroke is already waiting.
     if (myId !== latestCompileId) return
-    try {
-      await ensureInitialized()
-      if (myId !== latestCompileId) return
-
-      await registerFonts(project)
-      if (myId !== latestCompileId) return
-
-      const main = await loadSources(content, project)
-      if (myId !== latestCompileId) return
-
-      const svg = await $typst.svg({ mainFilePath: main })
-      if (myId !== latestCompileId) return
-
-      // Echo the compile's id so the client can pair the SVG with the exact
-      // sources it was built from (preview-to-source sync, #149).
-      self.postMessage({ type: "render", data: { svg, requestId } })
-    } catch (error) {
-      if (myId !== latestCompileId) return
-      console.error("typst compile failed (raw):", error)
-
-      // The high-level svg() suppresses diagnostics, so the caught error is
-      // opaque. Recompile once with full diagnostics to recover the real
-      // error text (sources are re-mapped first in case state was reset).
-      let structured = null
-      try {
-        const main = await loadSources(content, project)
-        const compiler = await $typst.getCompiler()
-        const { diagnostics } = await compiler.compile({
-          mainFilePath: main,
-          diagnostics: "full"
-        })
-        structured = structureDiagnostics(diagnostics)
-      } catch (diagError) {
-        console.error("typst diagnostics recompile failed:", diagError)
-      }
-
-      const message = (structured && structured[0] && structured[0].message) || formatError(error)
-      self.postMessage({ type: "error", data: { message, diagnostics: structured, requestId } })
-    }
+    await compile(content, project, requestId, myId, true)
   } else if (type === "pdf") {
     // Export bypasses latestCompileId: a download is an explicit one-off and must
     // not be cancelled by a concurrent live-preview compile.
