@@ -174,7 +174,6 @@ export function buildVirtualDoc(bufferPath, bufferContent, sources, entryPath) {
   let primaryEndS = primaryEnd
   if (search.includes("\u00ad")) {
     const map = new Int32Array(search.length + 1)
-    let out = ""
     let j = 0
     for (let i = 0; i < search.length; i++) {
       if (i === primaryEnd) primaryEndS = j
