@@ -125,6 +125,26 @@ test.describe('Preview ↔ source sync', () => {
     await expect(run(page, 'kestrels')).toHaveCount(0)
   })
 
+  test('a printed data file resolves to the data file, brackets included', async ({ page }) => {
+    await createProjectAndOpenEditor(page, 'E2E Sync Data')
+    const main = await createFile(page, 'main.typ')
+    await replaceBuffer(page, main, '= Data\n\nOpening paragraph about kestrels.\n\n#csv("birds.csv")\n')
+    await waitForSaved(page)
+    const csv = await createFile(page, 'birds.csv')
+    await replaceBuffer(page, csv, 'bird,habitat\nheron,a long-legged wading bird of marshes\n')
+    await waitForSaved(page)
+    await page.locator('#file-tree-main [phx-click="select_file"]').filter({ hasText: 'main.typ' }).first().click()
+    await expect(run(page, 'wading')).toBeVisible({ timeout: 30_000 })
+
+    // The printed row resolves to its CSV line; the bare bracket printed
+    // around the array follows it there instead of a body line.
+    await run(page, 'wading').click({ position: { x: 1, y: 4 } })
+    await expect(page.locator('.ts-tab.is-active .ts-tab__label')).toContainText('birds.csv')
+    await expect(page.locator('#status-cursor')).toHaveText(/Ln 2\b/)
+    await page.locator('#typst-svg-output .tsel').filter({ hasText: /^\s*\(\s*$/ }).first().click()
+    await expect(page.locator('.ts-tab.is-active .ts-tab__label')).toContainText('birds.csv')
+  })
+
   test('generated text lands on the call that produced it', async ({ page }) => {
     await createProjectAndOpenEditor(page, 'E2E Sync Lorem')
     const cm = await createFile(page, 'main.typ')

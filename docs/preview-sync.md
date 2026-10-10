@@ -48,7 +48,9 @@ and flash it. Works across `#include`d files. Issue: typster-io/typster#149.
   bracket, or a `#set`/`#show`/`#let`/`#import`/`#include`). A marker with no
   line of its own (a bullet, a heading number) belongs to the start of the
   next run's line. A placed run spans its whole line, so a caret anywhere on
-  `#lorem(400)` finds the paragraph.
+  `#lorem(400)` finds the paragraph. A short run (a bracket, a lone value)
+  next to text that resolved to a data file is part of the same printed
+  structure and goes with that neighbour.
 - Preview → source dispatches the existing `phx:editor-command` goto with
   `{file, line, col}`, where the column is the character under the pointer
   (the text layer's characters map one-to-one onto the matched source, give
