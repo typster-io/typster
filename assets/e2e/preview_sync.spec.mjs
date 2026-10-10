@@ -127,11 +127,15 @@ async function uploadPictures(page, names) {
 }
 
 // Click character `index` of a run's text (leading whitespace not counted).
-// The click lands a third of the way into the character as drawn: its
-// glyph's advance (the preview reads clicks off the glyphs), or the hidden
-// text layer's box when the run's glyphs are not one per character. The
-// caret then goes just before it and the expected column is that
-// character's own. The first pixel of a run is avoided on purpose: there the
+// The click lands a third of the way into the character as drawn: its share
+// of its glyph's advance (the preview reads clicks off the glyphs). Each
+// glyph draws one grapheme (a letter typed with combining marks is one), or
+// several in a ligature: a word whose glyphs miss its graphemes is matched
+// against the glyphs the page draws for one grapheme elsewhere, and must
+// match one way only. Only a run whose glyphs cannot be read so falls back
+// to the hidden text layer's box, which is set in a system font and so
+// differs between platforms. The caret then goes just before the character
+// and the expected column is that character's own. The first pixel of a run is avoided on purpose: there the
 // browser reports no character at all. A glyph too narrow for that (a
 // period) is clicked on its right part with `after`, and the caret is then
 // reported after it. The point is read until two reads agree, so a scroll
@@ -151,18 +155,99 @@ async function clickChar(page, loc, index, after = false) {
   const point = () =>
     loc.evaluate((el, [i, after]) => {
       let at = el.textContent.length - el.textContent.trimStart().length + i
-      // Aim at the drawn glyph when the run draws one per character: its
-      // pen position and advance, in screen coordinates.
-      const g = el.closest('.typst-text')
-      const uses = g ? [...g.children].filter((c) => c.tagName.toLowerCase() === 'use') : []
-      if (uses.length && uses.length === Array.from(el.textContent).length) {
-        const k = Array.from(el.textContent.slice(0, at)).length
-        const m = g.getScreenCTM()
+      const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+      const graphemes = (t) => Array.from(segmenter.segment(t), (x) => x.segment)
+      const ref = (u) => (u.getAttribute('href') || u.getAttribute('xlink:href') || '').replace(/^#/, '')
+      // A run's graphemes and glyphs, and the two cut into words and gaps
+      // (graphemes at whitespace, glyphs at blank ones: no outline, a
+      // space), paired; no words when the two do not cut alike.
+      const wordsOf = (sel) => {
+        const g = sel.closest('.typst-text')
+        const uses = g ? [...g.children].filter((c) => c.tagName.toLowerCase() === 'use') : []
+        const gs = graphemes(sel.textContent)
+        const blank = (u) => {
+          const def = ref(u) && document.getElementById(ref(u))
+          return !def || !(def.getAttribute('d') || def.children.length)
+        }
+        const cut = (list, gap) => {
+          const out = []
+          list.forEach((v, k) => {
+            const last = out[out.length - 1]
+            if (last && last.gap === gap(v)) last.to = k + 1
+            else out.push({ gap: gap(v), from: k, to: k + 1 })
+          })
+          return out
+        }
+        const cw = cut(gs, (c) => /^\s+$/u.test(c))
+        const gw = cut(uses, blank)
+        const words = cw.length === gw.length && cw.every((w, k) => w.gap === gw[k].gap) ? cw.map((c, k) => ({ c, g: gw[k] })) : []
+        return { uses, gs, words }
+      }
+      // Which glyph draws the character, and its share of that glyph
+      // (part `j` of `n`): null when the glyphs cannot tell.
+      const drawnAt = (run) => {
+        const { uses, gs, words } = run
+        let ci = 0
+        for (let len = 0; ci < gs.length && len + gs[ci].length <= at; ci++) len += gs[ci].length
+        if (uses.length === gs.length) return { k: ci, j: 0, n: 1 }
+        const word = words.find((w) => ci < w.c.to)
+        if (!word) return null
+        const { c, g } = word
+        if (c.to - c.from === g.to - g.from) return { k: g.from + ci - c.from, j: 0, n: 1 }
+        // The grapheme each glyph draws in the page's words drawn one glyph
+        // per grapheme (null where two disagree).
+        const lex = new Map()
+        for (const sel of (el.closest('.typst-page') || document).querySelectorAll('.tsel')) {
+          const r = wordsOf(sel)
+          for (const w of r.words) {
+            if (w.c.to - w.c.from !== w.g.to - w.g.from) continue
+            for (let k = 0; k < w.g.to - w.g.from; k++) {
+              const id = ref(r.uses[w.g.from + k])
+              const ch = r.gs[w.c.from + k]
+              lex.set(id, lex.has(id) && lex.get(id) !== ch ? null : ch)
+            }
+          }
+        }
+        // Every way the word's glyphs draw its graphemes: a known glyph its
+        // own one, any other at least one.
+        const ways = []
+        const walk = (k, at, counts) => {
+          if (ways.length > 1) return
+          if (k === g.to) {
+            if (at === c.to) ways.push(counts)
+            return
+          }
+          const known = lex.get(ref(uses[k]))
+          if (known) {
+            if (gs[at] === known) walk(k + 1, at + 1, [...counts, 1])
+            return
+          }
+          for (let m = 1; at + m <= c.to - (g.to - k - 1); m++) walk(k + 1, at + m, [...counts, m])
+        }
+        walk(g.from, c.from, [])
+        if (ways.length !== 1) return null
+        let from = c.from
+        for (let k = 0; k < ways[0].length; k++) {
+          if (ci < from + ways[0][k]) return { k: g.from + k, j: ci - from, n: ways[0][k] }
+          from += ways[0][k]
+        }
+        return null
+      }
+      // Aim at the drawn glyph: its pen position and advance, in screen
+      // coordinates.
+      const run = wordsOf(el)
+      const hit = run.uses.length ? drawnAt(run) : null
+      if (hit) {
+        const { k, j, n } = hit
+        const uses = run.uses
+        const m = el.closest('.typst-text').getScreenCTM()
         const fo = el.closest('foreignObject')
         const fm = fo.getScreenCTM()
         const sx = (x) => m.a * x + m.e
-        const x0 = sx(+uses[k].getAttribute('x'))
-        const x1 = k + 1 < uses.length ? sx(+uses[k + 1].getAttribute('x')) : fm.a * (+fo.getAttribute('x') + +fo.getAttribute('width')) + fm.e
+        const g0 = sx(+uses[k].getAttribute('x'))
+        const g1 = k + 1 < uses.length ? sx(+uses[k + 1].getAttribute('x')) : fm.a * (+fo.getAttribute('x') + +fo.getAttribute('width')) + fm.e
+        const x0 = g0 + ((g1 - g0) * j) / n
+        const x1 = g0 + ((g1 - g0) * (j + 1)) / n
         const b = el.getBoundingClientRect()
         return { x: after ? x0 + ((x1 - x0) * 3) / 4 : x0 + Math.max(1, (x1 - x0) / 3), y: b.top + b.height / 2 }
       }
