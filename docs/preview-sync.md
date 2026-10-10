@@ -34,8 +34,10 @@ and flash it. Works across `#include`d files. Issue: typster-io/typster#149.
   A run whose punctuation differs from the source (a printed array row
   `("key", "short")` against `key,short`) matches by its words in order, with
   each word's source position kept so a click inside a word lands on that
-  character; a lone printed value (`"key"`) next to text from a data file is
-  looked up in the few hundred characters around that neighbour. Short runs
+  character; a printed value (`"key"`, `"name"`) next to text from a data
+  file is looked up in the few hundred characters around that neighbour.
+  Closing punctuation (`)`, `],`) stays with the element before it, an
+  opening bracket or a marker goes with the one after it. Short runs
   may only match right where the previous run ended. A short run found far
   ahead (a table-of-contents entry) is a *weak* match: it neither
   claims the text, nor moves the reading position, nor bounds the placement

@@ -319,6 +319,8 @@ function placeGap(doc, prev, next, gap, prevAdjacent, nextAdjacent) {
   const point = (offset) => ({ start: offset, end: offset })
   const fallback = () =>
     next && nextLine > prevLine ? point(doc.starts[nextLine]) : prev ? point(prev.end) : point(next ? next.start : 0)
+  // Closing punctuation (`)`, `],`) follows the text before it.
+  const closingFallback = (r) => (prev && /^[)\]}>,;.:]+$/.test(r.text) ? point(prev.end) : fallback())
   // Remember the stretch each run was placed in: a caret on a line in it
   // whose own text matched nothing (`#csv(...)`) finds these runs.
   for (const r of gap) {
@@ -326,7 +328,7 @@ function placeGap(doc, prev, next, gap, prevAdjacent, nextAdjacent) {
     r.gapTo = to
   }
   if (to <= from) {
-    for (const r of gap) Object.assign(r, fallback())
+    for (const r of gap) Object.assign(r, closingFallback(r))
     return
   }
 
@@ -373,10 +375,17 @@ function placeGap(doc, prev, next, gap, prevAdjacent, nextAdjacent) {
   }
   let afterPrev = inAppendix(prevAdjacent) ? prevAdjacent.searchEnd : null
 
+  // Closing punctuation (`)`, `],`) follows the text before it; everything
+  // else without a line of its own precedes the text after it.
+  const closing = (r) => /^[)\]}>,;.:]+$/.test(r.text)
+
   let claimed = -1
   for (const r of gap) {
-    if (neighbourSpot && claimed < 0 && structural(r)) {
-      const tokens = r.image ? [] : tokensOf(r.text)
+    if (neighbourSpot && claimed < 0 && !r.image) {
+      // Next to text from a data file: a run with words of its own (a cell
+      // such as `"name"`) is looked up in that file around the neighbours;
+      // a bare bracket goes with the neighbour it belongs to.
+      const tokens = tokensOf(r.text)
       let hit = null
       if (tokens.length && inAppendix(nextAdjacent)) {
         // The previous neighbour may sit later in the data file (a glossary
@@ -399,7 +408,13 @@ function placeGap(doc, prev, next, gap, prevAdjacent, nextAdjacent) {
         afterPrev = hit.end
         continue
       }
-      Object.assign(r, neighbourSpot)
+      if (structural(r)) {
+        Object.assign(r, closing(r) && inAppendix(prevAdjacent) ? point(prevAdjacent.end) : neighbourSpot)
+        continue
+      }
+    }
+    if (claimed < 0 && prev && closing(r)) {
+      Object.assign(r, point(prev.end))
       continue
     }
     let best = -1
