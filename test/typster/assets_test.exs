@@ -29,18 +29,24 @@ defmodule Typster.AssetsTest do
       %{owner: owner, project: project}
     end
 
-    test "fonts get the caller's URL, other assets do not", %{owner: owner, project: project} do
+    test "fonts and images get the caller's URL, other assets do not",
+         %{owner: owner, project: project} do
       font = asset_fixture(project, owner, %{filename: "Brand.ttf", content_type: "font/ttf"})
       image = asset_fixture(project, owner, %{filename: "logo.png"})
+      other = asset_fixture(project, owner, %{filename: "notes.pdf"})
 
-      [font_entry, image_entry] = Assets.preview_manifest([font, image], &"/raw/#{&1.id}")
+      [font_entry, image_entry, other_entry] =
+        Assets.preview_manifest([font, image, other], &"/raw/#{&1.id}")
 
       assert font_entry.kind == "font"
       assert font_entry.reference_path == "assets/Brand.ttf"
       assert font_entry.url == "/raw/#{font.id}"
 
+      # The preview compiler reads images too (`#image("assets/logo.png")`).
       assert image_entry.kind == "image"
-      refute Map.has_key?(image_entry, :url)
+      assert image_entry.url == "/raw/#{image.id}"
+
+      refute Map.has_key?(other_entry, :url)
     end
 
     test "without a URL builder fonts are listed but carry no url", %{

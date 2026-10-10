@@ -210,6 +210,44 @@ async function registerFonts(project) {
   }
 }
 
+// ── Project images ─────────────────────────────────────────────────────────
+//
+// Image assets arrive like fonts (`kind: "image"`, a `url` served by the app)
+// and are mapped as shadow files at their reference path, so
+// `#image("assets/logo.png")` resolves. Bytes are cached by path + size and
+// mapped on every compile (a cheap call once cached); an image that cannot be
+// fetched is simply absent, and the compiler reports the missing file.
+
+const imageBytesCache = new Map()
+
+function projectImages(project) {
+  const assets = Array.isArray(project && project.assets) ? project.assets : []
+  return assets.filter(
+    (a) => a && a.kind === "image" && typeof a.url === "string" && typeof a.reference_path === "string"
+  )
+}
+
+async function fetchImageBytes(asset) {
+  const key = fontCacheKey(asset)
+  if (imageBytesCache.has(key)) return imageBytesCache.get(key)
+  const response = await fetch(asset.url)
+  if (!response.ok) throw new Error(`Failed to fetch image ${asset.reference_path}: ${response.status}`)
+  const bytes = new Uint8Array(await response.arrayBuffer())
+  imageBytesCache.set(key, bytes)
+  return bytes
+}
+
+async function mapImages(project) {
+  for (const asset of projectImages(project)) {
+    try {
+      const bytes = await fetchImageBytes(asset)
+      await $typst.mapShadow(vfsPath(asset.reference_path), bytes)
+    } catch (error) {
+      console.error("typst image fetch failed:", error)
+    }
+  }
+}
+
 // Map a project-relative path ("chapters/ch1.typ") to the compiler's rooted VFS
 // path. Collapsing leading slashes keeps "/x.typ" and "x.typ" in agreement, and
 // the fallback is the conventional entrypoint when no path is supplied.
@@ -223,19 +261,26 @@ function vfsPath(path) {
 // than a flattened "/main.typ", so files in subdirectories keep their directory
 // and relative `#import`s resolve. The buffer's twin in `sources` (the persisted
 // copy) is skipped so the live, possibly-unsaved buffer wins.
+//
+// `project.entryPath` names the file to compile when it is not the buffer: a
+// jump from the preview into an `#include`d chapter keeps rendering the
+// document that chapter belongs to (#149). It is only honoured when that file
+// is among the sources; otherwise the buffer is the entrypoint as before.
 async function loadSources(content, project) {
-  const main = vfsPath(project?.mainPath)
+  const buffer = vfsPath(project?.mainPath)
+  const sources = Array.isArray(project?.sources) ? project.sources : []
+  const entry = project?.entryPath ? vfsPath(project.entryPath) : buffer
+  const main = entry !== buffer && sources.some((s) => vfsPath(s.path) === entry) ? entry : buffer
   $typst.setMainFilePath(main)
-  await $typst.addSource(main, content || "")
+  await $typst.addSource(buffer, content || "")
 
-  if (project?.sources) {
-    for (const source of project.sources) {
-      const path = vfsPath(source.path)
-      if (path !== main) {
-        await $typst.addSource(path, source.content || "")
-      }
+  for (const source of sources) {
+    const path = vfsPath(source.path)
+    if (path !== buffer) {
+      await $typst.addSource(path, source.content || "")
     }
   }
+  await mapImages(project)
 
   return main
 }
@@ -274,7 +319,9 @@ async function handleMessage(event, myId) {
       const svg = await $typst.svg({ mainFilePath: main })
       if (myId !== latestCompileId) return
 
-      self.postMessage({ type: "render", data: { svg } })
+      // Echo the compile's id so the client can pair the SVG with the exact
+      // sources it was built from (preview-to-source sync, #149).
+      self.postMessage({ type: "render", data: { svg, requestId } })
     } catch (error) {
       if (myId !== latestCompileId) return
       console.error("typst compile failed (raw):", error)
@@ -296,7 +343,7 @@ async function handleMessage(event, myId) {
       }
 
       const message = (structured && structured[0] && structured[0].message) || formatError(error)
-      self.postMessage({ type: "error", data: { message, diagnostics: structured } })
+      self.postMessage({ type: "error", data: { message, diagnostics: structured, requestId } })
     }
   } else if (type === "pdf") {
     // Export bypasses latestCompileId: a download is an explicit one-off and must

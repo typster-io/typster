@@ -356,6 +356,30 @@ test.describe('Product UI redesign', () => {
     expect(await colored.count()).toBeGreaterThan(0)
   })
 
+  test('a line comment holding a second // does not swallow the file', async ({ page }) => {
+    await createProjectAndOpenEditor(page, 'Highlight Comment E2E')
+    await addMainFile(page)
+
+    const cm = page.locator('#editor-container .cm-content')
+    await cm.click()
+    await page.keyboard.press('ControlOrMeta+a')
+    await page.keyboard.press('Delete')
+    await page.keyboard.insertText('// === start === // of the block\n= Heading <label>\n#let x = 1\n')
+
+    // The heading and the `#let` keep their own colours instead of the
+    // comment grey the first line gets.
+    const heading = page.locator('#editor-container .cm-line', { hasText: 'Heading' })
+    await expect(heading.locator('span[style*="color"]').first()).toBeVisible({ timeout: 15_000 })
+    const commentColor = await page
+      .locator('#editor-container .cm-line', { hasText: 'start' })
+      .locator('span[style*="color"]')
+      .first()
+      .evaluate((el) => el.style.color)
+    const headingColors = await heading.locator('span[style*="color"]').evaluateAll((els) => els.map((el) => el.style.color))
+    expect(headingColors.length).toBeGreaterThan(0)
+    expect(headingColors).not.toContain(commentColor)
+  })
+
   test('formatting toolbar inserts markup into the editor', async ({ page }) => {
     await createProjectAndOpenEditor(page, 'Toolbar E2E')
     await addMainFile(page)

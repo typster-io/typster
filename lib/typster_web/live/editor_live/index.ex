@@ -125,30 +125,39 @@ defmodule TypsterWeb.EditorLive.Index do
     {:noreply, assign(socket, :save_status, "saving")}
   end
 
+  # A save may arrive for a buffer that is no longer current: the client
+  # flushes a pending save right before it switches files, and that flush
+  # reaches the server after the switch. Such a save is stored like any other,
+  # it just leaves the active buffer's assigns alone.
   @impl true
   def handle_event("autosave", %{"file_id" => file_id, "content" => content}, socket) do
     scope = socket.assigns.current_scope
-    file = Files.get_file!(scope, file_id)
+    current = socket.assigns.current_file
 
-    if socket.assigns.current_file && socket.assigns.current_file.id == file.id do
-      case Files.update_file_content(scope, file, content) do
-        {:ok, updated_file} ->
-          Revisions.create_revision(scope, file_id, content)
-          file_tree = Files.get_file_tree(scope, socket.assigns.project.id)
+    with {:ok, _} <- Ecto.UUID.cast(file_id),
+         true <- is_binary(content),
+         %Typster.Projects.File{} = file <- Files.get_file(scope, file_id),
+         true <- file.project_id == socket.assigns.project.id,
+         {:ok, updated_file} <- Files.update_file_content(scope, file, content) do
+      Revisions.create_revision(scope, file_id, content)
+      file_tree = Files.get_file_tree(scope, socket.assigns.project.id)
 
-          {:noreply,
-           socket
-           |> assign(:current_file, updated_file)
-           |> assign(:file_tree, file_tree)
-           |> assign(:project_sources, project_sources(file_tree))
-           |> assign(:content, content)
-           |> assign(:save_status, "saved")}
+      socket =
+        socket
+        |> assign(:file_tree, file_tree)
+        |> assign(:project_sources, project_sources(file_tree))
 
-        {:error, _changeset} ->
-          {:noreply, assign(socket, :save_status, "error")}
+      if current && current.id == file.id do
+        {:noreply,
+         socket
+         |> assign(:current_file, updated_file)
+         |> assign(:content, content)
+         |> assign(:save_status, "saved")}
+      else
+        {:noreply, socket}
       end
     else
-      {:noreply, assign(socket, :save_status, "error")}
+      _ -> {:noreply, assign(socket, :save_status, "error")}
     end
   end
 
@@ -434,25 +443,34 @@ defmodule TypsterWeb.EditorLive.Index do
     file = Files.get_file!(scope, file_id)
 
     if Files.editable_file?(file) do
-      {:noreply,
-       socket
-       |> open_tab(file_id)
-       |> assign(:current_file, file)
-       |> assign(:active_dir, file_dir(file))
-       |> assign(:content, file.content || "")
-       |> assign(:editor_language, editor_language(file))
-       |> assign(:save_status, "saved")
-       |> push_event("file_changed", %{
-         file_id: file_id,
-         path: file.path,
-         content: file.content || "",
-         language: editor_language(file)
-       })
-       |> push_event("content_updated", %{content: file.content || ""})}
+      {:noreply, open_file(socket, file, "select")}
     else
       {:noreply, put_flash(socket, :error, gettext("editor.flash.binary_asset"))}
     end
   end
+
+  # The preview resolves a clicked spot to a project path (preview-to-source
+  # sync, #149); open that file so the client can move the cursor in it. The
+  # path is looked up in the cached tree but the file is re-read, so a
+  # collaborator's save since mount is not overwritten with stale content. An
+  # unknown, deleted, malformed or non-editable path is a no-op.
+  @impl true
+  def handle_event("open_path", %{"path" => path}, socket) when is_binary(path) do
+    path = String.trim_leading(path, "/")
+    scope = socket.assigns.current_scope
+
+    with %Typster.Projects.File{} = cached <-
+           Enum.find(socket.assigns.file_tree, &(&1.path == path)),
+         %Typster.Projects.File{} = file <- Files.get_file(scope, cached.id),
+         true <- Files.editable_file?(file) do
+      {:noreply, open_file(socket, file, "jump")}
+    else
+      _ -> {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_event("open_path", _params, socket), do: {:noreply, socket}
 
   @impl true
   def handle_event("close_tab", %{"id" => file_id}, socket) do
@@ -469,7 +487,12 @@ defmodule TypsterWeb.EditorLive.Index do
            |> assign(:current_file, nil)
            |> assign(:content, "")
            |> assign(:editor_language, "plain")
-           |> push_event("file_changed", %{file_id: nil, content: "", language: "plain"})
+           |> push_event("file_changed", %{
+             file_id: nil,
+             content: "",
+             language: "plain",
+             reason: "close"
+           })
            |> push_event("content_updated", %{content: ""})}
 
         file ->
@@ -482,7 +505,8 @@ defmodule TypsterWeb.EditorLive.Index do
              file_id: file.id,
              path: file.path,
              content: file.content || "",
-             language: editor_language(file)
+             language: editor_language(file),
+             reason: "close"
            })
            |> push_event("content_updated", %{content: file.content || ""})}
       end
@@ -728,7 +752,8 @@ defmodule TypsterWeb.EditorLive.Index do
            file_id: file.id,
            path: file.path,
            content: content,
-           language: editor_language(file)
+           language: editor_language(file),
+           reason: "create"
          })
          |> push_event("content_updated", %{content: content})}
 
@@ -970,9 +995,15 @@ defmodule TypsterWeb.EditorLive.Index do
       |> assign(:project_sources, project_sources(file_tree))
       |> put_flash(:info, gettext("editor.flash.file_moved"))
 
-    if current && current.id == moved.id,
-      do: assign(socket, :current_file, moved),
-      else: socket
+    # The open buffer moved with it: tell the client its path (the editor
+    # keeps its text; only the path the compiler maps it at changes).
+    if current && current.id == moved.id do
+      socket
+      |> assign(:current_file, moved)
+      |> push_event("file_moved", %{file_id: moved.id, path: moved.path})
+    else
+      socket
+    end
   end
 
   # Open the inline draft targeting the active folder (shown as a static prefix,
@@ -1304,6 +1335,28 @@ defmodule TypsterWeb.EditorLive.Index do
     """
   end
 
+  # Make `file` the active buffer: open its tab and hand the client its content.
+  # `reason` tells the client why the buffer changed ("select" from the tree or
+  # a tab, "jump" from the preview): only a deliberate selection changes which
+  # document the preview compiles.
+  defp open_file(socket, file, reason) do
+    socket
+    |> open_tab(file.id)
+    |> assign(:current_file, file)
+    |> assign(:active_dir, file_dir(file))
+    |> assign(:content, file.content || "")
+    |> assign(:editor_language, editor_language(file))
+    |> assign(:save_status, "saved")
+    |> push_event("file_changed", %{
+      file_id: file.id,
+      path: file.path,
+      content: file.content || "",
+      language: editor_language(file),
+      reason: reason
+    })
+    |> push_event("content_updated", %{content: file.content || ""})
+  end
+
   # Append a file id to the open-tabs list (keeping order, no duplicates).
   defp open_tab(socket, file_id) do
     ids = socket.assigns.open_file_ids
@@ -1400,6 +1453,12 @@ defmodule TypsterWeb.EditorLive.Index do
     Enum.find_value(diagnostics, fn d -> d.line end)
   end
 
+  # The file of the first located diagnostic, so "Jump to first" can switch
+  # buffers when the error is not in the active one.
+  defp first_error_file(diagnostics) do
+    Enum.find_value(diagnostics, fn d -> d.line && d.file end)
+  end
+
   defp pinned_files(file_tree), do: Enum.filter(file_tree, & &1.pinned)
 
   # Hierarchical section numbers, with the level-1 title left unnumbered and
@@ -1423,7 +1482,8 @@ defmodule TypsterWeb.EditorLive.Index do
       file_id: file && file.id,
       path: file && file.path,
       content: content,
-      language: editor_language(file)
+      language: editor_language(file),
+      reason: "delete"
     }
   end
 

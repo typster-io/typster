@@ -306,6 +306,7 @@ italic accent. Key shared primitives added with the product-UI redesign:
 | `.ts-card--action`| Clickable action card (templates / import), `.ts-cards` row |
 | `.ts-tpl-panel`   | Template library on the projects page: rows plus a dropzone; the new-project dialog offers them under "Start from". The editor sidebar no longer lists templates |
 | `.ts-dragghost`   | Drag image for a sidebar row: chip, name, snippet to insert |
+| `.ts-preview__flash` | Accent band (`--mk-pri-100` fill, `--mk-pri` outline) flashed over the rendered run holding the editor caret; placed by JS via `--flash-*` custom properties, fades out on its own (see `docs/preview-sync.md`) |
 | `.ts-prefrow`     | Settings preference row (label + control)                 |
 | `.ts-cm-search`   | Custom CodeMirror find & replace panel (`_codemirror.css`) |
 
@@ -347,6 +348,12 @@ Compiled Typst renders to a transparent SVG with black glyphs. It is placed on a
 white "paper" card (shadow, centered, scales to width) so the document stays
 readable in **both** themes — the UI theme never tints the page, matching
 Overleaf / typst.app.
+
+Clicking the paper moves the editor caret to the matching source line (across
+`#include`d files), and a resting caret scrolls the paper to its text and
+flashes `.ts-preview__flash` over it. The mapping aligns the SVG's text layer
+with the sources; how it works and where it is approximate is in
+`docs/preview-sync.md`.
 
 ## Motion
 
