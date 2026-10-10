@@ -210,6 +210,44 @@ async function registerFonts(project) {
   }
 }
 
+// ── Project images ─────────────────────────────────────────────────────────
+//
+// Image assets arrive like fonts (`kind: "image"`, a `url` served by the app)
+// and are mapped as shadow files at their reference path, so
+// `#image("assets/logo.png")` resolves. Bytes are cached by path + size and
+// mapped on every compile (a cheap call once cached); an image that cannot be
+// fetched is simply absent, and the compiler reports the missing file.
+
+const imageBytesCache = new Map()
+
+function projectImages(project) {
+  const assets = Array.isArray(project && project.assets) ? project.assets : []
+  return assets.filter(
+    (a) => a && a.kind === "image" && typeof a.url === "string" && typeof a.reference_path === "string"
+  )
+}
+
+async function fetchImageBytes(asset) {
+  const key = fontCacheKey(asset)
+  if (imageBytesCache.has(key)) return imageBytesCache.get(key)
+  const response = await fetch(asset.url)
+  if (!response.ok) throw new Error(`Failed to fetch image ${asset.reference_path}: ${response.status}`)
+  const bytes = new Uint8Array(await response.arrayBuffer())
+  imageBytesCache.set(key, bytes)
+  return bytes
+}
+
+async function mapImages(project) {
+  for (const asset of projectImages(project)) {
+    try {
+      const bytes = await fetchImageBytes(asset)
+      await $typst.mapShadow(vfsPath(asset.reference_path), bytes)
+    } catch (error) {
+      console.error("typst image fetch failed:", error)
+    }
+  }
+}
+
 // Map a project-relative path ("chapters/ch1.typ") to the compiler's rooted VFS
 // path. Collapsing leading slashes keeps "/x.typ" and "x.typ" in agreement, and
 // the fallback is the conventional entrypoint when no path is supplied.
@@ -242,6 +280,7 @@ async function loadSources(content, project) {
       await $typst.addSource(path, source.content || "")
     }
   }
+  await mapImages(project)
 
   return main
 }
