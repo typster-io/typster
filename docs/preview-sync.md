@@ -31,8 +31,13 @@ and flash it. Works across `#include`d files. Issue: typster-io/typster#149.
   `---` or an em dash, soft hyphens anywhere. A run that still misses drops a
   generated label ("Figure 1: ", "1.2 ") and tries again, then falls back to
   its longest word, which must match a whole word ahead of the position.
-  Short runs may only match right where the previous run ended. A short run
-  found far ahead (a table-of-contents entry) is a *weak* match: it neither
+  A run whose punctuation differs from the source (a printed array row
+  `("key", "short")` against `key,short`) matches by its words in order, with
+  each word's source position kept so a click inside a word lands on that
+  character; a lone printed value (`"key"`) next to text from a data file is
+  looked up in the few hundred characters around that neighbour. Short runs
+  may only match right where the previous run ended. A short run found far
+  ahead (a table-of-contents entry) is a *weak* match: it neither
   claims the text, nor moves the reading position, nor bounds the placement
   of its neighbours, so the body's own heading still finds its line. Regex
   metacharacters and astral characters (emoji) in a run are escaped per code

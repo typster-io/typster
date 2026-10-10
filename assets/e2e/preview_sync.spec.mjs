@@ -146,6 +146,21 @@ test.describe('Preview ↔ source sync', () => {
     await run(page, 'wading').click({ position: { x: 1, y: 4 } })
     await expect(page.locator('.ts-tab.is-active .ts-tab__label')).toContainText('birds.csv')
     await expect(page.locator('#status-cursor')).toHaveText(/Ln 2\b/)
+
+    // A short printed cell (`"heron"`) is found between its neighbours in
+    // the CSV, and a click inside the word lands on that character.
+    const heron = page.locator('#typst-svg-output .tsel').filter({ hasText: /^\s*"heron"\s*$/ }).first()
+    const pt = await heron.evaluate((el) => {
+      const node = document.createTreeWalker(el, NodeFilter.SHOW_TEXT).nextNode()
+      const lead = (el.textContent.match(/^\s*/) || [''])[0].length
+      const r = document.createRange()
+      r.setStart(node, lead + 3) // between "he" and "ron" (after the opening quote)
+      r.setEnd(node, lead + 3)
+      const b = r.getBoundingClientRect()
+      return { x: b.left + 0.5, y: b.top + b.height / 2 }
+    })
+    await page.mouse.click(pt.x, pt.y)
+    await expect(page.locator('#status-cursor')).toHaveText(/Ln 2, Col 3\b/)
     await page.locator('#typst-svg-output .tsel').filter({ hasText: /^\s*\(\s*$/ }).first().click()
     await expect(page.locator('.ts-tab.is-active .ts-tab__label')).toContainText('birds.csv')
   })
