@@ -203,6 +203,27 @@ test.describe('Preview ↔ source sync', () => {
     ).toBeLessThan(16)
   })
 
+  test('a short heading after printed data stays in the document', async ({ page }) => {
+    await createProjectAndOpenEditor(page, 'E2E Sync Short Heading')
+    const main = await createFile(page, 'main.typ')
+    await replaceBuffer(page, main, '= Data\n\nOpening paragraph about kestrels.\n\n#csv("birds.csv")\n\n#lorem(40)\n\n== fji\n\nTail paragraph about herons.\n')
+    await waitForSaved(page)
+    const csv = await createFile(page, 'birds.csv')
+    await replaceBuffer(page, csv, 'bird,habitat\nheron,marsh\n')
+    await waitForSaved(page)
+    await page.locator('#file-tree-main [phx-click="select_file"]').filter({ hasText: 'main.typ' }).first().click()
+    await expect(run(page, 'herons')).toBeVisible({ timeout: 30_000 })
+
+    // Three letters are too few to search for, yet the line showing exactly
+    // that text is the heading's, not a cell of the CSV printed before it.
+    const heading = page.locator('#typst-svg-output .tsel').filter({ hasText: /^\s*fji\s*$/ }).first()
+    await heading.scrollIntoViewIfNeeded()
+    await heading.click()
+    await expect(page.locator('.ts-tab.is-active .ts-tab__label')).toContainText('main.typ')
+    await expect(page.locator('#status-cursor')).toHaveText(/Ln 9\b/)
+    await expect(page.locator('#editor-container .cm-activeLine')).toContainText('== fji')
+  })
+
   test('generated text lands on the call that produced it', async ({ page }) => {
     await createProjectAndOpenEditor(page, 'E2E Sync Lorem')
     const cm = await createFile(page, 'main.typ')
