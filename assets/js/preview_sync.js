@@ -279,7 +279,7 @@ function lineSpan(doc, idx) {
   return { start: doc.starts[idx], end: doc.starts[idx] + doc.lines[idx].text.length }
 }
 
-function placeGap(doc, prev, next, gap) {
+function placeGap(doc, prev, next, gap, prevAdjacent, nextAdjacent) {
   const prevLine = prev ? lineIndexAt(doc, prev.end) : -1
   const nextLine = next ? lineIndexAt(doc, next.start) : doc.primaryLines
   const from = prevLine + 1
@@ -313,8 +313,23 @@ function placeGap(doc, prev, next, gap) {
   const leadIn = firstContent >= 0 ? lineSpan(doc, firstContent) : fallback()
   const score = gap.length * (to - from) <= MAX_SCORING_WORK
 
+  // A short run (a bracket, a lone value) printed next to text that came
+  // from a data file is part of the same printed structure: it belongs with
+  // that neighbour, not to a body line that happens to follow.
+  const inAppendix = (r) => r && r.anchored && r.start > doc.primaryEnd
+  const structural = (r) => forwardWindow(r.text) < 400
+  const neighbourSpot = inAppendix(nextAdjacent)
+    ? point(nextAdjacent.start)
+    : inAppendix(prevAdjacent)
+      ? point(prevAdjacent.end)
+      : null
+
   let claimed = -1
   for (const r of gap) {
+    if (neighbourSpot && claimed < 0 && structural(r)) {
+      Object.assign(r, neighbourSpot)
+      continue
+    }
     let best = -1
     if (score) {
       const words = new Set(wordsOf(r.text))
@@ -419,7 +434,7 @@ export function alignRuns(container, doc) {
         break
       }
     }
-    placeGap(doc, prev, next, runs.slice(i, j))
+    placeGap(doc, prev, next, runs.slice(i, j), i > 0 ? runs[i - 1] : null, runs[j] || null)
     i = j
   }
   return runs
