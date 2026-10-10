@@ -317,7 +317,7 @@ function placeGap(doc, prev, next, gap, prevAdjacent, nextAdjacent) {
   // from a data file is part of the same printed structure: it belongs with
   // that neighbour, not to a body line that happens to follow.
   const inAppendix = (r) => r && r.anchored && r.start > doc.primaryEnd
-  const structural = (r) => forwardWindow(r.text) < 400
+  const structural = (r) => !r.image && forwardWindow(r.text) < 400
   const neighbourSpot = inAppendix(nextAdjacent)
     ? point(nextAdjacent.start)
     : inAppendix(prevAdjacent)
@@ -361,12 +361,21 @@ const LABEL_PREFIX = /^(?:[^\s:]{1,16}(?:\s+\d+(?:\.\d+)*)?[:.]\s+|\d+(?:\.\d+)*
 const NEAR_AHEAD = 400
 const LONG_RUN = 40
 
+// A picture has no text to match; its words name what its source line must
+// hold (`#image(...)`, `#figure(image(...))`), so gap placement can claim it.
+const IMAGE_WORDS = "image figure"
+
 export function alignRuns(container, doc) {
   const runs = []
   const claimed = new Uint8Array(doc.search.length + 1) // in search offsets
   const firstBy = new Map() // normalized text -> first anchored run
   let pos = 0
-  for (const sel of container.querySelectorAll(".tsel")) {
+  // Text runs and pictures, in document order.
+  for (const sel of container.querySelectorAll(".tsel, image")) {
+    if (sel.tagName && sel.tagName.toLowerCase() === "image") {
+      runs.push({ el: sel, text: IMAGE_WORDS, start: null, end: null, anchored: false, repeat: false, weak: false, image: true })
+      continue
+    }
     if (sel.parentElement && sel.parentElement.closest(".tsel")) continue
     const el = sel.closest(".typst-text") || sel
     const text = normalizeRun(sel.textContent)
@@ -633,7 +642,7 @@ export function installPreviewSync(container) {
     const state = ensureAligned()
     if (!state) return
     const target = event.target instanceof Element ? event.target : null
-    const el = target && target.closest(".typst-text")
+    const el = target && target.closest(".typst-text, image")
     const run = (el && state.byEl.get(el)) || nearestRun(state.runs, event.clientX, event.clientY)
     if (!run || run.start == null) return
     const loc = locate(state.doc, clickedOffset(run, event))

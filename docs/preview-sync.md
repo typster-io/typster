@@ -11,7 +11,12 @@ and flash it. Works across `#include`d files. Issue: typster-io/typster#149.
   echoes in its `render` reply, so the SVG is paired with the exact sources
   that produced it.
 - The SVG carries each text run's laid-out text in a hidden selection layer
-  (`.typst-text > foreignObject .tsel`), in document order.
+  (`.typst-text > foreignObject .tsel`), in document order. Pictures
+  (`<image>`) are runs too: they carry no text, so gap placement claims the
+  source line holding `image(` or `#figure(` for them, a click on a picture
+  jumps there, and a caret on an `#image(...)` line flashes the picture.
+  (Image assets reach the compiler the way fonts do: the preview manifest
+  carries their URL and the worker maps the bytes as shadow files.)
 - The sources are flattened into a *virtual document*: the entry file with
   each `#include "x.typ"` file spliced in after its include line (cycle- and
   depth-guarded), then every other text source (CSV data, `#import`ed
