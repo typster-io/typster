@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { uniqueProjectName, projectRow } from './unique_project.mjs'
 
 const WASM_FILES = [
   'typst_ts_web_compiler_bg.wasm',
@@ -18,6 +19,7 @@ test.describe('WASM assets', () => {
 
 test.describe('Typst WASM compilation pipeline', () => {
   async function createProjectAndOpenEditor(page, name) {
+    name = uniqueProjectName(name)
     await page.goto('/projects')
     await page.waitForFunction(() => window.liveSocket?.isConnected?.(), null, { timeout: 10_000 })
     await page.locator('#new-project-button').click()
@@ -25,7 +27,7 @@ test.describe('Typst WASM compilation pipeline', () => {
     await page.locator('.ts-dialog input[name="name"]').fill(name)
     await page.locator('.ts-dialog button[type="submit"]').click()
     await expect(page.locator('.ts-dialog')).not.toBeVisible()
-    const row = page.locator('.ts-list__row').filter({ hasText: name })
+    const row = projectRow(page, name)
     await expect(row).toBeVisible()
     await row.getByRole('link', { name: 'Open' }).click()
     await expect(page).toHaveURL(/\/projects\/.+\/edit/)

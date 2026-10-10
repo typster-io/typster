@@ -1,15 +1,20 @@
 import { test, expect } from '@playwright/test'
 
+// The test database keeps the projects of earlier runs, so every project
+// gets a name no other row carries (a suffix after a space, which the share
+// slug turns into "-<suffix>"), and its row is found by its whole title.
 async function createProjectAndOpenEditor(page, name) {
+  const unique = `${name} ${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
   await page.goto('/projects')
   await page.waitForFunction(() => window.liveSocket?.isConnected?.(), null, { timeout: 10_000 })
   await page.locator('#new-project-button').click()
   await expect(page.locator('.ts-dialog')).toBeVisible()
-  await page.locator('.ts-dialog input[name="name"]').fill(name)
+  await page.locator('.ts-dialog input[name="name"]').fill(unique)
   await page.locator('.ts-dialog button[type="submit"]').click()
   await expect(page.locator('.ts-dialog')).not.toBeVisible()
 
-  const row = page.locator('.ts-list__row').filter({ hasText: name })
+  const exact = new RegExp(`^\\s*${unique.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`)
+  const row = page.locator('.ts-list__row').filter({ has: page.locator('.ts-list__title', { hasText: exact }) })
   await expect(row).toBeVisible()
   await row.getByRole('link', { name: 'Open' }).click()
   await expect(page).toHaveURL(/\/projects\/.+\/edit/)
@@ -36,7 +41,7 @@ test.describe('Product UI redesign', () => {
 
     // A real, copyable link with a token.
     const url = (await modal.locator('.link-box .path').textContent()).trim()
-    expect(url).toMatch(/\/p\/quarterly-report\?key=.+/)
+    expect(url).toMatch(/\/p\/quarterly-report-[a-z0-9]+\?key=.+/)
 
     // Pro features are gated.
     await expect(modal.locator('.perm-card.tone-write.gated .pro-badge')).toBeVisible()
@@ -380,6 +385,36 @@ test.describe('Product UI redesign', () => {
     expect(headingColors).not.toContain(commentColor)
   })
 
+  test('a block comment holding // does not swallow the file', async ({ page }) => {
+    await createProjectAndOpenEditor(page, 'Highlight Block Comment E2E')
+    await addMainFile(page)
+
+    const cm = page.locator('#editor-container .cm-content')
+    await cm.click()
+    await page.keyboard.press('ControlOrMeta+a')
+    await page.keyboard.press('Delete')
+    await page.keyboard.insertText('/* a // b */\n= Heading <label>\n#let x = 1\n')
+
+    // The `//` inside the block comment ends nothing: the comment closes at
+    // `*/`, and the heading and the `#let` keep their own colours.
+    const heading = page.locator('#editor-container .cm-line', { hasText: 'Heading' })
+    await expect(heading.locator('span[style*="color"]').first()).toBeVisible({ timeout: 15_000 })
+    const commentColor = await page
+      .locator('#editor-container .cm-line', { hasText: '/* a' })
+      .locator('span[style*="color"]')
+      .first()
+      .evaluate((el) => el.style.color)
+    const headingColors = await heading.locator('span[style*="color"]').evaluateAll((els) => els.map((el) => el.style.color))
+    const letColors = await page
+      .locator('#editor-container .cm-line', { hasText: '#let' })
+      .locator('span[style*="color"]')
+      .evaluateAll((els) => els.map((el) => el.style.color))
+    expect(headingColors.length).toBeGreaterThan(0)
+    expect(headingColors).not.toContain(commentColor)
+    expect(letColors.length).toBeGreaterThan(0)
+    expect(letColors).not.toContain(commentColor)
+  })
+
   test('formatting toolbar inserts markup into the editor', async ({ page }) => {
     await createProjectAndOpenEditor(page, 'Toolbar E2E')
     await addMainFile(page)
@@ -416,7 +451,14 @@ test.describe('Product UI redesign', () => {
     await addMainFile(page)
 
     const cm = page.locator('#editor-container .cm-content')
-    await cm.click()
+    // Click the first line's start, where a user would. A plain click aims at
+    // the middle of .cm-content, which a long template line makes wider than
+    // the editor, so Playwright scrolls the editor sideways to reach it; the
+    // caret's scroll then can leave column 0 under the sticky gutter, and
+    // CodeMirror scrolls only a selection's head into view and hides a
+    // tooltip whose anchor (the bubble's is the selection start) is out of
+    // the visible text.
+    await cm.locator('.cm-line').first().click({ position: { x: 2, y: 2 } })
     // Put the prose on its own fresh line so the selection is exactly it.
     await page.keyboard.press('End')
     await page.keyboard.press('Enter')
@@ -424,8 +466,10 @@ test.describe('Product UI redesign', () => {
     await page.keyboard.press('Home')
     await page.keyboard.press('Shift+End')
 
+    // In the viewport, not just visible: a hidden CM tooltip still has a box,
+    // parked at top -10000px.
     const bubble = page.locator('.cm-qa')
-    await expect(bubble).toBeVisible({ timeout: 5_000 })
+    await expect(bubble).toBeInViewport({ timeout: 5_000 })
     await expect(bubble.locator('.cm-qa__btn.is-primary')).toContainText('Heading')
 
     await bubble.locator('button[title^="Bold"]').click()
