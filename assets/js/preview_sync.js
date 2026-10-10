@@ -294,6 +294,17 @@ function wordsOf(text) {
   return (text.toLowerCase().match(/[\p{L}\p{N}]{4,}/gu) || [])
 }
 
+// A source line reduced to the text it shows: markup markers (`==`, `-`,
+// `+`, `1.`) and a trailing `<label>` dropped, whitespace collapsed. A run
+// equal to that is the line's whole content, however short (`== fji`).
+function shownText(line) {
+  return line
+    .trim()
+    .replace(/^(?:=+|[-+]|\d+\.)\s+/, "")
+    .replace(/\s*<[^<>\s]+>\s*$/, "")
+    .replace(/\s+/g, " ")
+}
+
 // Place a gap of unanchored runs somewhere between the previous and the next
 // matched run. Walking the gap in order, a run sharing a word with a source
 // line in the remaining stretch claims that line (`#lorem(400)` for a "Lorem
@@ -333,12 +344,20 @@ function placeGap(doc, prev, next, gap, prevAdjacent, nextAdjacent) {
   }
 
   const lineWords = []
+  const lineShown = []
   let firstContent = -1
   for (let i = from; i < to; i++) {
     const line = doc.lines[i].text
     const silent = SILENT_LINE.test(line)
     if (!silent && firstContent < 0) firstContent = i
     lineWords.push(silent ? null : wordsOf(line))
+    lineShown.push(silent ? null : shownText(line))
+  }
+  // The first line after `after` showing exactly the run's text.
+  const exactLine = (r, after) => {
+    if (!/[\p{L}\p{N}]/u.test(r.text)) return -1
+    for (let i = Math.max(from, after); i < to; i++) if (lineShown[i - from] === r.text) return i
+    return -1
   }
   const leadIn = firstContent >= 0 ? lineSpan(doc, firstContent) : fallback()
   const score = gap.length * (to - from) <= MAX_SCORING_WORK
@@ -408,7 +427,16 @@ function placeGap(doc, prev, next, gap, prevAdjacent, nextAdjacent) {
         afterPrev = hit.end
         continue
       }
-      if (structural(r)) {
+      // Not in the data file: a line of the body showing exactly this text
+      // (a short heading) is where it came from; else a bare bracket goes
+      // with its neighbour, and a worded run falls through to the scoring.
+      const exact = exactLine(r, claimed)
+      if (exact >= 0) {
+        claimed = exact
+        Object.assign(r, lineSpan(doc, exact))
+        continue
+      }
+      if (structural(r) && !tokens.length) {
         Object.assign(r, closing(r) && inAppendix(prevAdjacent) ? point(prevAdjacent.end) : neighbourSpot)
         continue
       }
@@ -417,8 +445,8 @@ function placeGap(doc, prev, next, gap, prevAdjacent, nextAdjacent) {
       Object.assign(r, point(prev.end))
       continue
     }
-    let best = -1
-    if (score) {
+    let best = exactLine(r, claimed)
+    if (best < 0 && score) {
       const words = new Set(wordsOf(r.text))
       let bestScore = 0
       if (words.size) {
