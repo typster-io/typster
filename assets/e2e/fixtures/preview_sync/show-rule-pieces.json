@@ -1,0 +1,57 @@
+{
+ "shape": "show-rule-pieces",
+ "about": "Show rules printing literal text around what they show (words generated from a seed): a suffix on level-1 headings, a prefix on level-2 headings, a suffix on strong text and on figure captions",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "#show heading.where(level: 1): it => block[#it.body (Repa)]\n#show heading.where(level: 2): it => [Fehe: #it.body]\n#show strong: it => [#it.body (meno)]\n#show figure.caption: it => [#it.body (gocekobu)]\n= Debivumi\n\nVedeca letupu *focace* nona.\n\n== Tehu\n\n#figure(rect(), caption: [Veni gafeviva])\n\n= Huvime\n\n== Dipapo\n\nZunimo *nicucuso*.\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Debivumi (Repa)",
+   "page": 0
+  },
+  {
+   "t": "Vedeca letupu ",
+   "page": 0
+  },
+  {
+   "t": "focace (meno)",
+   "page": 0
+  },
+  {
+   "t": " nona.",
+   "page": 0
+  },
+  {
+   "t": "Fehe: Tehu",
+   "page": 0
+  },
+  {
+   "t": "Veni gafeviva (gocekobu)",
+   "page": 0
+  },
+  {
+   "t": "Huvime (Repa)",
+   "page": 0
+  },
+  {
+   "t": "Fehe: Dipapo",
+   "page": 0
+  },
+  {
+   "t": "Zunimo ",
+   "page": 0
+  },
+  {
+   "t": "nicucuso (meno)",
+   "page": 0
+  },
+  {
+   "t": ".",
+   "page": 0
+  }
+ ]
+}

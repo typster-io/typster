@@ -1,0 +1,129 @@
+{
+ "shape": "cite-prose",
+ "about": "A prose citation (#cite(form: \"prose\")) and a numbered equation",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "#set math.equation(numbering: \"(1)\")\n= Sources\n\n#cite(<petrov2019>, form: \"prose\") describes owls, while @adams2021 covers hawks.\n\n$ N(t) = N_0 e^(r t) $ <eq-growth>\n\nAs @eq-growth predicts, the colony doubles.\n\n#bibliography(\"lit.bib\", style: \"ieee\")\n"
+  },
+  {
+   "path": "lit.bib",
+   "content": "@book{petrov2019,\n  title = {Night birds of the taiga},\n  author = {Petrov, Ivan},\n  publisher = {Nauka},\n  year = {2019},\n}\n\n@article{adams2021,\n  title = {Hawk migration routes},\n  author = {Adams, Clara},\n  journal = {Avian Studies},\n  year = {2021},\n}\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Sources",
+   "page": 0
+  },
+  {
+   "t": "I. Petrov [1]",
+   "page": 0
+  },
+  {
+   "t": " describes owls, while ",
+   "page": 0
+  },
+  {
+   "t": "[2]",
+   "page": 0
+  },
+  {
+   "t": " covers hawks.",
+   "page": 0
+  },
+  {
+   "t": "𝑁",
+   "page": 0
+  },
+  {
+   "t": "(",
+   "page": 0
+  },
+  {
+   "t": "𝑡",
+   "page": 0
+  },
+  {
+   "t": ")",
+   "page": 0
+  },
+  {
+   "t": "=",
+   "page": 0
+  },
+  {
+   "t": "𝑁",
+   "page": 0
+  },
+  {
+   "t": "0",
+   "page": 0
+  },
+  {
+   "t": "𝑒",
+   "page": 0
+  },
+  {
+   "t": "𝑟",
+   "page": 0
+  },
+  {
+   "t": "𝑡",
+   "page": 0
+  },
+  {
+   "t": "(1)",
+   "page": 0
+  },
+  {
+   "t": "As ",
+   "page": 0
+  },
+  {
+   "t": "Equation 1",
+   "page": 0
+  },
+  {
+   "t": " predicts, the colony doubles.",
+   "page": 0
+  },
+  {
+   "t": "Bibliography",
+   "page": 0
+  },
+  {
+   "t": "[1]",
+   "page": 0
+  },
+  {
+   "t": "I. Petrov, ",
+   "page": 0
+  },
+  {
+   "t": "Night birds of the taiga",
+   "page": 0
+  },
+  {
+   "t": ". Nauka, 2019.",
+   "page": 0
+  },
+  {
+   "t": "[2]",
+   "page": 0
+  },
+  {
+   "t": "C. Adams, “Hawk migration routes,” ",
+   "page": 0
+  },
+  {
+   "t": "Avian Studies",
+   "page": 0
+  },
+  {
+   "t": ", 2021.",
+   "page": 0
+  }
+ ]
+}

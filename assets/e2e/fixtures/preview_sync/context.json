@@ -1,0 +1,73 @@
+{
+ "shape": "context",
+ "about": "#context lines print a page number between paragraphs, one before a math line whose attachment parentheses are not text.",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "= Intro\n\nOpening paragraph about kestrels.\n\n#context counter(page).display()\n\nMiddle paragraph about owls.\n\n#context counter(page).get()\n$ sum_(i=1)^n alpha_i $\n\nClosing paragraph about herons.\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Intro",
+   "page": 0
+  },
+  {
+   "t": "Opening paragraph about kestrels.",
+   "page": 0
+  },
+  {
+   "t": "1",
+   "page": 0
+  },
+  {
+   "t": "Middle paragraph about owls.",
+   "page": 0
+  },
+  {
+   "t": "(",
+   "page": 0
+  },
+  {
+   "t": "1",
+   "page": 0
+  },
+  {
+   "t": ",)",
+   "page": 0
+  },
+  {
+   "t": "∑",
+   "page": 0
+  },
+  {
+   "t": "𝑛",
+   "page": 0
+  },
+  {
+   "t": "𝑖",
+   "page": 0
+  },
+  {
+   "t": "=",
+   "page": 0
+  },
+  {
+   "t": "1",
+   "page": 0
+  },
+  {
+   "t": "𝛼",
+   "page": 0
+  },
+  {
+   "t": "𝑖",
+   "page": 0
+  },
+  {
+   "t": "Closing paragraph about herons.",
+   "page": 0
+  }
+ ]
+}

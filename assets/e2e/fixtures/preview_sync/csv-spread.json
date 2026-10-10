@@ -1,0 +1,73 @@
+{
+ "shape": "csv-spread",
+ "about": "A table spreading a CSV's flattened rows from a #let",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "= Table\n\n#let rows = csv(\"birds.csv\")\n#table(columns: 3, ..rows.flatten())\n\nThe table lists three species.\n"
+  },
+  {
+   "path": "birds.csv",
+   "content": "Species,Count,Place\nHeron,12,Lake\nOwl,5,Forest\nKestrel,7,Field\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Table",
+   "page": 0
+  },
+  {
+   "t": "Species",
+   "page": 0
+  },
+  {
+   "t": "Count",
+   "page": 0
+  },
+  {
+   "t": "Place",
+   "page": 0
+  },
+  {
+   "t": "Heron",
+   "page": 0
+  },
+  {
+   "t": "12",
+   "page": 0
+  },
+  {
+   "t": "Lake",
+   "page": 0
+  },
+  {
+   "t": "Owl",
+   "page": 0
+  },
+  {
+   "t": "5",
+   "page": 0
+  },
+  {
+   "t": "Forest",
+   "page": 0
+  },
+  {
+   "t": "Kestrel",
+   "page": 0
+  },
+  {
+   "t": "7",
+   "page": 0
+  },
+  {
+   "t": "Field",
+   "page": 0
+  },
+  {
+   "t": "The table lists three species.",
+   "page": 0
+  }
+ ]
+}

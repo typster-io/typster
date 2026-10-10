@@ -1,0 +1,33 @@
+{
+ "shape": "definition-call-args",
+ "about": "A one-line function definition printing literal text around the string and content arguments its calls write",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "#let ficha(n, c) = [Nombre: #n, ciudad: #c.]\n= Socios\n\nTexto libre.\n\n#ficha(\"Lucía\", \"Sevilla\")\n\n#ficha[Andrés][Bilbao]\n\nFin.\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Socios",
+   "page": 0
+  },
+  {
+   "t": "Texto libre.",
+   "page": 0
+  },
+  {
+   "t": "Nombre: Lucía, ciudad: Sevilla.",
+   "page": 0
+  },
+  {
+   "t": "Nombre: Andrés, ciudad: Bilbao.",
+   "page": 0
+  },
+  {
+   "t": "Fin.",
+   "page": 0
+  }
+ ]
+}

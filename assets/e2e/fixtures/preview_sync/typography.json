@@ -1,0 +1,45 @@
+{
+ "shape": "typography",
+ "about": "Smart quotes in English, German, French and Russian, dashes, an ellipsis, a ~ non-breaking space, a markup escape, regex metacharacters, emoji (one with joiners) and a soft hyphen in the source (#5 #19).",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "= Typography\n\nHe said \"hello\" --- and 'bye' -- then... done.\n\nDr.~Smith met Mr. Jones at 5:30.\n\nCost (USD) \\$5 + tax 🙂 [today]? a|b and C++.\n\nA family 👨‍👩‍👧 emoji and a soft hy­phen inside.\n\n#text(lang: \"de\")[Er sagte \"hallo Freunde\" und ging.]\n\n#text(lang: \"fr\")[Il a dit \"bonjour les amis\" puis partit.]\n\n#text(lang: \"ru\")[Он сказал \"привет друзья\" и ушёл.]\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Typography",
+   "page": 0
+  },
+  {
+   "t": "He said “hello” — and ‘bye’ – then… done.",
+   "page": 0
+  },
+  {
+   "t": "Dr. Smith met Mr. Jones at 5:30.",
+   "page": 0
+  },
+  {
+   "t": "Cost (USD) $5 + tax 🙂 [today]? a|b and C++.",
+   "page": 0
+  },
+  {
+   "t": "A family 👨‍👩‍👧 emoji and a soft hy­phen inside.",
+   "page": 0
+  },
+  {
+   "t": "Er sagte „hallo Freunde“ und ging.",
+   "page": 0
+  },
+  {
+   "t": "Il a dit « bonjour les amis » puis partit.",
+   "page": 0
+  },
+  {
+   "t": "Он сказал «привет друзья» и ушёл.",
+   "page": 0
+  }
+ ]
+}

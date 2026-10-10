@@ -1,0 +1,53 @@
+{
+ "shape": "grid-after-figure",
+ "about": "Two figures, then a one-line #grid of two pictures: both grid pictures are on the grid line.",
+ "entry": "main.typ",
+ "files": [
+  {
+   "path": "main.typ",
+   "content": "= Gallery\n\nThe first plate shows the marsh.\n\n#figure(image(\"img/blue.png\", width: 2cm), caption: [The marsh at dawn])\n\nThe second plate shows the forest.\n\n#figure(image(\"img/green.png\", width: 2cm), caption: [The forest at dusk])\n\n#grid(columns: 2, gutter: 4pt, image(\"img/blue.png\", width: 1cm), image(\"img/green.png\", width: 1cm))\n\nBoth plates were taken by the same observer.\n"
+  }
+ ],
+ "runs": [
+  {
+   "t": "Gallery",
+   "page": 0
+  },
+  {
+   "t": "The first plate shows the marsh.",
+   "page": 0
+  },
+  {
+   "image": true,
+   "page": 0
+  },
+  {
+   "t": "Figure 1: The marsh at dawn",
+   "page": 0
+  },
+  {
+   "t": "The second plate shows the forest.",
+   "page": 0
+  },
+  {
+   "image": true,
+   "page": 0
+  },
+  {
+   "t": "Figure 2: The forest at dusk",
+   "page": 0
+  },
+  {
+   "image": true,
+   "page": 0
+  },
+  {
+   "image": true,
+   "page": 0
+  },
+  {
+   "t": "Both plates were taken by the same observer.",
+   "page": 0
+  }
+ ]
+}
