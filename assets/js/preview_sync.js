@@ -94,6 +94,34 @@ function runPattern(text, whole) {
   return new RegExp(source, "gu")
 }
 
+// The run's words with their positions in its text, for matching a printed
+// value by its words alone (`("key", "short")` against `key,short`) and for
+// mapping a click inside a word to that word's source position.
+const TOKEN_RE = /[\p{L}\p{N}]+/gu
+
+function tokensOf(text) {
+  const out = []
+  for (const m of text.matchAll(TOKEN_RE)) out.push({ text: m[0], at: m.index })
+  return out
+}
+
+// A regex matching the words in order with anything but letters and digits
+// between them, each word captured so `d` indices give its position.
+function tokenPattern(tokens) {
+  const body = tokens.map((t) => `(${t.text.replace(ESCAPE, "\\$&")})`).join("[^\\p{L}\\p{N}]+")
+  return new RegExp(`(?<![\\p{L}\\p{N}])${body}(?![\\p{L}\\p{N}])`, "gud")
+}
+
+// Source position of each word of a token match (text offsets).
+function tokenSpots(tokens, hit, doc) {
+  const idx = hit.match && hit.match.indices
+  return tokens.map((t, k) => ({
+    text: t.text,
+    at: t.at,
+    src: idx && idx[k + 1] ? doc.toText(hit.from + idx[k + 1][0]) : null
+  }))
+}
+
 function longestWord(text) {
   const words = text.match(/[\p{L}\p{N}]{5,}/gu)
   if (!words) return null
@@ -238,7 +266,7 @@ function findNear(doc, re, pos, forward, claimed, whole, maxLen) {
         re.lastIndex++
         continue
       }
-      const hit = { start: from + m.index, end: from + m.index + m[0].length }
+      const hit = { start: from + m.index, end: from + m.index + m[0].length, from, match: m }
       if (free(hit.start, hit.end)) {
         if (!wantLast) return hit
         best = hit
@@ -324,9 +352,53 @@ function placeGap(doc, prev, next, gap, prevAdjacent, nextAdjacent) {
       ? point(prevAdjacent.end)
       : null
 
+  // A short printed value with words of its own (`"key"`) sits in the data
+  // file between its neighbours: look for its words just before the next
+  // one, else just after the previous one (and after the last value placed
+  // this way), so a click inside it lands on the right cell.
+  const NEAR_DATA = 400
+  const findTokens = (tokens, from, to, wantLast) => {
+    const re = tokenPattern(tokens)
+    const seg = doc.search.slice(from, to)
+    re.lastIndex = 0
+    let best = null
+    let m
+    while ((m = re.exec(seg))) {
+      const hit = { start: from + m.index, end: from + m.index + m[0].length, from, match: m }
+      if (!wantLast) return hit
+      best = hit
+      re.lastIndex = m.index + 1
+    }
+    return best
+  }
+  let afterPrev = inAppendix(prevAdjacent) ? prevAdjacent.searchEnd : null
+
   let claimed = -1
   for (const r of gap) {
     if (neighbourSpot && claimed < 0 && structural(r)) {
+      const tokens = r.image ? [] : tokensOf(r.text)
+      let hit = null
+      if (tokens.length && inAppendix(nextAdjacent)) {
+        // The previous neighbour may sit later in the data file (a glossary
+        // printed from row 2 before an array printed from row 1): then only
+        // the stretch before the next neighbour counts.
+        const to = nextAdjacent.searchStart
+        const from = afterPrev != null && afterPrev < to ? afterPrev : Math.max(doc.primaryEndS, to - NEAR_DATA)
+        hit = findTokens(tokens, from, to, true)
+      }
+      if (!hit && tokens.length && afterPrev != null) {
+        hit = findTokens(tokens, afterPrev, afterPrev + NEAR_DATA, false)
+      }
+      if (hit) {
+        r.start = doc.toText(hit.start)
+        r.end = doc.toText(hit.end)
+        r.anchored = true
+        r.searchStart = hit.start
+        r.searchEnd = hit.end
+        r.tokens = tokenSpots(tokens, hit, doc)
+        afterPrev = hit.end
+        continue
+      }
       Object.assign(r, neighbourSpot)
       continue
     }
@@ -369,6 +441,7 @@ export function alignRuns(container, doc) {
   const runs = []
   const claimed = new Uint8Array(doc.search.length + 1) // in search offsets
   const firstBy = new Map() // normalized text -> first anchored run
+  let lastAnchored = null
   let pos = 0
   // Text runs and pictures, in document order.
   for (const sel of container.querySelectorAll(".tsel, image")) {
@@ -382,22 +455,56 @@ export function alignRuns(container, doc) {
     const run = { el, text, start: null, end: null, anchored: false, repeat: false, weak: false }
 
     const forward = forwardWindow(text)
+    const tokens = tokensOf(text)
+    // Where in the run text the matched part starts, so a click inside the
+    // run maps onto the source; with word positions when matched by words.
+    let matchFrom = 0
+    let hit = null
     if (forward > 0) {
-      let hit = findNear(doc, runPattern(text, false), pos, forward, claimed, false, text.length * 2 + 16)
+      hit = findNear(doc, runPattern(text, false), pos, forward, claimed, false, text.length * 2 + 16)
       if (!hit) {
         const stripped = text.replace(LABEL_PREFIX, "")
         if (stripped !== text && forwardWindow(stripped) > 0) {
           hit = findNear(doc, runPattern(stripped, false), pos, forward, claimed, false, stripped.length * 2 + 16)
+          if (hit) matchFrom = text.length - stripped.length
         }
+      }
+      if (!hit && tokens.length > 1) {
+        // The words in order, however they are punctuated: a printed array
+        // row against its CSV line.
+        hit = findNear(doc, tokenPattern(tokens), pos, forward, claimed, true, text.length * 2 + 16)
+        if (hit) run.tokens = tokenSpots(tokens, hit, doc)
       }
       if (!hit) {
         const word = longestWord(text)
-        if (word) hit = findNear(doc, runPattern(word, true), pos, forward, claimed, true, word.length * 2 + 16)
+        if (word) {
+          hit = findNear(doc, runPattern(word, true), pos, forward, claimed, true, word.length * 2 + 16)
+          if (hit) matchFrom = text.indexOf(word)
+        }
       }
+    }
+    // A short printed value (`"vpp",`) right after text that resolved to a
+    // data file is the next thing in that file: look just past that text.
+    if (!hit && tokens.length && lastAnchored && lastAnchored.searchEnd > doc.primaryEndS) {
+      const from = lastAnchored.searchEnd
+      const re = tokenPattern(tokens)
+      const seg = doc.search.slice(from, from + 400)
+      re.lastIndex = 0
+      const m = re.exec(seg)
+      if (m) {
+        hit = { start: from + m.index, end: from + m.index + m[0].length, from, match: m }
+        run.tokens = tokenSpots(tokens, hit, doc)
+      }
+    }
+    if (forward > 0 || hit) {
       if (hit) {
         run.start = doc.toText(hit.start)
         run.end = doc.toText(hit.end)
         run.anchored = true
+        run.matchFrom = matchFrom
+        run.searchStart = hit.start
+        run.searchEnd = hit.end
+        lastAnchored = run
         // A short run found far ahead (a table-of-contents entry, a value
         // that the body spells out later) is a weak match: it neither claims
         // the text (the body's own copy still needs it), nor moves the
@@ -630,7 +737,19 @@ function clickedOffset(run, event) {
   }
   const lead = (sel.textContent.match(/^\s*/) || [""])[0].length
   const idx = Math.max(0, before - lead)
-  return Math.min(run.start + idx, run.end)
+  if (run.tokens) {
+    // Matched by words: the click sits in or after some word.
+    let spot = run.start
+    for (const t of run.tokens) {
+      if (t.src == null) continue
+      if (idx < t.at) break
+      spot = t.src + Math.min(idx - t.at, t.text.length)
+    }
+    return Math.min(spot, run.end)
+  }
+  const rel = idx - (run.matchFrom || 0)
+  if (rel <= 0) return run.start
+  return Math.min(run.start + rel, run.end)
 }
 
 // Preview → source: resolve the clicked run (or the nearest one) to a source
