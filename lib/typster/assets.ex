@@ -176,7 +176,9 @@ defmodule Typster.Assets do
         kind: Atom.to_string(kind)
       }
 
-      with :font <- kind, url when is_binary(url) <- font_url.(asset) do
+      # Fonts and images are fetched by the preview compiler: both carry a
+      # URL (the font route serves any asset the user may read).
+      with true <- kind in [:font, :image], url when is_binary(url) <- font_url.(asset) do
         Map.put(entry, :url, url)
       else
         _ -> entry
