@@ -443,7 +443,7 @@ defmodule TypsterWeb.EditorLive.Index do
     file = Files.get_file!(scope, file_id)
 
     if Files.editable_file?(file) do
-      {:noreply, open_file(socket, file, "select")}
+      {:noreply, socket |> refresh_tree() |> open_file(file, "select")}
     else
       {:noreply, put_flash(socket, :error, gettext("editor.flash.binary_asset"))}
     end
@@ -451,19 +451,20 @@ defmodule TypsterWeb.EditorLive.Index do
 
   # The preview resolves a clicked spot to a project path (preview-to-source
   # sync, #149); open that file so the client can move the cursor in it. The
-  # path is looked up in the cached tree but the file is re-read, so a
-  # collaborator's save since mount is not overwritten with stale content. An
-  # unknown, deleted, malformed or non-editable path is a no-op.
+  # path is looked up in a freshly read tree, so a collaborator's save since
+  # mount is not overwritten with stale content. An unknown, deleted,
+  # malformed or non-editable path is a no-op. The client numbers its
+  # requests (`seq`) and only acts on the reply to its latest one.
   @impl true
-  def handle_event("open_path", %{"path" => path}, socket) when is_binary(path) do
+  def handle_event("open_path", %{"path" => path} = params, socket) when is_binary(path) do
     path = String.trim_leading(path, "/")
-    scope = socket.assigns.current_scope
+    seq = if is_integer(params["seq"]), do: params["seq"]
+    socket = refresh_tree(socket)
 
-    with %Typster.Projects.File{} = cached <-
+    with %Typster.Projects.File{} = file <-
            Enum.find(socket.assigns.file_tree, &(&1.path == path)),
-         %Typster.Projects.File{} = file <- Files.get_file(scope, cached.id),
          true <- Files.editable_file?(file) do
-      {:noreply, open_file(socket, file, "jump")}
+      {:noreply, open_file(socket, file, "jump", seq)}
     else
       _ -> {:noreply, socket}
     end
@@ -1335,11 +1336,23 @@ defmodule TypsterWeb.EditorLive.Index do
     """
   end
 
+  # Re-read the project's files. Another session may have saved, added or
+  # removed one; the client compiles from `project_sources`, so opening a file
+  # refreshes them and the preview sees those changes.
+  defp refresh_tree(socket) do
+    file_tree = Files.get_file_tree(socket.assigns.current_scope, socket.assigns.project.id)
+
+    socket
+    |> assign(:file_tree, file_tree)
+    |> assign(:project_sources, project_sources(file_tree))
+  end
+
   # Make `file` the active buffer: open its tab and hand the client its content.
   # `reason` tells the client why the buffer changed ("select" from the tree or
   # a tab, "jump" from the preview): only a deliberate selection changes which
-  # document the preview compiles.
-  defp open_file(socket, file, reason) do
+  # document the preview compiles. `seq` echoes the number of the client's
+  # request, so it can tell the reply to its latest request from older ones.
+  defp open_file(socket, file, reason, seq \\ nil) do
     socket
     |> open_tab(file.id)
     |> assign(:current_file, file)
@@ -1352,9 +1365,10 @@ defmodule TypsterWeb.EditorLive.Index do
       path: file.path,
       content: file.content || "",
       language: editor_language(file),
-      reason: reason
+      reason: reason,
+      seq: seq
     })
-    |> push_event("content_updated", %{content: file.content || ""})
+    |> push_event("content_updated", %{content: file.content || "", seq: seq})
   end
 
   # Append a file id to the open-tabs list (keeping order, no duplicates).
