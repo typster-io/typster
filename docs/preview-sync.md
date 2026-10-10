@@ -50,7 +50,10 @@ and flash it. Works across `#include`d files. Issue: typster-io/typster#149.
   next run's line. A placed run spans its whole line, so a caret anywhere on
   `#lorem(400)` finds the paragraph.
 - Preview → source dispatches the existing `phx:editor-command` goto with
-  `{file, line, col}`. The CodeMirror hook moves the caret directly for the
+  `{file, line, col}`, where the column is the character under the pointer
+  (the text layer's characters map one-to-one onto the matched source, give
+  or take collapsed whitespace); a run placed on a line rather than matched
+  (generated text) sends the caret to that line's end, a marker to its start. The CodeMirror hook moves the caret directly for the
   active file, otherwise pushes `open_path` and completes the move once the
   new buffer mounts.
 - The preview keeps compiling the file you were previewing (the *entry*):
@@ -78,7 +81,9 @@ and flash it. Works across `#include`d files. Issue: typster-io/typster#149.
 - Source → preview runs 250 ms after a caret move that is not an edit, scrolls
   the pane only when the run is out of view, and flashes `.ts-preview__flash`
   only when the target run changed. A click beside the text picks the run on
-  the same line first.
+  the same line first. A caret on a line whose own text matched nothing (a
+  `#csv(...)` whose rows resolved to the data file) finds the runs placed in
+  the stretch of lines around it, the one sharing a word with the line first.
 
 ## Why text alignment, not spans
 
