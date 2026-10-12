@@ -232,8 +232,8 @@ and flash it. Works across `#include`d files. Issue: typster-io/typster#149.
   nothing else is left to show before the next text (else a mark goes with
   that: the `∑` of a math line below). A bullet or number before a printed
   value goes to the line of the list marker of its stretch that printed it
-  (`#for p in people [- #p.name ...]`), from the line of the text before it
-  on. Else a marker (bullet, number, bracket) precedes the text after it,
+  (`#for p in people [- #p.name ...]`): the marker on the line of the text
+  after it, else from the line of the text before it on. Else a marker (bullet, number, bracket) precedes the text after it,
   at its line start, unless the previous text's line still has something
   unshown (a `@ref`, a `#footnote`), which the mark then shows, up to its
   end; a mark before text that opens a later line plainly (no list or
