@@ -359,8 +359,9 @@ export function lexTypst(src, namesFile) {
   // a declaration (a `set page(header: [...])` shows its text elsewhere).
   const markup = (f, inBlock) => {
     let depth = 0
-    // A content block starts its markup as a line does (`[- item]`).
-    let lineStart = i === 0 || src[i - 1] === "\n" || (inBlock && src[i - 1] === "[")
+    // Markup starts at the source's start or right after a content block's
+    // `[`, and a content block starts its markup as a line does (`[- item]`).
+    let lineStart = true
     while (i < n) {
       const c = src.charCodeAt(i)
       if (c === 10) {
@@ -594,8 +595,14 @@ export function lexTypst(src, namesFile) {
         const [a, b] = string()
         const value = src.slice(a, b)
         // A string compared with `==` or `!=` (`r.at(1) == "retired"`) is a
-        // condition, not text.
-        const compared = /[=!]=[ \t]*$/.test(src.slice(Math.max(0, quote - 8), quote)) || /^[ \t]*[=!]=/.test(src.slice(i, i + 8))
+        // condition, not text, however many blanks stand between them (line
+        // breaks too inside parentheses).
+        const blank = (ch) => ch === " " || ch === "\t" || (close === ")" && (ch === "\n" || ch === "\r"))
+        let p = quote
+        while (p > 0 && blank(src[p - 1])) p--
+        let q = i
+        while (q < n && blank(src[q])) q++
+        const compared = (src[p - 1] === "=" && (src[p - 2] === "=" || src[p - 2] === "!")) || ((src[q] === "=" || src[q] === "!") && src[q + 1] === "=")
         if ((first && FILE_CALLS.has(callee)) || namesFile(value)) mentions.push({ at: a, value })
         else if (!decl && !compared && !(first && KEY_CALLS.has(callee))) mark(literal ? a - 1 : a, literal ? Math.min(b + 1, n) : b, f)
       } else if (c === "[") {
@@ -616,8 +623,10 @@ export function lexTypst(src, namesFile) {
         const at = i
         const word = identAt(i)
         if (stmt && (word === "let" || DECLARATIONS.has(word))) {
+          // A statement ends at a line break, `;` or closer, all of which
+          // reset `stmt`; a statement word right after one (mid-typing)
+          // starts another.
           statement(word)
-          stmt = false
           continue
         }
         i += word.length
@@ -709,7 +718,15 @@ export function lexTypst(src, namesFile) {
     for (; k < to; k++) {
       const c = src[k]
       if (c === '"') while (++k < to && src[k] !== '"') k += src[k] === "\\" ? 1 : 0
-      else if (c === "(" || c === "[" || c === "{") depth++
+      else if (c === "/" && (src[k + 1] === "*" || src[k + 1] === "/")) {
+        // A comment in the selector is trivia, its `:` too.
+        const at = i
+        i = k
+        if (src[k + 1] === "*") blockComment()
+        else lineComment()
+        k = i - 1
+        i = at
+      } else if (c === "(" || c === "[" || c === "{") depth++
       else if (c === ")" || c === "]" || c === "}") depth--
       else if (c === ":" && depth === 0) break
     }
@@ -758,6 +775,8 @@ export function lexTypst(src, namesFile) {
     const bracket = (t, dir) => {
       let depth = 0
       for (; t > k && t < to; t += dir) {
+        // Brackets the markup shows as text (`[(Teil #n)]`) are not code's.
+        if (literal(t)) continue
         const c = src[t]
         if (c === (dir < 0 ? ")" : "(") || c === (dir < 0 ? "]" : "[") || c === (dir < 0 ? "}" : "{")) depth++
         else if (c === "(" || c === "[" || c === "{" || c === ")" || c === "]" || c === "}") {
@@ -945,12 +964,13 @@ export function buildVirtualDoc(bufferPath, bufferContent, sources, entryPath) {
     if (!lex) continue
     for (const inc of lex.includes) included.add(resolveInclude(file, inc.target))
     const own = fileLines.get(file)
-    if (!own || own[0] >= primaryLines) continue
+    if (!own) continue
     for (const m of lex.mentions) {
       const target = resolveInclude(file, m.value)
       const line = own[lineIn(own, m.at)]
       const prev = named.get(target)
-      if (!prev || line < prev[0] || (line === prev[0] && m.at < prev[1])) named.set(target, [line, m.at])
+      // A file's mentions come in source order: the first on a line is kept.
+      if (!prev || line < prev[0]) named.set(target, [line, m.at])
     }
   }
   const byName = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
@@ -985,10 +1005,10 @@ export function buildVirtualDoc(bufferPath, bufferContent, sources, entryPath) {
     if (lex) flagsT.set(lex.flags.subarray(local[k], local[k] + l.text.length), starts[k])
     else flagsT.fill(DISP, starts[k], starts[k] + l.text.length)
   })
-  // A file-local offset of `file` as a doc text offset.
+  // A file-local offset of `file` as a doc text offset (every lexed file
+  // has its lines).
   const docOffset = (file, at) => {
     const own = fileLines.get(file)
-    if (!own) return null
     const idx = own[lineIn(own, at)]
     return starts[idx] + Math.min(at - local[idx], lines[idx].text.length)
   }
@@ -1035,14 +1055,12 @@ export function buildVirtualDoc(bufferPath, bufferContent, sources, entryPath) {
     if (!lex) continue
     for (const c of lex.calls) {
       if (c.decl || SILENT_CALLS.has(c.name) || c.name === "update") continue
-      const at = docOffset(file, c.at)
-      if (at != null) calls.push({ at, name: c.name, picture: pictureNames.has(c.name) })
+      calls.push({ at: docOffset(file, c.at), name: c.name, picture: pictureNames.has(c.name) })
     }
     const callAt = lex.calls.map((c) => c.at)
     for (const d of lex.defs) {
       const a = docOffset(file, d.from)
       const b = docOffset(file, d.to)
-      if (a == null || b == null) continue
       const callees = new Set()
       for (let k = lowerBound(callAt, d.from); k < lex.calls.length && lex.calls[k].at < d.to; k++) callees.add(lex.calls[k].name)
       if (!defs.has(d.name)) defs.set(d.name, [])
@@ -1051,30 +1069,26 @@ export function buildVirtualDoc(bufferPath, bufferContent, sources, entryPath) {
     for (const m of lex.mentions) {
       const target = resolveInclude(file, m.value)
       const region = regionFiles.indexOf(target)
-      const at = docOffset(file, m.at)
-      if (region > 0 && at != null) mentions.push({ at: fold.toSearch(at), region })
+      if (region > 0) mentions.push({ at: fold.toSearch(docOffset(file, m.at)), region })
     }
-    for (const m of lex.markers) {
-      const at = m.decl ? null : docOffset(file, m.at)
-      if (at != null) markers.push(at)
-    }
+    for (const m of lex.markers) if (!m.decl) markers.push(docOffset(file, m.at))
     for (const rule of lex.rules) {
       const [pre, suf] = [rule.pre, rule.suf].map(([a, b, open, gaps]) => {
         const at = docOffset(file, a)
         const s = (x) => fold.toSearch(at + x - a)
-        return at == null ? null : [s(a), s(b), open, gaps.map(([g, e]) => [s(g), s(e)])]
+        return [s(a), s(b), open, gaps.map(([g, e]) => [s(g), s(e)])]
       })
-      if (pre && suf) rules.push({ pre, suf, element: rule.element })
+      rules.push({ pre, suf, element: rule.element })
     }
     for (const nt of lex.notes) {
       const a = docOffset(file, nt.from)
       const b = docOffset(file, nt.to)
-      if (a != null && b != null && b > a) notes.push({ from: fold.toSearch(a), to: fold.toSearch(b) })
+      if (b > a) notes.push({ from: fold.toSearch(a), to: fold.toSearch(b) })
     }
     for (const pg of lex.pages) {
       const a = docOffset(file, pg.from)
       const b = docOffset(file, pg.to)
-      if (a != null && b != null && b > a) pages.push({ from: fold.toSearch(a), to: fold.toSearch(b) })
+      if (b > a) pages.push({ from: fold.toSearch(a), to: fold.toSearch(b) })
     }
   }
   calls.sort((a, b) => a.at - b.at)
@@ -1322,7 +1336,7 @@ function occurrences(ctx, m, lo, hi, limit = Infinity, taken = false) {
       if (!ok) continue
       const first = words.text[o0]
       let coreStart = words.pos[o0]
-      if (first !== m.tokens[0].text) coreStart += m.openEnd && n === 1 ? first.indexOf(m.tokens[0].text) : first.length - m.tokens[0].text.length
+      if (first !== m.tokens[0].text) coreStart += first.length - m.tokens[0].text.length
       const coreEnd = n === 1 ? coreStart + m.tokens[0].text.length : words.pos[o0 + last] + m.tokens[last].text.length
       // The decoration, when the source spells it right around the words.
       let start = coreStart
@@ -1361,10 +1375,6 @@ function occurrences(ctx, m, lo, hi, limit = Infinity, taken = false) {
   const seg = S.slice(lo, hi)
   re.lastIndex = 0
   for (let x = re.exec(seg); x; x = re.exec(seg)) {
-    if (!x[0].length) {
-      re.lastIndex++
-      continue
-    }
     const start = lo + x.index
     const end = start + x[0].length
     const g = x.indices && x.indices.groups
@@ -1384,10 +1394,12 @@ function occurrences(ctx, m, lo, hi, limit = Infinity, taken = false) {
 // body heading wins over its outline entry rendered before it. A `compact`
 // chain (the words of one printed record) prefers, among equally heavy ones,
 // the one ending first, each word followed closely by the next: a value
-// repeated in later records stays with the record it opened.
-function heaviestChain(items, compact = false) {
+// repeated in later records stays with the record it opened. With `early`,
+// ties go to the earlier occurrence instead (the words of a run in reading
+// order: two figures with one caption each keep their own).
+function heaviestChain(items, compact = false, early = false) {
   if (!items.length) return []
-  items.sort((a, b) => a.ri - b.ri || b.start - a.start)
+  items.sort((a, b) => a.ri - b.ri || (early ? a.start - b.start : b.start - a.start))
   const ends = [...new Set(items.map((x) => x.end))].sort((a, b) => a - b)
   const size = ends.length
   const treeW = new Float64Array(size + 1)
@@ -1484,18 +1496,20 @@ function walkSpots(S, text, k0, k1, s, sEnd, map) {
     if (c === " ") {
       while (s < sEnd && SOURCE_WS.test(S[s])) s++
       k++
-    } else if (c === "-" && text.startsWith("---", k) && k + 3 <= k1) {
+    } else if (c === "-" && text.startsWith("---", k) && k + 3 <= k1 && !S.startsWith("\\-", s)) {
       if (S.startsWith("---", s) && s + 3 <= sEnd) s += 3
       else if (S[s] === "\u2014" && s < sEnd) s++
       map[k + 1] = map[k + 2] = map[k]
       k += 3
-    } else if (c === "-" && text[k + 1] === "-" && k + 2 <= k1) {
+    } else if (c === "-" && text[k + 1] === "-" && k + 2 <= k1 && !S.startsWith("\\-", s)) {
       if (S.startsWith("--", s) && s + 2 <= sEnd) s += 2
       else if (S[s] === "\u2013" && s < sEnd) s++
       map[k + 1] = map[k]
       k += 2
     } else if (c === "-") {
-      if (s < sEnd && (S[s] === "-" || S[s] === "\u2010")) s++
+      // An escaped hyphen (`\-\-`) is one hyphen each, never a dash.
+      if (S[s] === "\\" && S[s + 1] === "-" && s + 2 <= sEnd) s += 2
+      else if (s < sEnd && (S[s] === "-" || S[s] === "\u2010")) s++
       k++
     } else if (IS_QUOTE.test(c)) {
       // The spaces around a quote are optional on both sides.
@@ -1569,7 +1583,9 @@ function spotsOf(doc, text, hit) {
         else break
       }
       while (q < lineEnd && SOURCE_WS.test(S[q])) q++
-      if (q < lineEnd && (next > n || q < map[next]) && !(doc.flags[q] & DISP) && (S[q] === "#" || doc.flags[q] & PROD)) map[k] = q
+      // The next word found bounds the code, unless it was found before
+      // this text (a `let` above).
+      if (q < lineEnd && (next > n || q < map[next] || map[next] < map[prev]) && !(doc.flags[q] & DISP) && (S[q] === "#" || doc.flags[q] & PROD)) map[k] = q
     }
   } else walkSpots(S, text, Math.min(hit.matchFrom || 0, n), n, hit.start, hit.end, map)
   let last = -1
@@ -1891,13 +1907,15 @@ function matchDisplaced(ctx) {
   const page = pageWindows(ctx)
   ctx.runs.forEach((r, i) => {
     if (r.anchored || !r.m || !r.m.tokens.length) return
-    const { lines } = spans(ctx, nb, i)
+    const { gap, lines } = spans(ctx, nb, i)
     let hits = occurrences(ctx, r.m, lines[0], lines[1], 2)
     if (hits.length !== 1 && LETTER.test(r.text)) {
       const [lo, hi] = page(r.page)
       hits = occurrences(ctx, r.m, lo, hi, 2)
     }
-    if (hits.length === 1) anchor(ctx, r, hits[0], "loose")
+    // Text of a definition a call in its own gap reaches is that call's
+    // output (step 5b), not displaced.
+    if (hits.length === 1 && !calledBodies(ctx, gap).some((d) => hits[0].start >= d.from && hits[0].start < d.to)) anchor(ctx, r, hits[0], "loose")
   })
 }
 
@@ -2003,7 +2021,9 @@ function matchSuffixes(ctx) {
           // a mixed run, matched later with its parts.
           for (const g of dataRegions(ctx, i, gap)) {
             const R = ctx.doc.regions[g]
-            if (occurrences(ctx, hm, R.start, R.end, 1, true).some((o) => !R.data || wholeFields(ctx.doc, o.start, o.end))) return
+            // In a data file any copy that is a whole field counts, not just
+            // the first (inside a longer cell).
+            if (occurrences(ctx, hm, R.start, R.end, R.data ? Infinity : 1, true).some((o) => !R.data || wholeFields(ctx.doc, o.start, o.end))) return
           }
           // A definition's text after an argument (`[Hallo #n,
           // willkommen!]` called in the gap): mixed as well, and every call
@@ -2326,10 +2346,12 @@ function wordChain(ctx, tokens, lo, hi, cut, taken = false) {
       const s = list[p]
       if (ctx.bad[s + len] - ctx.bad[s] || !(taken || isFree(ctx, s, s + len, true))) continue
       if (ctx.S.slice(s, s + len).toLowerCase() !== t.text.toLowerCase()) continue
-      items.push({ ri: k, start: s, end: s + len, w: len })
+      // In the body, a word an earlier run already shares weighs a hair
+      // less than a free one: a repeated caption goes to its own copy.
+      items.push({ ri: k, start: s, end: s + len, w: cut && !taken && !isFree(ctx, s, s + len, false) ? len - 1e-6 : len })
     }
   })
-  const chain = heaviestChain(items, !cut)
+  const chain = heaviestChain(items, !cut, cut)
   if (!cut) return chain
   const skipsText = (a, b) => {
     for (let k = a; k < b; k++) if (!ctx.claimed[k] && ctx.doc.flags[k] & DISP && ALNUM.test(ctx.S[k])) return true
@@ -2866,7 +2888,7 @@ function placeRest(ctx) {
     const q = nb.next[i]
     const from = p >= 0 ? runs[p].end : 0
     const to = q >= 0 ? runs[q].start : doc.primaryEnd
-    return { from, to, first: lineIndexAt(doc, from), last: Math.min(lineIndexAt(doc, Math.max(from, to - 1)), doc.primaryLines - 1) }
+    return { from, to, first: lineIndexAt(doc, from), last: lineIndexAt(doc, Math.max(from, to - 1)) }
   }
   const produces = (g, k) => {
     if (!doc.lineProd[k]) return false
@@ -2935,7 +2957,7 @@ function placeRest(ctx) {
     if (claimedLine >= 0 && !r.image) return span(r, claimedLine)
     const a = prevMatched(i)
     const b = nextMatched(i)
-    const left = leftOnLine(a, b && b.start > (a ? a.end : 0) ? b.start : null) || leftBefore(b, a && a.region === 0 ? a.end : 0)
+    const left = leftOnLine(a, b && b.start >= (a ? a.end : 0) ? b.start : null) || leftBefore(b, a && a.region === 0 ? a.end : 0)
     if (left) return shows(r, left)
     for (let k = g.first; k <= g.last; k++) if (produces(g, k)) return span(r, k)
   })
@@ -3001,7 +3023,6 @@ function placeRest(ctx) {
     a &&
     a.region === 0 &&
     b.region === 0 &&
-    b.start > a.end &&
     lineIndexAt(doc, b.start) > lineIndexAt(doc, a.end) &&
     /^[\s*_]*$/.test(doc.text.slice(lineStart(b.start), b.start)) &&
     !inNote(b)
@@ -3012,13 +3033,19 @@ function placeRest(ctx) {
     return !!t && t.at === q.tokens[0].at && !!doc.regions[regionOf(doc, t.s)].data
   }
   // The list marker (`- `, `+ `) of the gap around mark i that printed it:
-  // the first from the line of the text before it when that text is in
-  // the gap, else the one the previous such mark took, else the gap's first.
+  // the one on the line of the text after it, before that text; else the
+  // first from the line of the text before it when that text is in the
+  // gap, else the one the previous such mark took, else the gap's first.
   let lastMarker = null
   const listMarker = (i, prev) => {
     const g = gapOf(i)
     const k = lowerBound(doc.markers, g.from)
     if (!(k < doc.markers.length && doc.markers[k] < g.to)) return null
+    const next = nextPlaced[i]
+    if (next && next.region === 0 && next.start <= g.to) {
+      const j = lowerBound(doc.markers, Math.max(g.from, lineStart(next.start)))
+      if (j < doc.markers.length && doc.markers[j] < next.start) return doc.markers[j]
+    }
     if (prev && prev.region === 0 && prev.start >= g.from) {
       const j = lowerBound(doc.markers, Math.max(g.from, lineStart(prev.start)))
       if (j < doc.markers.length && doc.markers[j] < g.to) return doc.markers[j]
@@ -3078,7 +3105,7 @@ function placeRest(ctx) {
       // after it: at its line start when that is a later line or the
       // source starts over (the next item of a loop, a footnote under its
       // page), else right before it.
-      const left = leftOnLine(prevMatched(i), after && before && after.start > before.end ? after.start : null)
+      const left = leftOnLine(prevMatched(i), after && before && after.start >= before.end ? after.start : null)
       const restart =
         after &&
         (!before ||
@@ -3303,8 +3330,18 @@ function splitRuleRuns(ctx) {
       let b0 = 0
       let ok = true
       const preAt = []
+      let lead = null
       pre.parts.forEach((p, k) => {
-        const at = k === 0 && !p.codeBefore ? (q.str.startsWith(p.str) ? 0 : -1) : q.str.indexOf(p.str, b0)
+        let at = k === 0 && !p.codeBefore ? (q.str.startsWith(p.str) ? 0 : -1) : q.str.indexOf(p.str, b0)
+        if (at < 0 && k === 0 && !p.codeBefore) {
+          // Shown through a second rule printing text before it (`[Big
+          // #it]` around `[Part: #it.body]`): that rule's text first.
+          const o = rules.find((x) => x.pre !== pre && x.pre.parts.length && !x.pre.parts[0].codeBefore && q.str.startsWith(x.pre.parts[0].str) && q.str.startsWith(p.str, x.pre.parts[0].str.length))
+          if (o) {
+            lead = o.pre.parts[0]
+            at = lead.str.length
+          }
+        }
         if (at < 0) ok = false
         else {
           preAt.push(at)
@@ -3316,19 +3353,19 @@ function splitRuleRuns(ctx) {
       for (let k = suf.parts.length - 1; k >= 0 && ok; k--) {
         const p = suf.parts[k]
         const at = k === suf.parts.length - 1 && !p.codeAfter ? (q.str.endsWith(p.str) ? q.str.length - p.str.length : -1) : q.str.lastIndexOf(p.str, e - p.str.length)
-        if (at < b0 || at + p.str.length > e) ok = false
+        if (at < b0) ok = false
         else {
           sufAt.unshift(at)
           e = at
         }
       }
       if (!ok || e <= b0) continue
-      const cover = [...pre.parts, ...suf.parts].reduce((n, p) => n + p.str.length, 0)
+      const cover = [...(lead ? [lead] : []), ...pre.parts, ...suf.parts].reduce((n, p) => n + p.str.length, 0)
       const from = q.at[b0]
       const to = q.at[e - 1] + 1
       if (!cover || !ALNUM.test(r.text.slice(from, to))) continue
       const at = (list, parts) => list.map((x, k) => [q.at[x], q.at[x + parts[k].str.length - 1] + 1])
-      found.push({ rule, pre, suf, cover, from, to, preSpans: at(preAt, pre.parts), sufSpans: at(sufAt, suf.parts) })
+      found.push({ rule, pre, suf, cover, from, to, preSpans: at(preAt, pre.parts), sufSpans: at(sufAt, suf.parts), lead: lead && { part: lead, span: at([0], [lead])[0] } })
     }
     if (!found.length || occurrences(ctx, compiled(ctx, r.text, false, false), 0, S.length, 1, true).length) continue
     found.sort((x, y) => y.cover - x.cover)
@@ -3389,6 +3426,8 @@ function joinRuleRuns(ctx) {
       }
       const first = sp.pre.parts[0]
       out.fill(!first ? codeBefore(sp.pre, pre[1], pre[0]) : first.codeBefore ? codeBefore(sp.pre, first.range[0], pre[0]) : doc.toText(first.range[0]), 0, from)
+      // The text of the rule printed around this one walks that rule.
+      if (sp.lead) walk(sp.lead.span[0], sp.lead.span[1], sp.lead.part.range)
       sp.pre.parts.forEach((p, k) => {
         const [k0, k1] = sp.preSpans[k]
         walk(k0, k1, p.range)
@@ -3407,7 +3446,7 @@ function joinRuleRuns(ctx) {
     }
     const shift = (r.tokens || []).map((t) => ({ ...t, at: t.at + from }))
     const piece = (p, [k0]) => token(doc, S.slice(p.range[0], p.range[1]), k0, p.range[0])
-    r.tokens = [...sp.pre.parts.map((p, k) => piece(p, sp.preSpans[k])), ...shift, ...sp.suf.parts.map((p, k) => piece(p, sp.sufSpans[k]))]
+    r.tokens = [...(sp.lead ? [piece(sp.lead.part, sp.lead.span)] : []), ...sp.pre.parts.map((p, k) => piece(p, sp.preSpans[k])), ...shift, ...sp.suf.parts.map((p, k) => piece(p, sp.sufSpans[k]))]
   }
 }
 
@@ -3507,7 +3546,7 @@ function producerRanges(doc, runs) {
     const byName = new Uint8Array(group.length)
     if (named.length) {
       const after = new Int32Array(group.length + 1).fill(to + 1)
-      for (let k = group.length - 1; k >= 0; k--) after[k] = line[k] >= 0 ? Math.min(line[k], after[k + 1]) : after[k + 1]
+      for (let k = group.length - 1; k > 0; k--) after[k] = line[k] >= 0 ? Math.min(line[k], after[k + 1]) : after[k + 1]
       let seen = from
       group.forEach((r, k) => {
         if (line[k] >= 0) {
@@ -3535,7 +3574,9 @@ function producerRanges(doc, runs) {
       while (e < group.length && line[e] < 0) e++
       let a = k > 0 ? line[k - 1] + 1 : from
       let b = e < group.length ? line[e] - 1 : to
-      if (a > b) a = b = k > 0 ? line[k - 1] : line[e]
+      // Between two lines that touch, values go to the line after them
+      // (the one printing them), text of the body to the line before.
+      if (a > b) a = b = k > 0 && (e === group.length || group[k].region === 0) ? line[k - 1] : line[e]
       for (let t = k; t < e; t++) range[t] = [a, b]
       k = e
     }
@@ -3544,9 +3585,12 @@ function producerRanges(doc, runs) {
     // the last.
     for (let k = group.length - 1; k >= 0; k--) {
       if (line[k] < 0) continue
-      const same = k + 1 < group.length && byName[k] && byName[k + 1] && line[k + 1] === line[k]
+      // The next value of the same file, past the marks between them.
+      let n = k + 1
+      while (n < group.length && line[n] < 0) n++
+      const same = n < group.length && byName[k] && byName[n] && line[n] === line[k]
       const next = k + 1 < group.length ? range[k + 1][0] : to + 1
-      range[k] = [k === 0 ? Math.min(from, line[k]) : line[k], same ? range[k + 1][1] : next > line[k] ? next - 1 : line[k]]
+      range[k] = [k === 0 ? Math.min(from, line[k]) : line[k], same ? range[n][1] : next > line[k] ? next - 1 : line[k]]
     }
     group.forEach((r, k) => {
       r.prodFrom = range[k][0]
@@ -3571,30 +3615,33 @@ function callArguments(text, open) {
     let v = a + (m ? m[0].length : 0)
     while (v < b && /[\s(]/.test(text[v])) v++
     if (v >= b) return
-    args.push({ name: m ? m[1] : null, at: v + (text[v] === '"' || text[v] === "[" ? 1 : 0), to: b })
+    let at = v + (text[v] === '"' || text[v] === "[" ? 1 : 0)
+    if (text[v] === "[") while (at < b - 1 && /\s/.test(text[at])) at++
+    args.push({ name: m ? m[1] : null, at, to: b })
   }
-  // Past the bracket group opening at `from`, strings skipped.
+  // Past the bracket group opening at `from`, strings skipped. In a content
+  // block's markup a `"` is a plain quote (`[A 5" screen]`), not a string.
   const group = (from) => {
-    let depth = 0
+    const brackets = []
     for (let t = from; t < text.length; t++) {
       const c = text[t]
-      if (c === '"') {
+      if (c === '"' && brackets[brackets.length - 1] !== "[") {
         while (++t < text.length && text[t] !== '"' && text[t] !== "\n") if (text[t] === "\\") t++
-      } else if (c === "(" || c === "[" || c === "{") depth++
-      else if ((c === ")" || c === "]" || c === "}") && --depth === 0) return t + 1
+      } else if (c === "(" || c === "[" || c === "{") brackets.push(c)
+      else if ((c === ")" || c === "]" || c === "}") && (brackets.pop(), brackets.length === 0)) return t + 1
     }
     return text.length
   }
   if (text[open] === "(") {
     let a = open + 1
-    let depth = 0
+    const brackets = []
     for (k = open + 1; k < text.length; k++) {
       const c = text[k]
-      if (c === '"') {
+      if (c === '"' && brackets[brackets.length - 1] !== "[") {
         while (++k < text.length && text[k] !== '"' && text[k] !== "\n") if (text[k] === "\\") k++
-      } else if (c === "(" || c === "[" || c === "{") depth++
-      else if ((c === ")" || c === "]" || c === "}") && depth > 0) depth--
-      else if (c === "," && depth === 0) {
+      } else if (c === "(" || c === "[" || c === "{") brackets.push(c)
+      else if ((c === ")" || c === "]" || c === "}") && brackets.length > 0) brackets.pop()
+      else if (c === "," && brackets.length === 0) {
         piece(a, k)
         a = k + 1
       } else if (c === ")") {
@@ -3605,8 +3652,10 @@ function callArguments(text, open) {
     }
   }
   while (text[k] === "[") {
-    const at = k + 1
+    // A block's value starts at its first non-blank character.
+    let at = k + 1
     k = group(k)
+    while (at < k - 1 && /\s/.test(text[at])) at++
     args.push({ name: null, at, to: k })
   }
   args.end = k
@@ -3734,9 +3783,10 @@ export function runForOffset(runs, offset, doc, viaArgument = true) {
       // character belongs to the run that starts there.
       const own = ownership(r)
       if (!best || own < ownership(best) || (own === ownership(best) && best.end === offset && r.end > offset)) best = r
-    } else if (doc && (r.region !== region || (r.within && !(r.within[0] <= offset && offset <= r.within[1])))) {
+    } else if (doc && (r.region !== region || (r.within && !(r.within[0] - (doc.text[r.within[0] - 1] === "#") <= offset && offset <= r.within[1])))) {
       // Only runs of the caret's own file region are near it; text a
-      // template printed only inside the definition it comes from.
+      // template printed only inside the definition it comes from (from
+      // the `#` of its `#let` on).
     } else if (r.start > offset) {
       if (!after || r.start < after.start || (r.start === after.start && ownership(r) < ownership(after))) after = r
     } else if (!before || r.end > before.end || (r.end === before.end && ownership(r) < ownership(before))) {
