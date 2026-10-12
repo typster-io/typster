@@ -4,11 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"page": 0, "t": [
-   "Kapitel 1: Eins",
-   "Absatz eins.",
-   "Kapitel 2: Zwei",
-   "Absatz zwei."
-  ]}
+  {"page": 0, "t": ["Kapitel 1: Eins", "Absatz eins.", "Kapitel 2: Zwei", "Absatz zwei."]}
  ]
 }

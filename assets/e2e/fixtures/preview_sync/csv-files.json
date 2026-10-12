@@ -4,31 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ", "aold.csv", "new.csv", "b.csv"],
  "runs": [
-  {"page": 0, "t": [
-   "Two tables",
-   "city",
-   "country",
-   "pop",
-   "Oslo",
-   "Norway",
-   "700",
-   "Bergen",
-   "Norway",
-   "285",
-   "Between the tables.",
-   "city",
-   "river",
-   "len",
-   "Bergen",
-   "none",
-   "0",
-   "Cairo",
-   "Nile",
-   "6650",
-   "Oslo",
-   "Akerselva",
-   "8",
-   "After both."
-  ]}
+  {"page": 0, "t": ["Two tables", "city", "country", "pop", "Oslo", "Norway", "700", "Bergen", "Norway", "285", "Between the tables.", "city", "river", "len", "Bergen", "none", "0", "Cairo", "Nile", "6650", "Oslo", "Akerselva", "8", "After both."]}
  ]
 }

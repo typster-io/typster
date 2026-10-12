@@ -4,34 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ", "s.csv"],
  "runs": [
-  {"page": 0, "t": [
-   "Twice",
-   "name",
-   "status",
-   "alpha",
-   "active",
-   "bravo",
-   "retired",
-   "charlie",
-   "active",
-   "delta",
-   "retired",
-   "echo",
-   "active",
-   "The same table again.",
-   "name",
-   "status",
-   "alpha",
-   "active",
-   "bravo",
-   "retired",
-   "charlie",
-   "active",
-   "delta",
-   "retired",
-   "echo",
-   "active",
-   "After twice."
-  ]}
+  {"page": 0, "t": ["Twice", "name", "status", "alpha", "active", "bravo", "retired", "charlie", "active", "delta", "retired", "echo", "active", "The same table again.", "name", "status", "alpha", "active", "bravo", "retired", "charlie", "active", "delta", "retired", "echo", "active", "After twice."]}
  ]
 }

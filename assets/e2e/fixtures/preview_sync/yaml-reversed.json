@@ -4,15 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ", "crew.yaml"],
  "runs": [
-  {"page": 0, "t": [
-   "Crew",
-   "1.",
-   "botanist — Ines",
-   "2.",
-   "pilot — Oskar",
-   "3.",
-   "botanist — Mirela",
-   "That is everyone."
-  ]}
+  {"page": 0, "t": ["Crew", "1.", "botanist — Ines", "2.", "pilot — Oskar", "3.", "botanist — Mirela", "That is everyone."]}
  ]
 }

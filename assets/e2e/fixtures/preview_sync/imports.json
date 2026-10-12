@@ -4,17 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ", "strings.typ", "lib.typ"],
  "runs": [
-  {"page": 0, "t": [
-   "Letter",
-   "Dear reader of this letter",
-   "Banner: Seasonal greeting text",
-   "Total: 51 units.",
-   "(key: ",
-   "\"value\"",
-   ", other: ",
-   "12",
-   ")",
-   "KESTREL flies."
-  ]}
+  {"page": 0, "t": ["Letter", "Dear reader of this letter", "Banner: Seasonal greeting text", "Total: 51 units.", "(key: ", "\"value\"", ", other: ", "12", ")", "KESTREL flies."]}
  ]
 }

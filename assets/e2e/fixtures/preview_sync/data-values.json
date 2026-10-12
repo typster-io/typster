@@ -4,22 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ", "c.yaml", "c.xml"],
  "runs": [
-  {"page": 0, "t": [
-   "Config",
-   "Night survey of owls by Märta Lind",
-   "barn owl",
-   "3",
-   "tawny owl",
-   "12",
-   "barn owl chicks",
-   "5",
-   "After yaml.",
-   "Books",
-   "•",
-   "Owls of the North / Kari Nordmann",
-   "•",
-   "Herons and Egrets / Ola Hansen",
-   "After xml."
-  ]}
+  {"page": 0, "t": ["Config", "Night survey of owls by Märta Lind", "barn owl", "3", "tawny owl", "12", "barn owl chicks", "5", "After yaml.", "Books", "•", "Owls of the North / Kari Nordmann", "•", "Herons and Egrets / Ola Hansen", "After xml."]}
  ]
 }

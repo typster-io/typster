@@ -4,18 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ", "resz/a.typ", "resz/c.typ", "resz/alresz/b.typ", "kozos/labjegyzet.typ"],
  "runs": [
-  {"page": 0, "t": [
-   "Bevezetés",
-   "A jelentés a Balaton vízminőségéről szól.",
-   "Első rész",
-   "Az északi part mintái tiszták voltak.",
-   "Megjegyzés: az adatok előzetesek.",
-   "Második rész",
-   "A déli part vize zavarosabb.",
-   "Részletek",
-   "A mérések Tihanynál készültek.",
-   "Megjegyzés: az adatok előzetesek.",
-   "Köszönjük a figyelmet."
-  ]}
+  {"page": 0, "t": ["Bevezetés", "A jelentés a Balaton vízminőségéről szól.", "Első rész", "Az északi part mintái tiszták voltak.", "Megjegyzés: az adatok előzetesek.", "Második rész", "A déli part vize zavarosabb.", "Részletek", "A mérések Tihanynál készültek.", "Megjegyzés: az adatok előzetesek.", "Köszönjük a figyelmet."]}
  ]
 }
