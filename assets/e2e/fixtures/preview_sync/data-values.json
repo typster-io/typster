@@ -1,0 +1,23 @@
+{
+ "shape": "data-values",
+ "about": "YAML fields around a literal word and a table of YAML items (#54 #58), then XML values joined by a loop whose file is loaded above the gap.",
+ "entry": "main.typ",
+ "files": ["main.typ", "c.yaml", "c.xml"],
+ "runs": [
+  {"t": "Config", "page": 0},
+  {"t": "Night survey of owls by Märta Lind", "page": 0},
+  {"t": "barn owl", "page": 0},
+  {"t": "3", "page": 0},
+  {"t": "tawny owl", "page": 0},
+  {"t": "12", "page": 0},
+  {"t": "barn owl chicks", "page": 0},
+  {"t": "5", "page": 0},
+  {"t": "After yaml.", "page": 0},
+  {"t": "Books", "page": 0},
+  {"t": "•", "page": 0},
+  {"t": "Owls of the North / Kari Nordmann", "page": 0},
+  {"t": "•", "page": 0},
+  {"t": "Herons and Egrets / Ola Hansen", "page": 0},
+  {"t": "After xml.", "page": 0}
+ ]
+}
