@@ -4,14 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"page": 0, "t": [
-   "1. Anfang (Teil)",
-   "Erster Absatz hier.",
-   "2. Mitte (Teil)",
-   "Zweiter Absatz hier.",
-   "2.1.",
-   "Unterpunkt",
-   "Dritter Absatz."
-  ]}
+  {"page": 0, "t": ["1. Anfang (Teil)", "Erster Absatz hier.", "2. Mitte (Teil)", "Zweiter Absatz hier.", "2.1.", "Unterpunkt", "Dritter Absatz."]}
  ]
 }

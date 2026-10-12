@@ -428,7 +428,7 @@ unsaved buffers.
   worker (`assets/e2e/fixtures/preview_sync/`, one document per shape)
   without a browser, in the default `chromium` project. `<shape>.json` names
   the sources, which live as real files under `<shape>/`, and holds the runs
-  grouped by page: `{"page": 0, "t": [...]}` lists the page's runs in order,
+  one line per page: `{"page": 0, "t": [...]}` lists the page's runs in order,
   each a string, `[text, count]` for a run repeated in a row or
   `{"image": true}` for a picture. Re-record a
   fixture when Typst's output changes: render its files through

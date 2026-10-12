@@ -4,16 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ", "conf/viaggio.toml"],
  "runs": [
-  {"page": 0, "t": [
-   "Diario di viaggio",
-   "La nostra guida è Marco Bellini, raggiungibile al +39 055 123.",
-   "•",
-   "Firenze: 2 notti",
-   "•",
-   "Siena: 1 notti",
-   "•",
-   "Lucca: 2 notti",
-   "Arrivederci e buon viaggio!"
-  ]}
+  {"page": 0, "t": ["Diario di viaggio", "La nostra guida è Marco Bellini, raggiungibile al +39 055 123.", "•", "Firenze: 2 notti", "•", "Siena: 1 notti", "•", "Lucca: 2 notti", "Arrivederci e buon viaggio!"]}
  ]
 }

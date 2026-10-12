@@ -4,16 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ", "notes.txt"],
  "runs": [
-  {"page": 0, "t": [
-   "Notes",
-   "First paragraph of the plain text notes file.",
-   "It continues on a second line.",
-   "A second paragraph about herons.",
-   "After the notes.",
-   "First paragraph of the plain text notes file.",
-   "It continues on a second line.",
-   "A second paragraph about herons.",
-   "The end."
-  ]}
+  {"page": 0, "t": ["Notes", "First paragraph of the plain text notes file.", "It continues on a second line.", "A second paragraph about herons.", "After the notes.", "First paragraph of the plain text notes file.", "It continues on a second line.", "A second paragraph about herons.", "The end."]}
  ]
 }

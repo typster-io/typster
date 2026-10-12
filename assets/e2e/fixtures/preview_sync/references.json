@@ -4,17 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"page": 0, "t": [
-   "1.",
-   "Intro",
-   "Intro text.",
-   "2.",
-   "Method",
-   "See ",
-   "Section 1",
-   " and ",
-   "Section 2",
-   " for more."
-  ]}
+  {"page": 0, "t": ["1.", "Intro", "Intro text.", "2.", "Method", "See ", "Section 1", " and ", "Section 2", " for more."]}
  ]
 }

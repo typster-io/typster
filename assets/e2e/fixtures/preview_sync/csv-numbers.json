@@ -4,22 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ", "p.csv"],
  "runs": [
-  {"page": 0, "t": [
-   "Prices",
-   "Price list below.",
-   "apple",
-   "1234.57",
-   "1,500",
-   "pear",
-   "2.5",
-   "20,000",
-   "mango",
-   "0.33",
-   "7",
-   "plum",
-   "4",
-   "9",
-   "After the prices."
-  ]}
+  {"page": 0, "t": ["Prices", "Price list below.", "apple", "1234.57", "1,500", "pear", "2.5", "20,000", "mango", "0.33", "7", "plum", "4", "9", "After the prices."]}
  ]
 }

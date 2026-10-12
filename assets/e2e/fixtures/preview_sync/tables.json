@@ -4,20 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"page": 0, "t": [
-   "Tables",
-   "Id",
-   "Yes",
-   "No",
-   "A1",
-   "12",
-   "3",
-   "Owl",
-   "7",
-   "Forest",
-   "Kestrel",
-   "30",
-   "Closing paragraph about herons."
-  ]}
+  {"page": 0, "t": ["Tables", "Id", "Yes", "No", "A1", "12", "3", "Owl", "7", "Forest", "Kestrel", "30", "Closing paragraph about herons."]}
  ]
 }

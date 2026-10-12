@@ -4,35 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ", "lit.bib"],
  "runs": [
-  {"page": 0, "t": [
-   "Sources",
-   "I. Petrov [1]",
-   " describes owls, while ",
-   "[2]",
-   " covers hawks.",
-   "𝑁",
-   "(",
-   "𝑡",
-   ")",
-   "=",
-   "𝑁",
-   "0",
-   "𝑒",
-   "𝑟",
-   "𝑡",
-   "(1)",
-   "As ",
-   "Equation 1",
-   " predicts, the colony doubles.",
-   "Bibliography",
-   "[1]",
-   "I. Petrov, ",
-   "Night birds of the taiga",
-   ". Nauka, 2019.",
-   "[2]",
-   "C. Adams, “Hawk migration routes,” ",
-   "Avian Studies",
-   ", 2021."
-  ]}
+  {"page": 0, "t": ["Sources", "I. Petrov [1]", " describes owls, while ", "[2]", " covers hawks.", "𝑁", "(", "𝑡", ")", "=", "𝑁", "0", "𝑒", "𝑟", "𝑡", "(1)", "As ", "Equation 1", " predicts, the colony doubles.", "Bibliography", "[1]", "I. Petrov, ", "Night birds of the taiga", ". Nauka, 2019.", "[2]", "C. Adams, “Hawk migration routes,” ", "Avian Studies", ", 2021."]}
  ]
 }

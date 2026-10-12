@@ -1,6 +1,6 @@
 // Preview-sync fixtures: fixtures/preview_sync/<shape>.json names the
 // document's source files, which live as real files under <shape>/, and
-// holds the runs the Typst worker rendered for it, grouped by page:
+// holds the runs the Typst worker rendered for it, one line per page:
 // {"page": 0, "t": [...]} lists the page's runs in order, each a string, a
 // [text, count] pair for a run repeated in a row (an outline's leader dots)
 // or {"image": true} for a picture.
@@ -58,7 +58,7 @@ export function formatFixture(fx) {
   const { shape, about, entry, files, runs, ...rest } = fx
   const fields = Object.entries({ shape, about, entry, ...rest }).map(([k, v]) => ` ${JSON.stringify(k)}: ${JSON.stringify(v)}`)
   fields.push(` "files": ${JSON.stringify(files).replace(/","/g, '", "')}`)
-  const groups = groupRuns(runs).map(({ page, t }) => `  {"page": ${page}, "t": [\n${t.map((v) => `   ${item(v)}`).join(',\n')}\n  ]}`)
+  const groups = groupRuns(runs).map(({ page, t }) => `  {"page": ${page}, "t": [${t.map(item).join(', ')}]}`)
   fields.push(` "runs": ${groups.length ? `[\n${groups.join(',\n')}\n ]` : '[]'}`)
   return `{\n${fields.join(',\n')}\n}\n`
 }

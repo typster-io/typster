@@ -4,18 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ", "staff.yaml"],
  "runs": [
-  {"page": 0, "t": [
-   "•",
-   "Vera Lind runs the survey.",
-   "•",
-   "Contact: lind@example.org",
-   "1.",
-   "Room A1: Lab",
-   "2.",
-   "Room B2: Workshop",
-   "3.",
-   "Room C3: Lab",
-   "The end."
-  ]}
+  {"page": 0, "t": ["•", "Vera Lind runs the survey.", "•", "Contact: lind@example.org", "1.", "Room A1: Lab", "2.", "Room B2: Workshop", "3.", "Room C3: Lab", "The end."]}
  ]
 }

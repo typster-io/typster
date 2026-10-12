@@ -4,15 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"page": 0, "t": [
-   "Typography",
-   "He said “hello” — and ‘bye’ – then… done.",
-   "Dr. Smith met Mr. Jones at 5:30.",
-   "Cost (USD) $5 + tax 🙂 [today]? a|b and C++.",
-   "A family 👨‍👩‍👧 emoji and a soft hy­phen inside.",
-   "Er sagte „hallo Freunde“ und ging.",
-   "Il a dit « bonjour les amis » puis partit.",
-   "Он сказал «привет друзья» и ушёл."
-  ]}
+  {"page": 0, "t": ["Typography", "He said “hello” — and ‘bye’ – then… done.", "Dr. Smith met Mr. Jones at 5:30.", "Cost (USD) $5 + tax 🙂 [today]? a|b and C++.", "A family 👨‍👩‍👧 emoji and a soft hy­phen inside.", "Er sagte „hallo Freunde“ und ging.", "Il a dit « bonjour les amis » puis partit.", "Он сказал «привет друзья» и ушёл."]}
  ]
 }

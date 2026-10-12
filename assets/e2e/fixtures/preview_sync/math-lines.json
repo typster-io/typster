@@ -4,39 +4,6 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"page": 0, "t": [
-   "Model",
-   "Let ",
-   "𝑥",
-   ">",
-   "0",
-   " and ",
-   "𝑦",
-   "=",
-   "𝑥",
-   "2",
-   ", so growth speeds up.",
-   "∫",
-   "1",
-   "0",
-   "𝑓",
-   "(",
-   "𝑥",
-   ")",
-   "d",
-   "𝑥",
-   "=",
-   "1",
-   "Hence the area equals one.",
-   "𝑎",
-   "2",
-   "+",
-   "𝑏",
-   "2",
-   "=",
-   "𝑐",
-   "2",
-   "One last remark."
-  ]}
+  {"page": 0, "t": ["Model", "Let ", "𝑥", ">", "0", " and ", "𝑦", "=", "𝑥", "2", ", so growth speeds up.", "∫", "1", "0", "𝑓", "(", "𝑥", ")", "d", "𝑥", "=", "1", "Hence the area equals one.", "𝑎", "2", "+", "𝑏", "2", "=", "𝑐", "2", "One last remark."]}
  ]
 }
