@@ -3,51 +3,18 @@
  "about": "References to numbered headings printed as Section N",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#set heading(numbering: \"1.\")\n= Intro <intro>\n\nIntro text.\n\n= Method <m>\n\nSee @intro and @m for more.\n"
-  }
+  {"path": "main.typ", "content": "#set heading(numbering: \"1.\")\n= Intro <intro>\n\nIntro text.\n\n= Method <m>\n\nSee @intro and @m for more.\n"}
  ],
  "runs": [
-  {
-   "t": "1.",
-   "page": 0
-  },
-  {
-   "t": "Intro",
-   "page": 0
-  },
-  {
-   "t": "Intro text.",
-   "page": 0
-  },
-  {
-   "t": "2.",
-   "page": 0
-  },
-  {
-   "t": "Method",
-   "page": 0
-  },
-  {
-   "t": "See ",
-   "page": 0
-  },
-  {
-   "t": "Section 1",
-   "page": 0
-  },
-  {
-   "t": " and ",
-   "page": 0
-  },
-  {
-   "t": "Section 2",
-   "page": 0
-  },
-  {
-   "t": " for more.",
-   "page": 0
-  }
+  {"t": "1.", "page": 0},
+  {"t": "Intro", "page": 0},
+  {"t": "Intro text.", "page": 0},
+  {"t": "2.", "page": 0},
+  {"t": "Method", "page": 0},
+  {"t": "See ", "page": 0},
+  {"t": "Section 1", "page": 0},
+  {"t": " and ", "page": 0},
+  {"t": "Section 2", "page": 0},
+  {"t": " for more.", "page": 0}
  ]
 }

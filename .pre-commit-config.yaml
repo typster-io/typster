@@ -44,6 +44,12 @@ repos:
       pass_filenames: false
       files: '^assets/css/.*\.css$'
 
+    - id: preview-sync-fixtures
+      name: format preview sync fixtures
+      entry: node assets/e2e/format_fixtures.mjs
+      language: system
+      files: '^assets/e2e/fixtures/preview_sync/.*\.json$'
+
     - id: mix-precommit
       name: mix precommit
       entry: mix precommit

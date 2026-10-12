@@ -3,55 +3,19 @@
  "about": "A #for over JSON records printing a list item that mixes literal words and values",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "= Roster\n\n#let people = json(\"people.json\")\n#for p in people [- #p.name, age #str(p.age), from #p.city\n]\n\nEnd of roster.\n"
-  },
-  {
-   "path": "people.json",
-   "content": "[\n  {\"name\": \"Alice Moreau\", \"age\": 31, \"city\": \"Lyon\"},\n  {\"name\": \"Борис Орлов\", \"age\": 45, \"city\": \"Казань\"},\n  {\"name\": \"Chen Wei\", \"age\": 28, \"city\": \"Lyon\"}\n]\n"
-  }
+  {"path": "main.typ", "content": "= Roster\n\n#let people = json(\"people.json\")\n#for p in people [- #p.name, age #str(p.age), from #p.city\n]\n\nEnd of roster.\n"},
+  {"path": "people.json", "content": "[\n  {\"name\": \"Alice Moreau\", \"age\": 31, \"city\": \"Lyon\"},\n  {\"name\": \"Борис Орлов\", \"age\": 45, \"city\": \"Казань\"},\n  {\"name\": \"Chen Wei\", \"age\": 28, \"city\": \"Lyon\"}\n]\n"}
  ],
  "runs": [
-  {
-   "t": "Roster",
-   "page": 0
-  },
-  {
-   "t": "•",
-   "page": 0
-  },
-  {
-   "t": "Alice Moreau, age 31, from Lyon",
-   "page": 0
-  },
-  {
-   "t": "•",
-   "page": 0
-  },
-  {
-   "t": "Борис Орлов, ",
-   "page": 0
-  },
-  {
-   "t": "age 45, from ",
-   "page": 0
-  },
-  {
-   "t": "Казань",
-   "page": 0
-  },
-  {
-   "t": "•",
-   "page": 0
-  },
-  {
-   "t": "Chen Wei, age 28, from Lyon",
-   "page": 0
-  },
-  {
-   "t": "End of roster.",
-   "page": 0
-  }
+  {"t": "Roster", "page": 0},
+  {"t": "•", "page": 0},
+  {"t": "Alice Moreau, age 31, from Lyon", "page": 0},
+  {"t": "•", "page": 0},
+  {"t": "Борис Орлов, ", "page": 0},
+  {"t": "age 45, from ", "page": 0},
+  {"t": "Казань", "page": 0},
+  {"t": "•", "page": 0},
+  {"t": "Chen Wei, age 28, from Lyon", "page": 0},
+  {"t": "End of roster.", "page": 0}
  ]
 }

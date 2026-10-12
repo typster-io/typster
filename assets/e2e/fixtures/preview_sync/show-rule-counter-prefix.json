@@ -3,27 +3,12 @@
  "about": "A heading rule printing a literal, the heading counter and more literal before the body",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#set heading(numbering: \"1\")\n#show heading: it => [Kapitel #counter(heading).display(): #it.body]\n= Eins\n\nAbsatz eins.\n\n= Zwei\n\nAbsatz zwei.\n"
-  }
+  {"path": "main.typ", "content": "#set heading(numbering: \"1\")\n#show heading: it => [Kapitel #counter(heading).display(): #it.body]\n= Eins\n\nAbsatz eins.\n\n= Zwei\n\nAbsatz zwei.\n"}
  ],
  "runs": [
-  {
-   "t": "Kapitel 1: Eins",
-   "page": 0
-  },
-  {
-   "t": "Absatz eins.",
-   "page": 0
-  },
-  {
-   "t": "Kapitel 2: Zwei",
-   "page": 0
-  },
-  {
-   "t": "Absatz zwei.",
-   "page": 0
-  }
+  {"t": "Kapitel 1: Eins", "page": 0},
+  {"t": "Absatz eins.", "page": 0},
+  {"t": "Kapitel 2: Zwei", "page": 0},
+  {"t": "Absatz zwei.", "page": 0}
  ]
 }

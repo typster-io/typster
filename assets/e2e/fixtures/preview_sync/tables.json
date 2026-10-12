@@ -3,63 +3,21 @@
  "about": "Short table cells (one to three characters) behind a long options line, and a row-spanning cell that renders a later cell first (#3 #34).",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "= Tables\n\n#table(\n  columns: (auto, 1fr, 1fr), stroke: 0.5pt + luma(200), inset: 8pt, align: left,\n  [Id], [Yes], [No],\n  [A1], [12], [3],\n)\n\n#table(columns: 3, [Owl], table.cell(rowspan: 2)[Forest], [7], [Kestrel], [30])\n\nClosing paragraph about herons.\n"
-  }
+  {"path": "main.typ", "content": "= Tables\n\n#table(\n  columns: (auto, 1fr, 1fr), stroke: 0.5pt + luma(200), inset: 8pt, align: left,\n  [Id], [Yes], [No],\n  [A1], [12], [3],\n)\n\n#table(columns: 3, [Owl], table.cell(rowspan: 2)[Forest], [7], [Kestrel], [30])\n\nClosing paragraph about herons.\n"}
  ],
  "runs": [
-  {
-   "t": "Tables",
-   "page": 0
-  },
-  {
-   "t": "Id",
-   "page": 0
-  },
-  {
-   "t": "Yes",
-   "page": 0
-  },
-  {
-   "t": "No",
-   "page": 0
-  },
-  {
-   "t": "A1",
-   "page": 0
-  },
-  {
-   "t": "12",
-   "page": 0
-  },
-  {
-   "t": "3",
-   "page": 0
-  },
-  {
-   "t": "Owl",
-   "page": 0
-  },
-  {
-   "t": "7",
-   "page": 0
-  },
-  {
-   "t": "Forest",
-   "page": 0
-  },
-  {
-   "t": "Kestrel",
-   "page": 0
-  },
-  {
-   "t": "30",
-   "page": 0
-  },
-  {
-   "t": "Closing paragraph about herons.",
-   "page": 0
-  }
+  {"t": "Tables", "page": 0},
+  {"t": "Id", "page": 0},
+  {"t": "Yes", "page": 0},
+  {"t": "No", "page": 0},
+  {"t": "A1", "page": 0},
+  {"t": "12", "page": 0},
+  {"t": "3", "page": 0},
+  {"t": "Owl", "page": 0},
+  {"t": "7", "page": 0},
+  {"t": "Forest", "page": 0},
+  {"t": "Kestrel", "page": 0},
+  {"t": "30", "page": 0},
+  {"t": "Closing paragraph about herons.", "page": 0}
  ]
 }

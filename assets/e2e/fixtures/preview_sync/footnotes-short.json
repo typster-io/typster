@@ -3,111 +3,33 @@
  "about": "Footnotes whose bodies are short or repeated (Note k., Ibid.), over two pages",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#set page(height: 9cm)\n= Feet\n\nParagraph 1 about marsh birds and their nests.#footnote[Note 1.]\n\nParagraph 2 about marsh birds and their nests.#footnote[Note 2.]\n\nParagraph 3 about herons standing still in the reeds.#footnote[See Smith, p. 4.]\n\nParagraph 4 about herons standing still in the reeds.#footnote[Ibid.]\n\nParagraph 5 about kestrels hovering over the field.#footnote[Ibid.]\n\nParagraph 6 about kestrels hovering over the field.#footnote[Note 6.]\n"
-  }
+  {"path": "main.typ", "content": "#set page(height: 9cm)\n= Feet\n\nParagraph 1 about marsh birds and their nests.#footnote[Note 1.]\n\nParagraph 2 about marsh birds and their nests.#footnote[Note 2.]\n\nParagraph 3 about herons standing still in the reeds.#footnote[See Smith, p. 4.]\n\nParagraph 4 about herons standing still in the reeds.#footnote[Ibid.]\n\nParagraph 5 about kestrels hovering over the field.#footnote[Ibid.]\n\nParagraph 6 about kestrels hovering over the field.#footnote[Note 6.]\n"}
  ],
  "runs": [
-  {
-   "t": "Feet",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 1 about marsh birds and their nests.",
-   "page": 0
-  },
-  {
-   "t": "1",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 2 about marsh birds and their nests.",
-   "page": 0
-  },
-  {
-   "t": "2",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 3 about herons standing still in the reeds.",
-   "page": 0
-  },
-  {
-   "t": "3",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 4 about herons standing still in the reeds.",
-   "page": 0
-  },
-  {
-   "t": "4",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 5 about kestrels hovering over the field.",
-   "page": 0
-  },
-  {
-   "t": "5",
-   "page": 0
-  },
-  {
-   "t": "1",
-   "page": 0
-  },
-  {
-   "t": "Note 1.",
-   "page": 0
-  },
-  {
-   "t": "2",
-   "page": 0
-  },
-  {
-   "t": "Note 2.",
-   "page": 0
-  },
-  {
-   "t": "3",
-   "page": 0
-  },
-  {
-   "t": "See Smith, p. 4.",
-   "page": 0
-  },
-  {
-   "t": "4",
-   "page": 0
-  },
-  {
-   "t": "Ibid.",
-   "page": 0
-  },
-  {
-   "t": "5",
-   "page": 0
-  },
-  {
-   "t": "Ibid.",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 6 about kestrels hovering over the field.",
-   "page": 1
-  },
-  {
-   "t": "6",
-   "page": 1
-  },
-  {
-   "t": "6",
-   "page": 1
-  },
-  {
-   "t": "Note 6.",
-   "page": 1
-  }
+  {"t": "Feet", "page": 0},
+  {"t": "Paragraph 1 about marsh birds and their nests.", "page": 0},
+  {"t": "1", "page": 0},
+  {"t": "Paragraph 2 about marsh birds and their nests.", "page": 0},
+  {"t": "2", "page": 0},
+  {"t": "Paragraph 3 about herons standing still in the reeds.", "page": 0},
+  {"t": "3", "page": 0},
+  {"t": "Paragraph 4 about herons standing still in the reeds.", "page": 0},
+  {"t": "4", "page": 0},
+  {"t": "Paragraph 5 about kestrels hovering over the field.", "page": 0},
+  {"t": "5", "page": 0},
+  {"t": "1", "page": 0},
+  {"t": "Note 1.", "page": 0},
+  {"t": "2", "page": 0},
+  {"t": "Note 2.", "page": 0},
+  {"t": "3", "page": 0},
+  {"t": "See Smith, p. 4.", "page": 0},
+  {"t": "4", "page": 0},
+  {"t": "Ibid.", "page": 0},
+  {"t": "5", "page": 0},
+  {"t": "Ibid.", "page": 0},
+  {"t": "Paragraph 6 about kestrels hovering over the field.", "page": 1},
+  {"t": "6", "page": 1},
+  {"t": "6", "page": 1},
+  {"t": "Note 6.", "page": 1}
  ]
 }

@@ -3,75 +3,24 @@
  "about": "Numbers formatted on output (rounded, thousands separators) between values found in the CSV (#57).",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#let thousands(n) = { let s = str(n); let out = \"\"; let k = s.len(); for (i, ch) in s.clusters().enumerate() { if i > 0 and calc.rem(k - i, 3) == 0 { out += \",\" }; out += ch }; out }\n= Prices\n\nPrice list below.\n\n#let rows = csv(\"p.csv\").slice(1)\n#table(columns: 3, ..rows.map(r => (r.at(0), str(calc.round(float(r.at(1)), digits: 2)), thousands(int(r.at(2))))).flatten())\n\nAfter the prices.\n"
-  },
-  {
-   "path": "p.csv",
-   "content": "item,price,qty\napple,1234.5678,1500\npear,2.5,20000\nmango,0.333,7\nplum,4,9\n"
-  }
+  {"path": "main.typ", "content": "#let thousands(n) = { let s = str(n); let out = \"\"; let k = s.len(); for (i, ch) in s.clusters().enumerate() { if i > 0 and calc.rem(k - i, 3) == 0 { out += \",\" }; out += ch }; out }\n= Prices\n\nPrice list below.\n\n#let rows = csv(\"p.csv\").slice(1)\n#table(columns: 3, ..rows.map(r => (r.at(0), str(calc.round(float(r.at(1)), digits: 2)), thousands(int(r.at(2))))).flatten())\n\nAfter the prices.\n"},
+  {"path": "p.csv", "content": "item,price,qty\napple,1234.5678,1500\npear,2.5,20000\nmango,0.333,7\nplum,4,9\n"}
  ],
  "runs": [
-  {
-   "t": "Prices",
-   "page": 0
-  },
-  {
-   "t": "Price list below.",
-   "page": 0
-  },
-  {
-   "t": "apple",
-   "page": 0
-  },
-  {
-   "t": "1234.57",
-   "page": 0
-  },
-  {
-   "t": "1,500",
-   "page": 0
-  },
-  {
-   "t": "pear",
-   "page": 0
-  },
-  {
-   "t": "2.5",
-   "page": 0
-  },
-  {
-   "t": "20,000",
-   "page": 0
-  },
-  {
-   "t": "mango",
-   "page": 0
-  },
-  {
-   "t": "0.33",
-   "page": 0
-  },
-  {
-   "t": "7",
-   "page": 0
-  },
-  {
-   "t": "plum",
-   "page": 0
-  },
-  {
-   "t": "4",
-   "page": 0
-  },
-  {
-   "t": "9",
-   "page": 0
-  },
-  {
-   "t": "After the prices.",
-   "page": 0
-  }
+  {"t": "Prices", "page": 0},
+  {"t": "Price list below.", "page": 0},
+  {"t": "apple", "page": 0},
+  {"t": "1234.57", "page": 0},
+  {"t": "1,500", "page": 0},
+  {"t": "pear", "page": 0},
+  {"t": "2.5", "page": 0},
+  {"t": "20,000", "page": 0},
+  {"t": "mango", "page": 0},
+  {"t": "0.33", "page": 0},
+  {"t": "7", "page": 0},
+  {"t": "plum", "page": 0},
+  {"t": "4", "page": 0},
+  {"t": "9", "page": 0},
+  {"t": "After the prices.", "page": 0}
  ]
 }

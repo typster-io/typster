@@ -3,83 +3,26 @@
  "about": "#lorem, a numbered heading made of three letters with a label, bullets and an enumeration.",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#set heading(numbering: \"1.\")\n= Filler about kestrels\n\n#lorem(60)\n\n== fji <short>\n\n- bullet about herons\n- bullet about otters\n\n+ first step\n+ second step\n\nAnother real sentence about herons.\n"
-  }
+  {"path": "main.typ", "content": "#set heading(numbering: \"1.\")\n= Filler about kestrels\n\n#lorem(60)\n\n== fji <short>\n\n- bullet about herons\n- bullet about otters\n\n+ first step\n+ second step\n\nAnother real sentence about herons.\n"}
  ],
  "runs": [
-  {
-   "t": "1.",
-   "page": 0
-  },
-  {
-   "t": "Filler about kestrels",
-   "page": 0
-  },
-  {
-   "t": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore ",
-   "page": 0
-  },
-  {
-   "t": "et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore ",
-   "page": 0
-  },
-  {
-   "t": "dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum ",
-   "page": 0
-  },
-  {
-   "t": "nobis opinemur. Quod idem licet transferre in voluptatem, ut postea variari voluptas distinguique ",
-   "page": 0
-  },
-  {
-   "t": "possit, augeri amplificarique non possit. At.",
-   "page": 0
-  },
-  {
-   "t": "1.1.",
-   "page": 0
-  },
-  {
-   "t": "fji",
-   "page": 0
-  },
-  {
-   "t": "•",
-   "page": 0
-  },
-  {
-   "t": "bullet about herons",
-   "page": 0
-  },
-  {
-   "t": "•",
-   "page": 0
-  },
-  {
-   "t": "bullet about otters",
-   "page": 0
-  },
-  {
-   "t": "1.",
-   "page": 0
-  },
-  {
-   "t": "first step",
-   "page": 0
-  },
-  {
-   "t": "2.",
-   "page": 0
-  },
-  {
-   "t": "second step",
-   "page": 0
-  },
-  {
-   "t": "Another real sentence about herons.",
-   "page": 0
-  }
+  {"t": "1.", "page": 0},
+  {"t": "Filler about kestrels", "page": 0},
+  {"t": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore ", "page": 0},
+  {"t": "et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore ", "page": 0},
+  {"t": "dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum ", "page": 0},
+  {"t": "nobis opinemur. Quod idem licet transferre in voluptatem, ut postea variari voluptas distinguique ", "page": 0},
+  {"t": "possit, augeri amplificarique non possit. At.", "page": 0},
+  {"t": "1.1.", "page": 0},
+  {"t": "fji", "page": 0},
+  {"t": "•", "page": 0},
+  {"t": "bullet about herons", "page": 0},
+  {"t": "•", "page": 0},
+  {"t": "bullet about otters", "page": 0},
+  {"t": "1.", "page": 0},
+  {"t": "first step", "page": 0},
+  {"t": "2.", "page": 0},
+  {"t": "second step", "page": 0},
+  {"t": "Another real sentence about herons.", "page": 0}
  ]
 }

@@ -3,71 +3,23 @@
  "about": "Two chapters included through a #for loop over their paths both include one shared note, by a relative and (from a nested file) an absolute path",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#set text(lang: \"hu\")\n= Bevezetés\n\nA jelentés a Balaton vízminőségéről szól.\n\n#for f in (\"resz/a.typ\", \"resz/c.typ\") { include f }\n\nKöszönjük a figyelmet.\n"
-  },
-  {
-   "path": "resz/a.typ",
-   "content": "== Első rész\n\nAz északi part mintái tiszták voltak.\n\n#include \"../kozos/labjegyzet.typ\"\n"
-  },
-  {
-   "path": "resz/c.typ",
-   "content": "== Második rész\n\nA déli part vize zavarosabb.\n\n#include \"alresz/b.typ\"\n"
-  },
-  {
-   "path": "resz/alresz/b.typ",
-   "content": "=== Részletek\n\nA mérések Tihanynál készültek.\n\n#include \"/kozos/labjegyzet.typ\"\n"
-  },
-  {
-   "path": "kozos/labjegyzet.typ",
-   "content": "_Megjegyzés: az adatok előzetesek._\n"
-  }
+  {"path": "main.typ", "content": "#set text(lang: \"hu\")\n= Bevezetés\n\nA jelentés a Balaton vízminőségéről szól.\n\n#for f in (\"resz/a.typ\", \"resz/c.typ\") { include f }\n\nKöszönjük a figyelmet.\n"},
+  {"path": "resz/a.typ", "content": "== Első rész\n\nAz északi part mintái tiszták voltak.\n\n#include \"../kozos/labjegyzet.typ\"\n"},
+  {"path": "resz/c.typ", "content": "== Második rész\n\nA déli part vize zavarosabb.\n\n#include \"alresz/b.typ\"\n"},
+  {"path": "resz/alresz/b.typ", "content": "=== Részletek\n\nA mérések Tihanynál készültek.\n\n#include \"/kozos/labjegyzet.typ\"\n"},
+  {"path": "kozos/labjegyzet.typ", "content": "_Megjegyzés: az adatok előzetesek._\n"}
  ],
  "runs": [
-  {
-   "t": "Bevezetés",
-   "page": 0
-  },
-  {
-   "t": "A jelentés a Balaton vízminőségéről szól.",
-   "page": 0
-  },
-  {
-   "t": "Első rész",
-   "page": 0
-  },
-  {
-   "t": "Az északi part mintái tiszták voltak.",
-   "page": 0
-  },
-  {
-   "t": "Megjegyzés: az adatok előzetesek.",
-   "page": 0
-  },
-  {
-   "t": "Második rész",
-   "page": 0
-  },
-  {
-   "t": "A déli part vize zavarosabb.",
-   "page": 0
-  },
-  {
-   "t": "Részletek",
-   "page": 0
-  },
-  {
-   "t": "A mérések Tihanynál készültek.",
-   "page": 0
-  },
-  {
-   "t": "Megjegyzés: az adatok előzetesek.",
-   "page": 0
-  },
-  {
-   "t": "Köszönjük a figyelmet.",
-   "page": 0
-  }
+  {"t": "Bevezetés", "page": 0},
+  {"t": "A jelentés a Balaton vízminőségéről szól.", "page": 0},
+  {"t": "Első rész", "page": 0},
+  {"t": "Az északi part mintái tiszták voltak.", "page": 0},
+  {"t": "Megjegyzés: az adatok előzetesek.", "page": 0},
+  {"t": "Második rész", "page": 0},
+  {"t": "A déli part vize zavarosabb.", "page": 0},
+  {"t": "Részletek", "page": 0},
+  {"t": "A mérések Tihanynál készültek.", "page": 0},
+  {"t": "Megjegyzés: az adatok előzetesek.", "page": 0},
+  {"t": "Köszönjük a figyelmet.", "page": 0}
  ]
 }

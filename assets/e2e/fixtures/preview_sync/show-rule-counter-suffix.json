@@ -3,39 +3,15 @@
  "about": "A level-1 heading rule printing the heading counter before the body and a literal suffix after it",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#set heading(numbering: \"1.\")\n#show heading.where(level: 1): it => block[#counter(heading).display() #it.body (Teil)]\n= Anfang\n\nErster Absatz hier.\n\n= Mitte\n\nZweiter Absatz hier.\n\n== Unterpunkt\n\nDritter Absatz.\n"
-  }
+  {"path": "main.typ", "content": "#set heading(numbering: \"1.\")\n#show heading.where(level: 1): it => block[#counter(heading).display() #it.body (Teil)]\n= Anfang\n\nErster Absatz hier.\n\n= Mitte\n\nZweiter Absatz hier.\n\n== Unterpunkt\n\nDritter Absatz.\n"}
  ],
  "runs": [
-  {
-   "t": "1. Anfang (Teil)",
-   "page": 0
-  },
-  {
-   "t": "Erster Absatz hier.",
-   "page": 0
-  },
-  {
-   "t": "2. Mitte (Teil)",
-   "page": 0
-  },
-  {
-   "t": "Zweiter Absatz hier.",
-   "page": 0
-  },
-  {
-   "t": "2.1.",
-   "page": 0
-  },
-  {
-   "t": "Unterpunkt",
-   "page": 0
-  },
-  {
-   "t": "Dritter Absatz.",
-   "page": 0
-  }
+  {"t": "1. Anfang (Teil)", "page": 0},
+  {"t": "Erster Absatz hier.", "page": 0},
+  {"t": "2. Mitte (Teil)", "page": 0},
+  {"t": "Zweiter Absatz hier.", "page": 0},
+  {"t": "2.1.", "page": 0},
+  {"t": "Unterpunkt", "page": 0},
+  {"t": "Dritter Absatz.", "page": 0}
  ]
 }

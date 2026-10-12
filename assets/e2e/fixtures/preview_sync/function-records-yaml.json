@@ -3,35 +3,14 @@
  "about": "Records printed through a local function in another field order than the YAML file, a value repeated across records, and literal text before an inline call",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#let folk = yaml(\"folk.yaml\")\n#let rad(p) = [#p.namn bor i #p.stad och är #p.alder år.]\n#set text(lang: \"sv\")\n= Deltagare\n\n#for p in folk [\n  #rad(p)\n\n]\n\nTotalt #folk.len() personer deltog.\n"
-  },
-  {
-   "path": "folk.yaml",
-   "content": "- alder: 34\n  stad: Uppsala\n  namn: Astrid\n- alder: 41\n  stad: Malmö\n  namn: Björn\n- alder: 34\n  stad: Uppsala\n  namn: Cecilia\n"
-  }
+  {"path": "main.typ", "content": "#let folk = yaml(\"folk.yaml\")\n#let rad(p) = [#p.namn bor i #p.stad och är #p.alder år.]\n#set text(lang: \"sv\")\n= Deltagare\n\n#for p in folk [\n  #rad(p)\n\n]\n\nTotalt #folk.len() personer deltog.\n"},
+  {"path": "folk.yaml", "content": "- alder: 34\n  stad: Uppsala\n  namn: Astrid\n- alder: 41\n  stad: Malmö\n  namn: Björn\n- alder: 34\n  stad: Uppsala\n  namn: Cecilia\n"}
  ],
  "runs": [
-  {
-   "t": "Deltagare",
-   "page": 0
-  },
-  {
-   "t": "Astrid bor i Uppsala och är 34 år.",
-   "page": 0
-  },
-  {
-   "t": "Björn bor i Malmö och är 41 år.",
-   "page": 0
-  },
-  {
-   "t": "Cecilia bor i Uppsala och är 34 år.",
-   "page": 0
-  },
-  {
-   "t": "Totalt 3 personer deltog.",
-   "page": 0
-  }
+  {"t": "Deltagare", "page": 0},
+  {"t": "Astrid bor i Uppsala och är 34 år.", "page": 0},
+  {"t": "Björn bor i Malmö och är 41 år.", "page": 0},
+  {"t": "Cecilia bor i Uppsala och är 34 år.", "page": 0},
+  {"t": "Totalt 3 personer deltog.", "page": 0}
  ]
 }
