@@ -4,17 +4,21 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "Watch", "page": 0},
-  {"t": "Entry 1 notes the tide and the wind over the harbour mouth at dusk.", "page": 0},
-  {"t": "Entry 2 notes the tide and the wind over the harbour mouth at dusk.", "page": 0},
-  {"t": "Entry 3 notes the tide and the wind over the harbour mouth at dusk.", "page": 0},
-  {"t": "Entry 4 notes the tide and the wind over the harbour mouth at dusk.", "page": 0},
-  {"t": "Entry 5 notes the tide and the wind over the harbour mouth at dusk.", "page": 0},
-  {"t": "Entry 6 notes the tide and the wind over the harbour mouth at dusk.", "page": 0},
-  {"t": "Entry 7 notes the tide and the wind over the harbour mouth at dusk.", "page": 0},
-  {"t": "Entry 8 notes the tide and the wind over the harbour mouth at dusk.", "page": 0},
-  {"t": "Sheet 1 of the log", "page": 0},
-  {"t": "Entry 9 notes the tide and the wind over the harbour mouth at dusk.", "page": 1},
-  {"t": "Sheet 2 of the log", "page": 1}
+  {"page": 0, "t": [
+   "Watch",
+   "Entry 1 notes the tide and the wind over the harbour mouth at dusk.",
+   "Entry 2 notes the tide and the wind over the harbour mouth at dusk.",
+   "Entry 3 notes the tide and the wind over the harbour mouth at dusk.",
+   "Entry 4 notes the tide and the wind over the harbour mouth at dusk.",
+   "Entry 5 notes the tide and the wind over the harbour mouth at dusk.",
+   "Entry 6 notes the tide and the wind over the harbour mouth at dusk.",
+   "Entry 7 notes the tide and the wind over the harbour mouth at dusk.",
+   "Entry 8 notes the tide and the wind over the harbour mouth at dusk.",
+   "Sheet 1 of the log"
+  ]},
+  {"page": 1, "t": [
+   "Entry 9 notes the tide and the wind over the harbour mouth at dusk.",
+   "Sheet 2 of the log"
+  ]}
  ]
 }

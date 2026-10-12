@@ -4,12 +4,14 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "1. Anfang (Teil)", "page": 0},
-  {"t": "Erster Absatz hier.", "page": 0},
-  {"t": "2. Mitte (Teil)", "page": 0},
-  {"t": "Zweiter Absatz hier.", "page": 0},
-  {"t": "2.1.", "page": 0},
-  {"t": "Unterpunkt", "page": 0},
-  {"t": "Dritter Absatz.", "page": 0}
+  {"page": 0, "t": [
+   "1. Anfang (Teil)",
+   "Erster Absatz hier.",
+   "2. Mitte (Teil)",
+   "Zweiter Absatz hier.",
+   "2.1.",
+   "Unterpunkt",
+   "Dritter Absatz."
+  ]}
  ]
 }

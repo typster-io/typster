@@ -4,13 +4,15 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "Ascent (Chapter)", "page": 0},
-  {"t": "We walked 5 ", "page": 0},
-  {"t": "miles", "page": 0},
-  {"t": " along the river.", "page": 0},
-  {"t": "Descent (Chapter)", "page": 0},
-  {"t": "Then 3 ", "page": 0},
-  {"t": "miles", "page": 0},
-  {"t": " downhill.", "page": 0}
+  {"page": 0, "t": [
+   "Ascent (Chapter)",
+   "We walked 5 ",
+   "miles",
+   " along the river.",
+   "Descent (Chapter)",
+   "Then 3 ",
+   "miles",
+   " downhill."
+  ]}
  ]
 }

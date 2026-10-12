@@ -4,15 +4,17 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "1.", "page": 0},
-  {"t": "Intro", "page": 0},
-  {"t": "Intro text.", "page": 0},
-  {"t": "2.", "page": 0},
-  {"t": "Method", "page": 0},
-  {"t": "See ", "page": 0},
-  {"t": "Section 1", "page": 0},
-  {"t": " and ", "page": 0},
-  {"t": "Section 2", "page": 0},
-  {"t": " for more.", "page": 0}
+  {"page": 0, "t": [
+   "1.",
+   "Intro",
+   "Intro text.",
+   "2.",
+   "Method",
+   "See ",
+   "Section 1",
+   " and ",
+   "Section 2",
+   " for more."
+  ]}
  ]
 }

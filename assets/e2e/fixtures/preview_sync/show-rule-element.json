@@ -4,9 +4,11 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "Intro (Draft)", "page": 0},
-  {"t": "Some intro words.", "page": 0},
-  {"t": "Report (Draft)", "page": 0},
-  {"t": "Closing words here.", "page": 0}
+  {"page": 0, "t": [
+   "Intro (Draft)",
+   "Some intro words.",
+   "Report (Draft)",
+   "Closing words here."
+  ]}
  ]
 }

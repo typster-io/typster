@@ -4,18 +4,20 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "Tables", "page": 0},
-  {"t": "Id", "page": 0},
-  {"t": "Yes", "page": 0},
-  {"t": "No", "page": 0},
-  {"t": "A1", "page": 0},
-  {"t": "12", "page": 0},
-  {"t": "3", "page": 0},
-  {"t": "Owl", "page": 0},
-  {"t": "7", "page": 0},
-  {"t": "Forest", "page": 0},
-  {"t": "Kestrel", "page": 0},
-  {"t": "30", "page": 0},
-  {"t": "Closing paragraph about herons.", "page": 0}
+  {"page": 0, "t": [
+   "Tables",
+   "Id",
+   "Yes",
+   "No",
+   "A1",
+   "12",
+   "3",
+   "Owl",
+   "7",
+   "Forest",
+   "Kestrel",
+   "30",
+   "Closing paragraph about herons."
+  ]}
  ]
 }

@@ -4,15 +4,17 @@
  "entry": "main.typ",
  "files": ["main.typ", "p.csv"],
  "runs": [
-  {"t": "Shout", "page": 0},
-  {"t": "•", "page": 0},
-  {"t": "APPLE costs 1234.5678", "page": 0},
-  {"t": "•", "page": 0},
-  {"t": "PEAR costs 2.5", "page": 0},
-  {"t": "•", "page": 0},
-  {"t": "MANGO costs 0.333", "page": 0},
-  {"t": "•", "page": 0},
-  {"t": "PLUM costs 4", "page": 0},
-  {"t": "After shouting.", "page": 0}
+  {"page": 0, "t": [
+   "Shout",
+   "•",
+   "APPLE costs 1234.5678",
+   "•",
+   "PEAR costs 2.5",
+   "•",
+   "MANGO costs 0.333",
+   "•",
+   "PLUM costs 4",
+   "After shouting."
+  ]}
  ]
 }

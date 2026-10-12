@@ -4,16 +4,18 @@
  "entry": "main.typ",
  "files": ["main.typ", "staff.yaml"],
  "runs": [
-  {"t": "•", "page": 0},
-  {"t": "Vera Lind runs the survey.", "page": 0},
-  {"t": "•", "page": 0},
-  {"t": "Contact: lind@example.org", "page": 0},
-  {"t": "1.", "page": 0},
-  {"t": "Room A1: Lab", "page": 0},
-  {"t": "2.", "page": 0},
-  {"t": "Room B2: Workshop", "page": 0},
-  {"t": "3.", "page": 0},
-  {"t": "Room C3: Lab", "page": 0},
-  {"t": "The end.", "page": 0}
+  {"page": 0, "t": [
+   "•",
+   "Vera Lind runs the survey.",
+   "•",
+   "Contact: lind@example.org",
+   "1.",
+   "Room A1: Lab",
+   "2.",
+   "Room B2: Workshop",
+   "3.",
+   "Room C3: Lab",
+   "The end."
+  ]}
  ]
 }

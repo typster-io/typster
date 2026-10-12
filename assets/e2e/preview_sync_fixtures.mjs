@@ -1,11 +1,14 @@
 // Preview-sync fixtures: fixtures/preview_sync/<shape>.json names the
 // document's source files, which live as real files under <shape>/, and
-// holds the runs the Typst worker rendered for it. A run repeated in a row
-// (an outline's leader dots) is stored once with its count in "x".
+// holds the runs the Typst worker rendered for it, grouped by page:
+// {"page": 0, "t": [...]} lists the page's runs in order, each a string, a
+// [text, count] pair for a run repeated in a row (an outline's leader dots)
+// or {"image": true} for a picture.
 //
 // Run as a script it rewrites the given fixtures (all without arguments) in
 // one stable layout and checks every named source exists; it exits 1 when it
-// changed or would change (--check) a file.
+// changed or would change (--check) a file. It also takes runs as recorded,
+// one {"t", "page"} or {"page", "image": true} object per run.
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -14,32 +17,49 @@ export const dir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures/previ
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
 
+// One {t, page} or {page, image} object per run.
+function expandRuns(runs) {
+  return runs.flatMap((group) => {
+    if (!Array.isArray(group.t)) return [{ ...group }]
+    const { page } = group
+    return group.t.flatMap((item) => {
+      if (typeof item === 'string') return [{ t: item, page }]
+      if (Array.isArray(item)) return Array.from({ length: item[1] }, () => ({ t: item[0], page }))
+      return [{ page, image: true }]
+    })
+  })
+}
+
 // The fixture as the tests use it: sources with their content, runs expanded.
 export function loadFixture(shape) {
   const fx = JSON.parse(readFileSync(join(dir, `${shape}.json`), 'utf8'))
   const files = fx.files.map((path) => ({ path, content: readFileSync(join(dir, shape, path), 'utf8') }))
-  const runs = fx.runs.flatMap(({ x = 1, ...run }) => Array.from({ length: x }, () => ({ ...run })))
-  return { ...fx, files, runs }
+  return { ...fx, files, runs: expandRuns(fx.runs) }
 }
 
-const collapse = (runs) => {
-  const out = []
-  for (const { x = 1, ...run } of runs) {
-    const last = out[out.length - 1]
-    if (last && same({ ...last, x: undefined }, { ...run, x: undefined })) last.x = (last.x || 1) + x
-    else out.push(x > 1 ? { ...run, x } : run)
+// Runs grouped by page, a run repeated in a row as [text, count].
+function groupRuns(runs) {
+  const groups = []
+  for (const run of expandRuns(runs)) {
+    let group = groups[groups.length - 1]
+    if (!group || group.page !== run.page) groups.push((group = { page: run.page, t: [] }))
+    const last = group.t[group.t.length - 1]
+    if (run.image) group.t.push({ image: true })
+    else if (last === run.t) group.t[group.t.length - 1] = [run.t, 2]
+    else if (Array.isArray(last) && last[0] === run.t) last[1]++
+    else group.t.push(run.t)
   }
-  return out
+  return groups
 }
 
-const line = (value) => `{${Object.entries(value).filter(([, v]) => v !== undefined).map(([k, v]) => `${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(', ')}}`
+const item = (value) => (Array.isArray(value) ? `[${JSON.stringify(value[0])}, ${value[1]}]` : value.image ? '{"image": true}' : JSON.stringify(value))
 
 export function formatFixture(fx) {
   const { shape, about, entry, files, runs, ...rest } = fx
   const fields = Object.entries({ shape, about, entry, ...rest }).map(([k, v]) => ` ${JSON.stringify(k)}: ${JSON.stringify(v)}`)
   fields.push(` "files": ${JSON.stringify(files).replace(/","/g, '", "')}`)
-  const items = collapse(runs).map(({ t, page, x, ...r }) => line({ t, page, ...r, x }))
-  fields.push(` "runs": ${items.length ? `[\n${items.map((i) => `  ${i}`).join(',\n')}\n ]` : '[]'}`)
+  const groups = groupRuns(runs).map(({ page, t }) => `  {"page": ${page}, "t": [\n${t.map((v) => `   ${item(v)}`).join(',\n')}\n  ]}`)
+  fields.push(` "runs": ${groups.length ? `[\n${groups.join(',\n')}\n ]` : '[]'}`)
   return `{\n${fields.join(',\n')}\n}\n`
 }
 
@@ -56,8 +76,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const missing = fx.files.filter((f) => !existsSync(join(dirname(path), shape, f)))
     if (missing.length) throw new Error(`${path}: missing ${missing.map((f) => `${shape}/${f}`).join(', ')}`)
     const after = formatFixture(fx)
-    const expand = (f) => f.runs.flatMap(({ x = 1, ...r }) => Array(x).fill(JSON.stringify(r, Object.keys(r).sort())))
-    if (!same(expand(JSON.parse(after)), expand(fx))) throw new Error(`${path}: formatting changed the runs`)
+    if (!same(expandRuns(JSON.parse(after).runs), expandRuns(fx.runs))) throw new Error(`${path}: formatting changed the runs`)
     if (after === before) continue
     changed++
     console.log(check ? `would reformat ${path}` : `reformatted ${path}`)

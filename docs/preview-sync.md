@@ -427,8 +427,10 @@ unsaved buffers.
 - `assets/e2e/preview_sync_align.spec.mjs` aligns runs recorded from the
   worker (`assets/e2e/fixtures/preview_sync/`, one document per shape)
   without a browser, in the default `chromium` project. `<shape>.json` names
-  the sources, which live as real files under `<shape>/`, and holds the runs;
-  a run repeated in a row is stored once with its count in `x`. Re-record a
+  the sources, which live as real files under `<shape>/`, and holds the runs
+  grouped by page: `{"page": 0, "t": [...]}` lists the page's runs in order,
+  each a string, `[text, count]` for a run repeated in a row or
+  `{"image": true}` for a picture. Re-record a
   fixture when Typst's output changes: render its files through
   `/assets/js/typst_worker_impl.js` and save each `.tsel` run's text and page
   index, and each `<image>` as an image run. `node

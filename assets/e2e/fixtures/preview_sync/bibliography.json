@@ -4,23 +4,25 @@
  "entry": "main.typ",
  "files": ["main.typ", "refs.bib"],
  "runs": [
-  {"t": "Citations", "page": 0},
-  {"t": "Herons are studied widely ", "page": 0},
-  {"t": "[1]", "page": 0},
-  {"t": " and raptors too ", "page": 0},
-  {"t": "[2]", "page": 0},
-  {"t": ".", "page": 0},
-  {"t": "A second paragraph cites again ", "page": 0},
-  {"t": "[1]", "page": 0},
-  {"t": ".", "page": 0},
-  {"t": "Bibliography", "page": 0},
-  {"t": "[1]", "page": 0},
-  {"t": "J. Smith and J. Doe, “Wading birds of the northern marshes,” ", "page": 0},
-  {"t": "Journal of Ornithology", "page": 0},
-  {"t": ", 2020.", "page": 0},
-  {"t": "[2]", "page": 0},
-  {"t": "A. Lee, ", "page": 0},
-  {"t": "Raptors in flight", "page": 0},
-  {"t": ". Feather Press, 2018.", "page": 0}
+  {"page": 0, "t": [
+   "Citations",
+   "Herons are studied widely ",
+   "[1]",
+   " and raptors too ",
+   "[2]",
+   ".",
+   "A second paragraph cites again ",
+   "[1]",
+   ".",
+   "Bibliography",
+   "[1]",
+   "J. Smith and J. Doe, “Wading birds of the northern marshes,” ",
+   "Journal of Ornithology",
+   ", 2020.",
+   "[2]",
+   "A. Lee, ",
+   "Raptors in flight",
+   ". Feather Press, 2018."
+  ]}
  ]
 }

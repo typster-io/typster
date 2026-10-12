@@ -4,15 +4,17 @@
  "entry": "main.typ",
  "files": ["main.typ", "people.json"],
  "runs": [
-  {"t": "Roster", "page": 0},
-  {"t": "•", "page": 0},
-  {"t": "Alice Moreau, age 31, from Lyon", "page": 0},
-  {"t": "•", "page": 0},
-  {"t": "Борис Орлов, ", "page": 0},
-  {"t": "age 45, from ", "page": 0},
-  {"t": "Казань", "page": 0},
-  {"t": "•", "page": 0},
-  {"t": "Chen Wei, age 28, from Lyon", "page": 0},
-  {"t": "End of roster.", "page": 0}
+  {"page": 0, "t": [
+   "Roster",
+   "•",
+   "Alice Moreau, age 31, from Lyon",
+   "•",
+   "Борис Орлов, ",
+   "age 45, from ",
+   "Казань",
+   "•",
+   "Chen Wei, age 28, from Lyon",
+   "End of roster."
+  ]}
  ]
 }

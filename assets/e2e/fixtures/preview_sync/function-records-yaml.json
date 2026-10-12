@@ -4,10 +4,12 @@
  "entry": "main.typ",
  "files": ["main.typ", "folk.yaml"],
  "runs": [
-  {"t": "Deltagare", "page": 0},
-  {"t": "Astrid bor i Uppsala och är 34 år.", "page": 0},
-  {"t": "Björn bor i Malmö och är 41 år.", "page": 0},
-  {"t": "Cecilia bor i Uppsala och är 34 år.", "page": 0},
-  {"t": "Totalt 3 personer deltog.", "page": 0}
+  {"page": 0, "t": [
+   "Deltagare",
+   "Astrid bor i Uppsala och är 34 år.",
+   "Björn bor i Malmö och är 41 år.",
+   "Cecilia bor i Uppsala och är 34 år.",
+   "Totalt 3 personer deltog."
+  ]}
  ]
 }

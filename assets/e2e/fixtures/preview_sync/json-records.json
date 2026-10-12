@@ -4,10 +4,12 @@
  "entry": "main.typ",
  "files": ["main.typ", "crew.json"],
  "runs": [
-  {"t": "Crew", "page": 0},
-  {"t": "Ines works as botanist.", "page": 0},
-  {"t": "Oskar works as pilot.", "page": 0},
-  {"t": "Mirela works as botanist.", "page": 0},
-  {"t": "That is everyone.", "page": 0}
+  {"page": 0, "t": [
+   "Crew",
+   "Ines works as botanist.",
+   "Oskar works as pilot.",
+   "Mirela works as botanist.",
+   "That is everyone."
+  ]}
  ]
 }

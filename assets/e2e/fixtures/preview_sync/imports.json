@@ -4,15 +4,17 @@
  "entry": "main.typ",
  "files": ["main.typ", "strings.typ", "lib.typ"],
  "runs": [
-  {"t": "Letter", "page": 0},
-  {"t": "Dear reader of this letter", "page": 0},
-  {"t": "Banner: Seasonal greeting text", "page": 0},
-  {"t": "Total: 51 units.", "page": 0},
-  {"t": "(key: ", "page": 0},
-  {"t": "\"value\"", "page": 0},
-  {"t": ", other: ", "page": 0},
-  {"t": "12", "page": 0},
-  {"t": ")", "page": 0},
-  {"t": "KESTREL flies.", "page": 0}
+  {"page": 0, "t": [
+   "Letter",
+   "Dear reader of this letter",
+   "Banner: Seasonal greeting text",
+   "Total: 51 units.",
+   "(key: ",
+   "\"value\"",
+   ", other: ",
+   "12",
+   ")",
+   "KESTREL flies."
+  ]}
  ]
 }

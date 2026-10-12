@@ -4,13 +4,15 @@
  "entry": "main.typ",
  "files": ["main.typ", "crew.xml"],
  "runs": [
-  {"t": "Crew", "page": 0},
-  {"t": "•", "page": 0},
-  {"t": "Ines (botanist)", "page": 0},
-  {"t": "•", "page": 0},
-  {"t": "Oskar (pilot)", "page": 0},
-  {"t": "•", "page": 0},
-  {"t": "Mirela (botanist)", "page": 0},
-  {"t": "That is everyone.", "page": 0}
+  {"page": 0, "t": [
+   "Crew",
+   "•",
+   "Ines (botanist)",
+   "•",
+   "Oskar (pilot)",
+   "•",
+   "Mirela (botanist)",
+   "That is everyone."
+  ]}
  ]
 }

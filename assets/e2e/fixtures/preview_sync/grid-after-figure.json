@@ -4,14 +4,17 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "Gallery", "page": 0},
-  {"t": "The first plate shows the marsh.", "page": 0},
-  {"page": 0, "image": true},
-  {"t": "Figure 1: The marsh at dawn", "page": 0},
-  {"t": "The second plate shows the forest.", "page": 0},
-  {"page": 0, "image": true},
-  {"t": "Figure 2: The forest at dusk", "page": 0},
-  {"page": 0, "image": true, "x": 2},
-  {"t": "Both plates were taken by the same observer.", "page": 0}
+  {"page": 0, "t": [
+   "Gallery",
+   "The first plate shows the marsh.",
+   {"image": true},
+   "Figure 1: The marsh at dawn",
+   "The second plate shows the forest.",
+   {"image": true},
+   "Figure 2: The forest at dusk",
+   {"image": true},
+   {"image": true},
+   "Both plates were taken by the same observer."
+  ]}
  ]
 }
