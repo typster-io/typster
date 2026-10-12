@@ -2,9 +2,7 @@
  "shape": "show-heading-literal",
  "about": "A heading shown through a show rule that adds literal text, and a show rule replacing a word",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "#show \"mi\": \"miles\"\n#show heading: it => block[#it.body (Chapter)]\n= Ascent\n\nWe walked 5 mi along the river.\n\n= Descent\n\nThen 3 mi downhill.\n"}
- ],
+ "files": ["main.typ"],
  "runs": [
   {"t": "Ascent (Chapter)", "page": 0},
   {"t": "We walked 5 ", "page": 0},

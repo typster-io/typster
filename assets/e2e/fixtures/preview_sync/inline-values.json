@@ -2,10 +2,7 @@
  "shape": "inline-values",
  "about": "TOML values printed inline after literal text in a paragraph, and in a loop",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "#let v = toml(\"conf/viaggio.toml\")\n#set text(lang: \"it\")\n= #v.titolo\n\nLa nostra guida è #v.guida.nome, raggiungibile al #v.guida.telefono.\n\n#for t in v.tappe [\n  - #t.citta: #t.notti notti\n]\n\nArrivederci e buon viaggio!\n"},
-  {"path": "conf/viaggio.toml", "content": "titolo = \"Diario di viaggio\"\n[guida]\nnome = \"Marco Bellini\"\ntelefono = \"+39 055 123\"\n[[tappe]]\ncitta = \"Firenze\"\nnotti = 2\n[[tappe]]\ncitta = \"Siena\"\nnotti = 1\n[[tappe]]\ncitta = \"Lucca\"\nnotti = 2\n"}
- ],
+ "files": ["main.typ", "conf/viaggio.toml"],
  "runs": [
   {"t": "Diario di viaggio", "page": 0},
   {"t": "La nostra guida è Marco Bellini, raggiungibile al +39 055 123.", "page": 0},

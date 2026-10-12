@@ -2,16 +2,7 @@
  "shape": "includes",
  "about": "Includes in every form: a plain one into a subfolder that includes relatively (../), a parenthesized one, one through a let-bound name, an absolute one inside a code block, and a commented-out draft that must not be spliced (#2 #9 #18).",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Book\n\nPreface sentence of the book.\n\n#include \"parts/part1.typ\"\n\n#include(\"parts/part2.typ\")\n\n#let appendix = \"back/appendix.typ\"\n#include appendix\n\n/*\n#include \"drafts/old.typ\"\n*/\n#{ include \"/shared/colophon.typ\" }\n\nClosing words of the book.\n"},
-  {"path": "parts/part1.typ", "content": "== Part one\n\nKestrels hovered over the field.\n\n#include \"chapters/ch1.typ\"\n"},
-  {"path": "parts/chapters/ch1.typ", "content": "=== Chapter one\n\nOtters were observed in the river.\n\n#include \"../../shared/note.typ\"\n"},
-  {"path": "shared/note.typ", "content": "A shared note about methodology and sampling.\n"},
-  {"path": "parts/part2.typ", "content": "== Part two\n\nBadgers dug new setts nearby.\n"},
-  {"path": "back/appendix.typ", "content": "== Appendix\n\nTables of counts follow here.\n"},
-  {"path": "shared/colophon.typ", "content": "Set in a serif face by the editors.\n"},
-  {"path": "drafts/old.typ", "content": "== Draft\n\nBadgers dug new setts nearby.\n"}
- ],
+ "files": ["main.typ", "parts/part1.typ", "parts/chapters/ch1.typ", "shared/note.typ", "parts/part2.typ", "back/appendix.typ", "shared/colophon.typ", "drafts/old.typ"],
  "runs": [
   {"t": "Book", "page": 0},
   {"t": "Preface sentence of the book.", "page": 0},

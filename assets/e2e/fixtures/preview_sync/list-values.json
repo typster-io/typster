@@ -2,10 +2,7 @@
  "shape": "list-values",
  "about": "Values printed first in a list item before literal text, and an e-mail sharing a word with another value",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "#let d = yaml(\"staff.yaml\")\n- #d.lead runs the survey.\n- Contact: #d.mail\n\n#for (k, v) in d.rooms [\n  + Room #k: #v\n]\n\nThe end.\n"},
-  {"path": "staff.yaml", "content": "lead: Vera Lind\nmail: lind@example.org\nrooms:\n  A1: Lab\n  B2: Workshop\n  C3: Lab\n"}
- ],
+ "files": ["main.typ", "staff.yaml"],
  "runs": [
   {"t": "•", "page": 0},
   {"t": "Vera Lind runs the survey.", "page": 0},

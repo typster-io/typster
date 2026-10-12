@@ -2,9 +2,7 @@
  "shape": "page-footer",
  "about": "A header and a context footer with the page number on every page of a three-page body",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "#set page(height: 8cm, header: [Shore report #h(1fr) Draft], footer: context [Page #counter(page).display() of 3])\n= Introduction\n\nParagraph 1 records the counts along the shore in enough words that the page fills and breaks.\n\nParagraph 2 records the counts along the shore in enough words that the page fills and breaks.\n\nParagraph 3 records the counts along the shore in enough words that the page fills and breaks.\n\nParagraph 4 records the counts along the shore in enough words that the page fills and breaks.\n\nParagraph 5 records the counts along the shore in enough words that the page fills and breaks.\n\nParagraph 6 records the counts along the shore in enough words that the page fills and breaks.\n\nParagraph 7 records the counts along the shore in enough words that the page fills and breaks.\n\nParagraph 8 records the counts along the shore in enough words that the page fills and breaks.\n\nParagraph 9 records the counts along the shore in enough words that the page fills and breaks.\n"}
- ],
+ "files": ["main.typ"],
  "runs": [
   {"t": "Shore report", "page": 0},
   {"t": "Draft", "page": 0},

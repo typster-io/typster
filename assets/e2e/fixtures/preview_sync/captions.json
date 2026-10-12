@@ -2,9 +2,7 @@
  "shape": "captions",
  "about": "Figure captions behind generated labels in English, French (\"Fig. 1. –\") and with a custom separator; the word caption must not match the caption: argument (#6).",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Figures\n\n#figure(rect(width: 1cm, height: 5mm), caption: [A short caption about wading herons])\n\n#text(lang: \"fr\")[#figure(rect(width: 1cm, height: 5mm), caption: [A French caption about grey herons])]\n\n#set figure.caption(separator: [ --- ])\n#figure(rect(width: 1cm, height: 5mm), caption: [A caption with its own separator])\n"}
- ],
+ "files": ["main.typ"],
  "runs": [
   {"t": "Figures", "page": 0},
   {"t": "Figure 1: A short caption about wading herons", "page": 0},

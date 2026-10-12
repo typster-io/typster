@@ -2,10 +2,7 @@
  "shape": "csv-spread",
  "about": "A table spreading a CSV's flattened rows from a #let",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Table\n\n#let rows = csv(\"birds.csv\")\n#table(columns: 3, ..rows.flatten())\n\nThe table lists three species.\n"},
-  {"path": "birds.csv", "content": "Species,Count,Place\nHeron,12,Lake\nOwl,5,Forest\nKestrel,7,Field\n"}
- ],
+ "files": ["main.typ", "birds.csv"],
  "runs": [
   {"t": "Table", "page": 0},
   {"t": "Species", "page": 0},

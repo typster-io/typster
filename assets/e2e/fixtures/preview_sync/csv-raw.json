@@ -2,10 +2,7 @@
  "shape": "csv-raw",
  "about": "A CSV printed raw after #lorem (brackets and cells go to the data file), then again after a one-letter heading (#12 #14).",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Data\n\n#lorem(8)\n\n#csv(\"birds.csv\")\n\n== D\n\n#csv(\"birds.csv\")\n\nAfter the arrays.\n"},
-  {"path": "birds.csv", "content": "bird,habitat\nheron,a long-legged wading bird of marshes\n"}
- ],
+ "files": ["main.typ", "birds.csv"],
  "runs": [
   {"t": "Data", "page": 0},
   {"t": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.", "page": 0},

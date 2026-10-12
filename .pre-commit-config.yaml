@@ -5,11 +5,14 @@ repos:
   rev: v6.0.0
   hooks:
   - id: trailing-whitespace
+    exclude: '^assets/e2e/fixtures/preview_sync/'
   - id: end-of-file-fixer
+    exclude: '^assets/e2e/fixtures/preview_sync/'
   # - id: pretty-format-json
   #   args: ['--indent', '2', '--no-ensure-ascii', '--no-sort-keys']
   - id: check-yaml
     args: ['--allow-multiple-documents']
+    exclude: '^assets/e2e/fixtures/preview_sync/'
   - id: detect-private-key
 
 - repo: local
@@ -46,9 +49,9 @@ repos:
 
     - id: preview-sync-fixtures
       name: format preview sync fixtures
-      entry: node assets/e2e/format_fixtures.mjs
+      entry: node assets/e2e/preview_sync_fixtures.mjs
       language: system
-      files: '^assets/e2e/fixtures/preview_sync/.*\.json$'
+      files: '^assets/e2e/fixtures/preview_sync/[^/]+\.json$'
 
     - id: mix-precommit
       name: mix precommit

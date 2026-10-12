@@ -3,10 +3,11 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { loadFixture } from './preview_sync_fixtures.mjs'
 
 // Preview ↔ source alignment (#149) without a browser. Each fixture in
-// fixtures/preview_sync holds a document's sources and the runs the Typst
-// worker rendered for it (their text and page, pictures as image runs),
+// fixtures/preview_sync names a document's sources (real files under a folder
+// of the fixture's name) and holds the runs the Typst worker rendered for it (their text and page, pictures as image runs),
 // recorded once through the real worker. The tests align those runs with the
 // real module and check where each run lands, where a click inside it goes
 // and which run a resting caret finds.
@@ -73,7 +74,7 @@ function align(files, entry = 'main.typ', recorded = []) {
 }
 
 function fixture(shape) {
-  const fx = JSON.parse(readFileSync(join(here, 'fixtures/preview_sync', `${shape}.json`), 'utf8'))
+  const fx = loadFixture(shape)
   return align(fx.files, fx.entry, fx.runs)
 }
 
@@ -991,7 +992,7 @@ function wordAt(file, lines, word, skip = () => false) {
 
 test.describe('round six defects', () => {
   test('show rules printing text around what they show: the text goes to the rule, the rest to its element', () => {
-    const fx = JSON.parse(readFileSync(join(here, 'fixtures/preview_sync/show-rule-pieces.json'), 'utf8'))
+    const fx = loadFixture('show-rule-pieces')
     const lines = fx.files[0].content.split('\n')
     const isRule = (k) => lines[k].startsWith('#show')
     const a = fixture('show-rule-pieces')
@@ -1049,7 +1050,7 @@ test.describe('round six defects', () => {
 
   test('records printed through a local function: values in their own record, the literal in the definition', () => {
     for (const [shape, file] of [['function-records-yaml', 'folk.yaml'], ['function-records-json', 'data/folk.json']]) {
-      const fx = JSON.parse(readFileSync(join(here, `fixtures/preview_sync/${shape}.json`), 'utf8'))
+      const fx = loadFixture(shape)
       const data = fx.files.find((f) => f.path === file).content.split('\n')
       const main = fx.files.find((f) => f.path === 'main.typ').content.split('\n')
       const a = fixture(shape)
@@ -1110,7 +1111,7 @@ test.describe('round six defects', () => {
 
 test.describe('round seven defects', () => {
   test('decomposed, composed and mixed accents and compatibility characters: each word lands on itself', () => {
-    const fx = JSON.parse(readFileSync(join(here, 'fixtures/preview_sync/nfd-text.json'), 'utf8'))
+    const fx = loadFixture('nfd-text')
     const lines = fx.files[0].content.split('\n')
     const a = fixture('nfd-text')
     // A word (with its combining marks) as the source spells it, from line
@@ -1147,7 +1148,7 @@ test.describe('round seven defects', () => {
   })
 
   test('a file two chapters reach through an include loop resolves the same in any source order', () => {
-    const fx = JSON.parse(readFileSync(join(here, 'fixtures/preview_sync/dynamic-includes.json'), 'utf8'))
+    const fx = loadFixture('dynamic-includes')
     const main = fx.files.find((f) => f.path === 'main.typ')
     const rest = fx.files.filter((f) => f !== main)
     const byPath = (x, y) => x.path.localeCompare(y.path)

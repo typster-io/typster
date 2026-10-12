@@ -2,10 +2,7 @@
  "shape": "csv-repeated",
  "about": "A 40-row CSV whose status column repeats two values: each cell walks down its own row (#49).",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Members\n\n#table(columns: 2, ..csv(\"s.csv\").flatten())\n\nAfter the table.\n"},
-  {"path": "s.csv", "content": "name,status\nperson1,active\nperson2,active\nperson3,retired\nperson4,active\nperson5,active\nperson6,retired\nperson7,active\nperson8,active\nperson9,retired\nperson10,active\nperson11,active\nperson12,retired\nperson13,active\nperson14,active\nperson15,retired\nperson16,active\nperson17,active\nperson18,retired\nperson19,active\nperson20,active\nperson21,retired\nperson22,active\nperson23,active\nperson24,retired\nperson25,active\nperson26,active\nperson27,retired\nperson28,active\nperson29,active\nperson30,retired\nperson31,active\nperson32,active\nperson33,retired\nperson34,active\nperson35,active\nperson36,retired\nperson37,active\nperson38,active\nperson39,retired\nperson40,active\n"}
- ],
+ "files": ["main.typ", "s.csv"],
  "runs": [
   {"t": "Members", "page": 0},
   {"t": "name", "page": 0},

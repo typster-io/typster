@@ -2,11 +2,7 @@
  "shape": "imports",
  "about": "Content from an imported module and a function call from a library, and a printed literal and computed values.",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "#import \"strings.typ\": greeting\n#import \"lib.typ\": banner\n= Letter\n\n#greeting\n\n#banner(\"Seasonal greeting text\")\n\nTotal: #(17 * 3) units.\n\n#(key: \"value\", other: 12)\n\n#let name = \"kestrel\"\n#upper(name) flies.\n"},
-  {"path": "strings.typ", "content": "#let greeting = [Dear reader of this letter]\n"},
-  {"path": "lib.typ", "content": "#let banner(title) = align(center, text(size: 16pt)[Banner: #title])\n"}
- ],
+ "files": ["main.typ", "strings.typ", "lib.typ"],
  "runs": [
   {"t": "Letter", "page": 0},
   {"t": "Dear reader of this letter", "page": 0},
