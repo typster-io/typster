@@ -3,51 +3,18 @@
  "about": "A text file read and shown twice, once as raw (#54).",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "= Notes\n\n#read(\"notes.txt\")\n\nAfter the notes.\n\n#raw(read(\"notes.txt\"))\n\nThe end.\n"
-  },
-  {
-   "path": "notes.txt",
-   "content": "First paragraph of the plain text notes file.\nIt continues on a second line.\n\nA second paragraph about herons.\n"
-  }
+  {"path": "main.typ", "content": "= Notes\n\n#read(\"notes.txt\")\n\nAfter the notes.\n\n#raw(read(\"notes.txt\"))\n\nThe end.\n"},
+  {"path": "notes.txt", "content": "First paragraph of the plain text notes file.\nIt continues on a second line.\n\nA second paragraph about herons.\n"}
  ],
  "runs": [
-  {
-   "t": "Notes",
-   "page": 0
-  },
-  {
-   "t": "First paragraph of the plain text notes file.",
-   "page": 0
-  },
-  {
-   "t": "It continues on a second line.",
-   "page": 0
-  },
-  {
-   "t": "A second paragraph about herons.",
-   "page": 0
-  },
-  {
-   "t": "After the notes.",
-   "page": 0
-  },
-  {
-   "t": "First paragraph of the plain text notes file.",
-   "page": 0
-  },
-  {
-   "t": "It continues on a second line.",
-   "page": 0
-  },
-  {
-   "t": "A second paragraph about herons.",
-   "page": 0
-  },
-  {
-   "t": "The end.",
-   "page": 0
-  }
+  {"t": "Notes", "page": 0},
+  {"t": "First paragraph of the plain text notes file.", "page": 0},
+  {"t": "It continues on a second line.", "page": 0},
+  {"t": "A second paragraph about herons.", "page": 0},
+  {"t": "After the notes.", "page": 0},
+  {"t": "First paragraph of the plain text notes file.", "page": 0},
+  {"t": "It continues on a second line.", "page": 0},
+  {"t": "A second paragraph about herons.", "page": 0},
+  {"t": "The end.", "page": 0}
  ]
 }

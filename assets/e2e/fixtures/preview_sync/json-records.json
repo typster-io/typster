@@ -3,35 +3,14 @@
  "about": "A #for over pretty-printed JSON records, a value repeated in two records",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#let crew = json(\"crew.json\")\n= Crew\n\n#for m in crew [\n  #m.name works as #m.role.\n\n]\n\nThat is everyone.\n"
-  },
-  {
-   "path": "crew.json",
-   "content": "[\n  {\n    \"name\": \"Ines\",\n    \"role\": \"botanist\"\n  },\n  {\n    \"name\": \"Oskar\",\n    \"role\": \"pilot\"\n  },\n  {\n    \"name\": \"Mirela\",\n    \"role\": \"botanist\"\n  }\n]\n"
-  }
+  {"path": "main.typ", "content": "#let crew = json(\"crew.json\")\n= Crew\n\n#for m in crew [\n  #m.name works as #m.role.\n\n]\n\nThat is everyone.\n"},
+  {"path": "crew.json", "content": "[\n  {\n    \"name\": \"Ines\",\n    \"role\": \"botanist\"\n  },\n  {\n    \"name\": \"Oskar\",\n    \"role\": \"pilot\"\n  },\n  {\n    \"name\": \"Mirela\",\n    \"role\": \"botanist\"\n  }\n]\n"}
  ],
  "runs": [
-  {
-   "t": "Crew",
-   "page": 0
-  },
-  {
-   "t": "Ines works as botanist.",
-   "page": 0
-  },
-  {
-   "t": "Oskar works as pilot.",
-   "page": 0
-  },
-  {
-   "t": "Mirela works as botanist.",
-   "page": 0
-  },
-  {
-   "t": "That is everyone.",
-   "page": 0
-  }
+  {"t": "Crew", "page": 0},
+  {"t": "Ines works as botanist.", "page": 0},
+  {"t": "Oskar works as pilot.", "page": 0},
+  {"t": "Mirela works as botanist.", "page": 0},
+  {"t": "That is everyone.", "page": 0}
  ]
 }

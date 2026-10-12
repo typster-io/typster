@@ -3,139 +3,40 @@
  "about": "Display math lines starting with a named symbol or a letter between paragraphs",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "= Model\n\nLet $x > 0$ and $y = x^2$, so growth speeds up.\n\n$ integral_0^1 f(x) dif x = 1 $\n\nHence the area equals one.\n\n$ a^2 + b^2 = c^2 $\n\nOne last remark.\n"
-  }
+  {"path": "main.typ", "content": "= Model\n\nLet $x > 0$ and $y = x^2$, so growth speeds up.\n\n$ integral_0^1 f(x) dif x = 1 $\n\nHence the area equals one.\n\n$ a^2 + b^2 = c^2 $\n\nOne last remark.\n"}
  ],
  "runs": [
-  {
-   "t": "Model",
-   "page": 0
-  },
-  {
-   "t": "Let ",
-   "page": 0
-  },
-  {
-   "t": "𝑥",
-   "page": 0
-  },
-  {
-   "t": ">",
-   "page": 0
-  },
-  {
-   "t": "0",
-   "page": 0
-  },
-  {
-   "t": " and ",
-   "page": 0
-  },
-  {
-   "t": "𝑦",
-   "page": 0
-  },
-  {
-   "t": "=",
-   "page": 0
-  },
-  {
-   "t": "𝑥",
-   "page": 0
-  },
-  {
-   "t": "2",
-   "page": 0
-  },
-  {
-   "t": ", so growth speeds up.",
-   "page": 0
-  },
-  {
-   "t": "∫",
-   "page": 0
-  },
-  {
-   "t": "1",
-   "page": 0
-  },
-  {
-   "t": "0",
-   "page": 0
-  },
-  {
-   "t": "𝑓",
-   "page": 0
-  },
-  {
-   "t": "(",
-   "page": 0
-  },
-  {
-   "t": "𝑥",
-   "page": 0
-  },
-  {
-   "t": ")",
-   "page": 0
-  },
-  {
-   "t": "d",
-   "page": 0
-  },
-  {
-   "t": "𝑥",
-   "page": 0
-  },
-  {
-   "t": "=",
-   "page": 0
-  },
-  {
-   "t": "1",
-   "page": 0
-  },
-  {
-   "t": "Hence the area equals one.",
-   "page": 0
-  },
-  {
-   "t": "𝑎",
-   "page": 0
-  },
-  {
-   "t": "2",
-   "page": 0
-  },
-  {
-   "t": "+",
-   "page": 0
-  },
-  {
-   "t": "𝑏",
-   "page": 0
-  },
-  {
-   "t": "2",
-   "page": 0
-  },
-  {
-   "t": "=",
-   "page": 0
-  },
-  {
-   "t": "𝑐",
-   "page": 0
-  },
-  {
-   "t": "2",
-   "page": 0
-  },
-  {
-   "t": "One last remark.",
-   "page": 0
-  }
+  {"t": "Model", "page": 0},
+  {"t": "Let ", "page": 0},
+  {"t": "𝑥", "page": 0},
+  {"t": ">", "page": 0},
+  {"t": "0", "page": 0},
+  {"t": " and ", "page": 0},
+  {"t": "𝑦", "page": 0},
+  {"t": "=", "page": 0},
+  {"t": "𝑥", "page": 0},
+  {"t": "2", "page": 0},
+  {"t": ", so growth speeds up.", "page": 0},
+  {"t": "∫", "page": 0},
+  {"t": "1", "page": 0},
+  {"t": "0", "page": 0},
+  {"t": "𝑓", "page": 0},
+  {"t": "(", "page": 0},
+  {"t": "𝑥", "page": 0},
+  {"t": ")", "page": 0},
+  {"t": "d", "page": 0},
+  {"t": "𝑥", "page": 0},
+  {"t": "=", "page": 0},
+  {"t": "1", "page": 0},
+  {"t": "Hence the area equals one.", "page": 0},
+  {"t": "𝑎", "page": 0},
+  {"t": "2", "page": 0},
+  {"t": "+", "page": 0},
+  {"t": "𝑏", "page": 0},
+  {"t": "2", "page": 0},
+  {"t": "=", "page": 0},
+  {"t": "𝑐", "page": 0},
+  {"t": "2", "page": 0},
+  {"t": "One last remark.", "page": 0}
  ]
 }

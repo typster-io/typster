@@ -3,203 +3,56 @@
  "about": "A highlighted raw block (one run per token) and inline raw (#32).",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "= Code\n\nIntro to the code.\n\n```python\ndef fibonacci(n):\n    if n < 2:\n        return n\n    return fibonacci(n - 1) + fibonacci(n - 2)\n```\n\nInline `let x = 42` code here.\n\nAfter the code block.\n"
-  }
+  {"path": "main.typ", "content": "= Code\n\nIntro to the code.\n\n```python\ndef fibonacci(n):\n    if n < 2:\n        return n\n    return fibonacci(n - 1) + fibonacci(n - 2)\n```\n\nInline `let x = 42` code here.\n\nAfter the code block.\n"}
  ],
  "runs": [
-  {
-   "t": "Code",
-   "page": 0
-  },
-  {
-   "t": "Intro to the code.",
-   "page": 0
-  },
-  {
-   "t": "def",
-   "page": 0
-  },
-  {
-   "t": " ",
-   "page": 0
-  },
-  {
-   "t": "fibonacci",
-   "page": 0
-  },
-  {
-   "t": "(",
-   "page": 0
-  },
-  {
-   "t": "n",
-   "page": 0
-  },
-  {
-   "t": ")",
-   "page": 0
-  },
-  {
-   "t": ":",
-   "page": 0
-  },
-  {
-   "t": "    ",
-   "page": 0
-  },
-  {
-   "t": "if",
-   "page": 0
-  },
-  {
-   "t": " ",
-   "page": 0
-  },
-  {
-   "t": "n",
-   "page": 0
-  },
-  {
-   "t": " ",
-   "page": 0
-  },
-  {
-   "t": "<",
-   "page": 0
-  },
-  {
-   "t": " ",
-   "page": 0
-  },
-  {
-   "t": "2",
-   "page": 0
-  },
-  {
-   "t": ":",
-   "page": 0
-  },
-  {
-   "t": "        ",
-   "page": 0
-  },
-  {
-   "t": "return",
-   "page": 0
-  },
-  {
-   "t": " ",
-   "page": 0
-  },
-  {
-   "t": "n",
-   "page": 0
-  },
-  {
-   "t": "    ",
-   "page": 0
-  },
-  {
-   "t": "return",
-   "page": 0
-  },
-  {
-   "t": " ",
-   "page": 0
-  },
-  {
-   "t": "fibonacci",
-   "page": 0
-  },
-  {
-   "t": "(",
-   "page": 0
-  },
-  {
-   "t": "n",
-   "page": 0
-  },
-  {
-   "t": " ",
-   "page": 0
-  },
-  {
-   "t": "-",
-   "page": 0
-  },
-  {
-   "t": " ",
-   "page": 0
-  },
-  {
-   "t": "1",
-   "page": 0
-  },
-  {
-   "t": ")",
-   "page": 0
-  },
-  {
-   "t": " ",
-   "page": 0
-  },
-  {
-   "t": "+",
-   "page": 0
-  },
-  {
-   "t": " ",
-   "page": 0
-  },
-  {
-   "t": "fibonacci",
-   "page": 0
-  },
-  {
-   "t": "(",
-   "page": 0
-  },
-  {
-   "t": "n",
-   "page": 0
-  },
-  {
-   "t": " ",
-   "page": 0
-  },
-  {
-   "t": "-",
-   "page": 0
-  },
-  {
-   "t": " ",
-   "page": 0
-  },
-  {
-   "t": "2",
-   "page": 0
-  },
-  {
-   "t": ")",
-   "page": 0
-  },
-  {
-   "t": "Inline ",
-   "page": 0
-  },
-  {
-   "t": "let x = 42",
-   "page": 0
-  },
-  {
-   "t": " code here.",
-   "page": 0
-  },
-  {
-   "t": "After the code block.",
-   "page": 0
-  }
+  {"t": "Code", "page": 0},
+  {"t": "Intro to the code.", "page": 0},
+  {"t": "def", "page": 0},
+  {"t": " ", "page": 0},
+  {"t": "fibonacci", "page": 0},
+  {"t": "(", "page": 0},
+  {"t": "n", "page": 0},
+  {"t": ")", "page": 0},
+  {"t": ":", "page": 0},
+  {"t": "    ", "page": 0},
+  {"t": "if", "page": 0},
+  {"t": " ", "page": 0},
+  {"t": "n", "page": 0},
+  {"t": " ", "page": 0},
+  {"t": "<", "page": 0},
+  {"t": " ", "page": 0},
+  {"t": "2", "page": 0},
+  {"t": ":", "page": 0},
+  {"t": "        ", "page": 0},
+  {"t": "return", "page": 0},
+  {"t": " ", "page": 0},
+  {"t": "n", "page": 0},
+  {"t": "    ", "page": 0},
+  {"t": "return", "page": 0},
+  {"t": " ", "page": 0},
+  {"t": "fibonacci", "page": 0},
+  {"t": "(", "page": 0},
+  {"t": "n", "page": 0},
+  {"t": " ", "page": 0},
+  {"t": "-", "page": 0},
+  {"t": " ", "page": 0},
+  {"t": "1", "page": 0},
+  {"t": ")", "page": 0},
+  {"t": " ", "page": 0},
+  {"t": "+", "page": 0},
+  {"t": " ", "page": 0},
+  {"t": "fibonacci", "page": 0},
+  {"t": "(", "page": 0},
+  {"t": "n", "page": 0},
+  {"t": " ", "page": 0},
+  {"t": "-", "page": 0},
+  {"t": " ", "page": 0},
+  {"t": "2", "page": 0},
+  {"t": ")", "page": 0},
+  {"t": "Inline ", "page": 0},
+  {"t": "let x = 42", "page": 0},
+  {"t": " code here.", "page": 0},
+  {"t": "After the code block.", "page": 0}
  ]
 }

@@ -3,59 +3,20 @@
  "about": "A context page footer printing the page number, with no header",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#set page(height: 8cm, footer: context [Page #counter(page).display() of 3])\n= Intro\n\nParagraph 1 describes the riverbank at length so the page fills and breaks.\n\nParagraph 2 describes the riverbank at length so the page fills and breaks.\n\nParagraph 3 describes the riverbank at length so the page fills and breaks.\n\nParagraph 4 describes the riverbank at length so the page fills and breaks.\n\nParagraph 5 describes the riverbank at length so the page fills and breaks.\n\nParagraph 6 describes the riverbank at length so the page fills and breaks.\n\nParagraph 7 describes the riverbank at length so the page fills and breaks.\n\nParagraph 8 describes the riverbank at length so the page fills and breaks.\n\nParagraph 9 describes the riverbank at length so the page fills and breaks.\n"
-  }
+  {"path": "main.typ", "content": "#set page(height: 8cm, footer: context [Page #counter(page).display() of 3])\n= Intro\n\nParagraph 1 describes the riverbank at length so the page fills and breaks.\n\nParagraph 2 describes the riverbank at length so the page fills and breaks.\n\nParagraph 3 describes the riverbank at length so the page fills and breaks.\n\nParagraph 4 describes the riverbank at length so the page fills and breaks.\n\nParagraph 5 describes the riverbank at length so the page fills and breaks.\n\nParagraph 6 describes the riverbank at length so the page fills and breaks.\n\nParagraph 7 describes the riverbank at length so the page fills and breaks.\n\nParagraph 8 describes the riverbank at length so the page fills and breaks.\n\nParagraph 9 describes the riverbank at length so the page fills and breaks.\n"}
  ],
  "runs": [
-  {
-   "t": "Intro",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 1 describes the riverbank at length so the page fills and breaks.",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 2 describes the riverbank at length so the page fills and breaks.",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 3 describes the riverbank at length so the page fills and breaks.",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 4 describes the riverbank at length so the page fills and breaks.",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 5 describes the riverbank at length so the page fills and breaks.",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 6 describes the riverbank at length so the page fills and breaks.",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 7 describes the riverbank at length so the page fills and breaks.",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 8 describes the riverbank at length so the page fills and breaks.",
-   "page": 0
-  },
-  {
-   "t": "Page 1 of 3",
-   "page": 0
-  },
-  {
-   "t": "Paragraph 9 describes the riverbank at length so the page fills and breaks.",
-   "page": 1
-  },
-  {
-   "t": "Page 2 of 3",
-   "page": 1
-  }
+  {"t": "Intro", "page": 0},
+  {"t": "Paragraph 1 describes the riverbank at length so the page fills and breaks.", "page": 0},
+  {"t": "Paragraph 2 describes the riverbank at length so the page fills and breaks.", "page": 0},
+  {"t": "Paragraph 3 describes the riverbank at length so the page fills and breaks.", "page": 0},
+  {"t": "Paragraph 4 describes the riverbank at length so the page fills and breaks.", "page": 0},
+  {"t": "Paragraph 5 describes the riverbank at length so the page fills and breaks.", "page": 0},
+  {"t": "Paragraph 6 describes the riverbank at length so the page fills and breaks.", "page": 0},
+  {"t": "Paragraph 7 describes the riverbank at length so the page fills and breaks.", "page": 0},
+  {"t": "Paragraph 8 describes the riverbank at length so the page fills and breaks.", "page": 0},
+  {"t": "Page 1 of 3", "page": 0},
+  {"t": "Paragraph 9 describes the riverbank at length so the page fills and breaks.", "page": 1},
+  {"t": "Page 2 of 3", "page": 1}
  ]
 }

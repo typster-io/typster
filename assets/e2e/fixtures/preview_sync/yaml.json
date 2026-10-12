@@ -3,51 +3,18 @@
  "about": "YAML fields around a literal word and a table of YAML items (#54 #58).",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#let y = yaml(\"c.yaml\")\n= Config\n\n#y.title by #y.owner.name\n\n#table(columns: 2, ..y.items.map(i => (i.label, str(i.qty))).flatten())\n\nAfter yaml.\n"
-  },
-  {
-   "path": "c.yaml",
-   "content": "title: Night survey of owls\nowner:\n  name: Märta Lind\nitems:\n  - label: barn owl\n    qty: 3\n  - label: tawny owl\n    qty: 12\n  - label: barn owl chicks\n    qty: 5\n"
-  }
+  {"path": "main.typ", "content": "#let y = yaml(\"c.yaml\")\n= Config\n\n#y.title by #y.owner.name\n\n#table(columns: 2, ..y.items.map(i => (i.label, str(i.qty))).flatten())\n\nAfter yaml.\n"},
+  {"path": "c.yaml", "content": "title: Night survey of owls\nowner:\n  name: Märta Lind\nitems:\n  - label: barn owl\n    qty: 3\n  - label: tawny owl\n    qty: 12\n  - label: barn owl chicks\n    qty: 5\n"}
  ],
  "runs": [
-  {
-   "t": "Config",
-   "page": 0
-  },
-  {
-   "t": "Night survey of owls by Märta Lind",
-   "page": 0
-  },
-  {
-   "t": "barn owl",
-   "page": 0
-  },
-  {
-   "t": "3",
-   "page": 0
-  },
-  {
-   "t": "tawny owl",
-   "page": 0
-  },
-  {
-   "t": "12",
-   "page": 0
-  },
-  {
-   "t": "barn owl chicks",
-   "page": 0
-  },
-  {
-   "t": "5",
-   "page": 0
-  },
-  {
-   "t": "After yaml.",
-   "page": 0
-  }
+  {"t": "Config", "page": 0},
+  {"t": "Night survey of owls by Märta Lind", "page": 0},
+  {"t": "barn owl", "page": 0},
+  {"t": "3", "page": 0},
+  {"t": "tawny owl", "page": 0},
+  {"t": "12", "page": 0},
+  {"t": "barn owl chicks", "page": 0},
+  {"t": "5", "page": 0},
+  {"t": "After yaml.", "page": 0}
  ]
 }

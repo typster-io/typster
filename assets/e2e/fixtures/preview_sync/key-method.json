@@ -3,23 +3,11 @@
  "about": "A user function named at printing its string argument, beside a dictionary read with the .at method",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#let at(place) = [Treffpunkt: #place]\n#let ort = (stadt: \"Bremen\")\n= Plan\n\n#at(\"Bahnhof\")\n\nDanach #at(\"Museum\") am Abend in #ort.at(\"stadt\").\n"
-  }
+  {"path": "main.typ", "content": "#let at(place) = [Treffpunkt: #place]\n#let ort = (stadt: \"Bremen\")\n= Plan\n\n#at(\"Bahnhof\")\n\nDanach #at(\"Museum\") am Abend in #ort.at(\"stadt\").\n"}
  ],
  "runs": [
-  {
-   "t": "Plan",
-   "page": 0
-  },
-  {
-   "t": "Treffpunkt: Bahnhof",
-   "page": 0
-  },
-  {
-   "t": "Danach Treffpunkt: Museum am Abend in Bremen.",
-   "page": 0
-  }
+  {"t": "Plan", "page": 0},
+  {"t": "Treffpunkt: Bahnhof", "page": 0},
+  {"t": "Danach Treffpunkt: Museum am Abend in Bremen.", "page": 0}
  ]
 }

@@ -3,123 +3,36 @@
  "about": "A top-placed figure with a long caption rendered above a full page of text that precedes it in the source (#28).",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#set text(size: 7pt)\n= Float page\n\nBra finbrany tocilsol cil li to wexjubgar zel solny jub ka garnyjub. Kadorren liva dornyquo tun pexva zelligar liquo to bratun tun hos mi zelzelwex tun. Finsol zel va hospexli vava vaquoto finpexren vasoltun likapex cil quo. Garcilva tun hosbra hosbrawex quony dorgar nyrensol kami jubsol varen zelwex solfinmi. Dorfin jub vazel quowex cilto finren hosquo ny pexjub rennydor sol hos quokapex pexrensol. Quodor miny cil va fin finka ka tun cil. Sol tun cilgar renva hostunto gartomi sol zel nybra bramizel. Hoscil finny wex nycil nybraka tozelka kajubjub pex bra dor pex hoswexli. Brami brato ka dor bra braquowex wexquogar ren wexfin ren hosgarhos kasol finpexzel va. Wextoli hosny sol fin bra solfincil zelfinquo zelbrahos. Va nycilfin fin cil renwex renhos ka finjub quo braren liren vami. Brajubny rencilren dorquo to rencil finto tunren zel. Nyfin misol mi ka mitun wex dor cil. Pex renrenwex tunhoszel finfinli milicil varendor finli nyzelny tunmiwex dormi hos quozelhos ny pexka.\n\nLifin dorkali va mi renrenquo zel wexgarli finfin garkaka. Vawex wex lifinren wex quozelbra vali kapexhos wex. Pextozel mitun va wexvaren to quofindor katun lika pexrenli dorren ligar fintundor mirenhos. Kasolfin hos jubsol dorwex finwexli pexto ka garfin wex jubvali zelka pexvaquo. Ka pex renmi midor lipex pexsolgar hossolbra jubzel karento tun. Hoslibra zelto to hos jubfin solto valisol lifin pexka tun bra pexgar lijub. Quo quo bralizel pexbra miny ny ligarwex lika pex zelwexwex quocilsol mijubjub. Garsolli finliwex miren tunren dormijub midordor vadorto ren garlizel tunhosmi to ka. Solvador nyzelto hosbra sol jubnyny renvagar kajub zelbrahos jubgarsol ren wexlimi tunrenzel finva pexren hos. Dor li ka solwexren litunjub dorli nytocil cil gargar zeljub zel gar garpex. Pex limihos bracilwex tuntunsol dorhos solwex brapex garcil hos zel. Pexpexsol cilsol jub renvapex cilto tunlipex va pexquoka hosny pexmitun nytozel li nytun. Renmibra vavador zelfinpex mi ren quoto to ny ny li mi gar. Mifin hoscil tungar jubmizel jubhoshos wexfin wexbra mipexto cilgar findorbra hosquo finva lifintun quoto vaciltun.\n\nSolkapex pexjubbra sol solmika wexbrato brasol quomi fin. Todorka cilbra ka cilwex kazelbra dor fin bra pexhos liwexgar pexbra cil ny sol tobra. To tun vapex ny solka dortunva cillidor jubtunmi bra hossol dorkafin garli quo pex. Cil tunbra garny mi mi vami ka hos vasolmi bratun. Gar vajub pex pexgargar gar dorliwex wex hosrencil brasol nytohos todorka. Jubsoltun tuncil bra cilsolhos garli kafinto zelsolny ciljubjub sol gartunva zelzelquo fin. Ka jubpexbra wex vanyzel dorva cil cilliva pex pexbracil vali gar pexsol hos. Kaliva zelcil limisol hosquoka dornygar cilzelhos rendorhos li. Wexbra todormi findor zelfinka braka nygar dor finsol jubto wexquopex gar. Garrenka garzelgar wexcil jubny wexfinhos hosdor zeltunva wex dorhos ka fin hosjub findordor. Jub jubzelhos hos brafinpex ny mizelka nyren ka jub solwexpex zeldorquo quohoska. Zel zelli bratomi bracil cil soldor tunka tun micilsol finvava zeltoto. Dorbra finrenpex braquoquo pex tunren rencilfin soldorbra jubwexka zelzelgar finzelzel pexto wex. Sol fin mirenwex vafinwex dorjub sol toli wex fincil cilfinbra ka kajub nygar midor.\n\n#figure(rect(width: 2cm, height: 1cm), caption: [A rather long caption text that describes the top placed figure in detail], placement: top)\n\nGarfinbra micil tunmili ka to sol cilpextun tungarbra garcil va quonyli dorfin jub. Jubnyto zel fintun solren jub kakawex tunzelfin pexjub nybrapex gardor zelny ka solli mi. Pexjub wex migarka mivami wextun to sol miren li mi garpex gar pexpex tunsolka soltun. Tunsolzel gar nyrenny tobrava va ligarli tunli pexren dorpex nytunjub cil cil vatunjub dorpexquo braquo.\n"
-  }
+  {"path": "main.typ", "content": "#set text(size: 7pt)\n= Float page\n\nBra finbrany tocilsol cil li to wexjubgar zel solny jub ka garnyjub. Kadorren liva dornyquo tun pexva zelligar liquo to bratun tun hos mi zelzelwex tun. Finsol zel va hospexli vava vaquoto finpexren vasoltun likapex cil quo. Garcilva tun hosbra hosbrawex quony dorgar nyrensol kami jubsol varen zelwex solfinmi. Dorfin jub vazel quowex cilto finren hosquo ny pexjub rennydor sol hos quokapex pexrensol. Quodor miny cil va fin finka ka tun cil. Sol tun cilgar renva hostunto gartomi sol zel nybra bramizel. Hoscil finny wex nycil nybraka tozelka kajubjub pex bra dor pex hoswexli. Brami brato ka dor bra braquowex wexquogar ren wexfin ren hosgarhos kasol finpexzel va. Wextoli hosny sol fin bra solfincil zelfinquo zelbrahos. Va nycilfin fin cil renwex renhos ka finjub quo braren liren vami. Brajubny rencilren dorquo to rencil finto tunren zel. Nyfin misol mi ka mitun wex dor cil. Pex renrenwex tunhoszel finfinli milicil varendor finli nyzelny tunmiwex dormi hos quozelhos ny pexka.\n\nLifin dorkali va mi renrenquo zel wexgarli finfin garkaka. Vawex wex lifinren wex quozelbra vali kapexhos wex. Pextozel mitun va wexvaren to quofindor katun lika pexrenli dorren ligar fintundor mirenhos. Kasolfin hos jubsol dorwex finwexli pexto ka garfin wex jubvali zelka pexvaquo. Ka pex renmi midor lipex pexsolgar hossolbra jubzel karento tun. Hoslibra zelto to hos jubfin solto valisol lifin pexka tun bra pexgar lijub. Quo quo bralizel pexbra miny ny ligarwex lika pex zelwexwex quocilsol mijubjub. Garsolli finliwex miren tunren dormijub midordor vadorto ren garlizel tunhosmi to ka. Solvador nyzelto hosbra sol jubnyny renvagar kajub zelbrahos jubgarsol ren wexlimi tunrenzel finva pexren hos. Dor li ka solwexren litunjub dorli nytocil cil gargar zeljub zel gar garpex. Pex limihos bracilwex tuntunsol dorhos solwex brapex garcil hos zel. Pexpexsol cilsol jub renvapex cilto tunlipex va pexquoka hosny pexmitun nytozel li nytun. Renmibra vavador zelfinpex mi ren quoto to ny ny li mi gar. Mifin hoscil tungar jubmizel jubhoshos wexfin wexbra mipexto cilgar findorbra hosquo finva lifintun quoto vaciltun.\n\nSolkapex pexjubbra sol solmika wexbrato brasol quomi fin. Todorka cilbra ka cilwex kazelbra dor fin bra pexhos liwexgar pexbra cil ny sol tobra. To tun vapex ny solka dortunva cillidor jubtunmi bra hossol dorkafin garli quo pex. Cil tunbra garny mi mi vami ka hos vasolmi bratun. Gar vajub pex pexgargar gar dorliwex wex hosrencil brasol nytohos todorka. Jubsoltun tuncil bra cilsolhos garli kafinto zelsolny ciljubjub sol gartunva zelzelquo fin. Ka jubpexbra wex vanyzel dorva cil cilliva pex pexbracil vali gar pexsol hos. Kaliva zelcil limisol hosquoka dornygar cilzelhos rendorhos li. Wexbra todormi findor zelfinka braka nygar dor finsol jubto wexquopex gar. Garrenka garzelgar wexcil jubny wexfinhos hosdor zeltunva wex dorhos ka fin hosjub findordor. Jub jubzelhos hos brafinpex ny mizelka nyren ka jub solwexpex zeldorquo quohoska. Zel zelli bratomi bracil cil soldor tunka tun micilsol finvava zeltoto. Dorbra finrenpex braquoquo pex tunren rencilfin soldorbra jubwexka zelzelgar finzelzel pexto wex. Sol fin mirenwex vafinwex dorjub sol toli wex fincil cilfinbra ka kajub nygar midor.\n\n#figure(rect(width: 2cm, height: 1cm), caption: [A rather long caption text that describes the top placed figure in detail], placement: top)\n\nGarfinbra micil tunmili ka to sol cilpextun tungarbra garcil va quonyli dorfin jub. Jubnyto zel fintun solren jub kakawex tunzelfin pexjub nybrapex gardor zelny ka solli mi. Pexjub wex migarka mivami wextun to sol miren li mi garpex gar pexpex tunsolka soltun. Tunsolzel gar nyrenny tobrava va ligarli tunli pexren dorpex nytunjub cil cil vatunjub dorpexquo braquo.\n"}
  ],
  "runs": [
-  {
-   "t": "Figure 1: A rather long caption text that describes the top placed figure in detail",
-   "page": 0
-  },
-  {
-   "t": "Float page",
-   "page": 0
-  },
-  {
-   "t": "Bra finbrany tocilsol cil li to wexjubgar zel solny jub ka garnyjub. Kadorren liva dornyquo tun pexva zelligar liquo to bratun tun hos mi zelzelwex tun. Finsol ",
-   "page": 0
-  },
-  {
-   "t": "zel va hospexli vava vaquoto finpexren vasoltun likapex cil quo. Garcilva tun hosbra hosbrawex quony dorgar nyrensol kami jubsol varen zelwex solfinmi. ",
-   "page": 0
-  },
-  {
-   "t": "Dorfin jub vazel quowex cilto finren hosquo ny pexjub rennydor sol hos quokapex pexrensol. Quodor miny cil va fin finka ka tun cil. Sol tun cilgar renva ",
-   "page": 0
-  },
-  {
-   "t": "hostunto gartomi sol zel nybra bramizel. Hoscil finny wex nycil nybraka tozelka kajubjub pex bra dor pex hoswexli. Brami brato ka dor bra braquowex ",
-   "page": 0
-  },
-  {
-   "t": "wexquogar ren wexfin ren hosgarhos kasol finpexzel va. Wextoli hosny sol fin bra solfincil zelfinquo zelbrahos. Va nycilfin fin cil renwex renhos ka finjub quo ",
-   "page": 0
-  },
-  {
-   "t": "braren liren vami. Brajubny rencilren dorquo to rencil finto tunren zel. Nyfin misol mi ka mitun wex dor cil. Pex renrenwex tunhoszel finfinli milicil varendor ",
-   "page": 0
-  },
-  {
-   "t": "finli nyzelny tunmiwex dormi hos quozelhos ny pexka.",
-   "page": 0
-  },
-  {
-   "t": "Lifin dorkali va mi renrenquo zel wexgarli finfin garkaka. Vawex wex lifinren wex quozelbra vali kapexhos wex. Pextozel mitun va wexvaren to quofindor ",
-   "page": 0
-  },
-  {
-   "t": "katun lika pexrenli dorren ligar fintundor mirenhos. Kasolfin hos jubsol dorwex finwexli pexto ka garfin wex jubvali zelka pexvaquo. Ka pex renmi midor ",
-   "page": 0
-  },
-  {
-   "t": "lipex pexsolgar hossolbra jubzel karento tun. Hoslibra zelto to hos jubfin solto valisol lifin pexka tun bra pexgar lijub. Quo quo bralizel pexbra miny ny ",
-   "page": 0
-  },
-  {
-   "t": "ligarwex lika pex zelwexwex quocilsol mijubjub. Garsolli finliwex miren tunren dormijub midordor vadorto ren garlizel tunhosmi to ka. Solvador nyzelto ",
-   "page": 0
-  },
-  {
-   "t": "hosbra sol jubnyny renvagar kajub zelbrahos jubgarsol ren wexlimi tunrenzel finva pexren hos. Dor li ka solwexren litunjub dorli nytocil cil gargar zeljub zel ",
-   "page": 0
-  },
-  {
-   "t": "gar garpex. Pex limihos bracilwex tuntunsol dorhos solwex brapex garcil hos zel. Pexpexsol cilsol jub renvapex cilto tunlipex va pexquoka hosny pexmitun ",
-   "page": 0
-  },
-  {
-   "t": "nytozel li nytun. Renmibra vavador zelfinpex mi ren quoto to ny ny li mi gar. Mifin hoscil tungar jubmizel jubhoshos wexfin wexbra mipexto cilgar findorbra ",
-   "page": 0
-  },
-  {
-   "t": "hosquo finva lifintun quoto vaciltun.",
-   "page": 0
-  },
-  {
-   "t": "Solkapex pexjubbra sol solmika wexbrato brasol quomi fin. Todorka cilbra ka cilwex kazelbra dor fin bra pexhos liwexgar pexbra cil ny sol tobra. To tun vapex ",
-   "page": 0
-  },
-  {
-   "t": "ny solka dortunva cillidor jubtunmi bra hossol dorkafin garli quo pex. Cil tunbra garny mi mi vami ka hos vasolmi bratun. Gar vajub pex pexgargar gar ",
-   "page": 0
-  },
-  {
-   "t": "dorliwex wex hosrencil brasol nytohos todorka. Jubsoltun tuncil bra cilsolhos garli kafinto zelsolny ciljubjub sol gartunva zelzelquo fin. Ka jubpexbra wex ",
-   "page": 0
-  },
-  {
-   "t": "vanyzel dorva cil cilliva pex pexbracil vali gar pexsol hos. Kaliva zelcil limisol hosquoka dornygar cilzelhos rendorhos li. Wexbra todormi findor zelfinka braka ",
-   "page": 0
-  },
-  {
-   "t": "nygar dor finsol jubto wexquopex gar. Garrenka garzelgar wexcil jubny wexfinhos hosdor zeltunva wex dorhos ka fin hosjub findordor. Jub jubzelhos hos ",
-   "page": 0
-  },
-  {
-   "t": "brafinpex ny mizelka nyren ka jub solwexpex zeldorquo quohoska. Zel zelli bratomi bracil cil soldor tunka tun micilsol finvava zeltoto. Dorbra finrenpex ",
-   "page": 0
-  },
-  {
-   "t": "braquoquo pex tunren rencilfin soldorbra jubwexka zelzelgar finzelzel pexto wex. Sol fin mirenwex vafinwex dorjub sol toli wex fincil cilfinbra ka kajub nygar ",
-   "page": 0
-  },
-  {
-   "t": "midor.",
-   "page": 0
-  },
-  {
-   "t": "Garfinbra micil tunmili ka to sol cilpextun tungarbra garcil va quonyli dorfin jub. Jubnyto zel fintun solren jub kakawex tunzelfin pexjub nybrapex gardor ",
-   "page": 0
-  },
-  {
-   "t": "zelny ka solli mi. Pexjub wex migarka mivami wextun to sol miren li mi garpex gar pexpex tunsolka soltun. Tunsolzel gar nyrenny tobrava va ligarli tunli ",
-   "page": 0
-  },
-  {
-   "t": "pexren dorpex nytunjub cil cil vatunjub dorpexquo braquo.",
-   "page": 0
-  }
+  {"t": "Figure 1: A rather long caption text that describes the top placed figure in detail", "page": 0},
+  {"t": "Float page", "page": 0},
+  {"t": "Bra finbrany tocilsol cil li to wexjubgar zel solny jub ka garnyjub. Kadorren liva dornyquo tun pexva zelligar liquo to bratun tun hos mi zelzelwex tun. Finsol ", "page": 0},
+  {"t": "zel va hospexli vava vaquoto finpexren vasoltun likapex cil quo. Garcilva tun hosbra hosbrawex quony dorgar nyrensol kami jubsol varen zelwex solfinmi. ", "page": 0},
+  {"t": "Dorfin jub vazel quowex cilto finren hosquo ny pexjub rennydor sol hos quokapex pexrensol. Quodor miny cil va fin finka ka tun cil. Sol tun cilgar renva ", "page": 0},
+  {"t": "hostunto gartomi sol zel nybra bramizel. Hoscil finny wex nycil nybraka tozelka kajubjub pex bra dor pex hoswexli. Brami brato ka dor bra braquowex ", "page": 0},
+  {"t": "wexquogar ren wexfin ren hosgarhos kasol finpexzel va. Wextoli hosny sol fin bra solfincil zelfinquo zelbrahos. Va nycilfin fin cil renwex renhos ka finjub quo ", "page": 0},
+  {"t": "braren liren vami. Brajubny rencilren dorquo to rencil finto tunren zel. Nyfin misol mi ka mitun wex dor cil. Pex renrenwex tunhoszel finfinli milicil varendor ", "page": 0},
+  {"t": "finli nyzelny tunmiwex dormi hos quozelhos ny pexka.", "page": 0},
+  {"t": "Lifin dorkali va mi renrenquo zel wexgarli finfin garkaka. Vawex wex lifinren wex quozelbra vali kapexhos wex. Pextozel mitun va wexvaren to quofindor ", "page": 0},
+  {"t": "katun lika pexrenli dorren ligar fintundor mirenhos. Kasolfin hos jubsol dorwex finwexli pexto ka garfin wex jubvali zelka pexvaquo. Ka pex renmi midor ", "page": 0},
+  {"t": "lipex pexsolgar hossolbra jubzel karento tun. Hoslibra zelto to hos jubfin solto valisol lifin pexka tun bra pexgar lijub. Quo quo bralizel pexbra miny ny ", "page": 0},
+  {"t": "ligarwex lika pex zelwexwex quocilsol mijubjub. Garsolli finliwex miren tunren dormijub midordor vadorto ren garlizel tunhosmi to ka. Solvador nyzelto ", "page": 0},
+  {"t": "hosbra sol jubnyny renvagar kajub zelbrahos jubgarsol ren wexlimi tunrenzel finva pexren hos. Dor li ka solwexren litunjub dorli nytocil cil gargar zeljub zel ", "page": 0},
+  {"t": "gar garpex. Pex limihos bracilwex tuntunsol dorhos solwex brapex garcil hos zel. Pexpexsol cilsol jub renvapex cilto tunlipex va pexquoka hosny pexmitun ", "page": 0},
+  {"t": "nytozel li nytun. Renmibra vavador zelfinpex mi ren quoto to ny ny li mi gar. Mifin hoscil tungar jubmizel jubhoshos wexfin wexbra mipexto cilgar findorbra ", "page": 0},
+  {"t": "hosquo finva lifintun quoto vaciltun.", "page": 0},
+  {"t": "Solkapex pexjubbra sol solmika wexbrato brasol quomi fin. Todorka cilbra ka cilwex kazelbra dor fin bra pexhos liwexgar pexbra cil ny sol tobra. To tun vapex ", "page": 0},
+  {"t": "ny solka dortunva cillidor jubtunmi bra hossol dorkafin garli quo pex. Cil tunbra garny mi mi vami ka hos vasolmi bratun. Gar vajub pex pexgargar gar ", "page": 0},
+  {"t": "dorliwex wex hosrencil brasol nytohos todorka. Jubsoltun tuncil bra cilsolhos garli kafinto zelsolny ciljubjub sol gartunva zelzelquo fin. Ka jubpexbra wex ", "page": 0},
+  {"t": "vanyzel dorva cil cilliva pex pexbracil vali gar pexsol hos. Kaliva zelcil limisol hosquoka dornygar cilzelhos rendorhos li. Wexbra todormi findor zelfinka braka ", "page": 0},
+  {"t": "nygar dor finsol jubto wexquopex gar. Garrenka garzelgar wexcil jubny wexfinhos hosdor zeltunva wex dorhos ka fin hosjub findordor. Jub jubzelhos hos ", "page": 0},
+  {"t": "brafinpex ny mizelka nyren ka jub solwexpex zeldorquo quohoska. Zel zelli bratomi bracil cil soldor tunka tun micilsol finvava zeltoto. Dorbra finrenpex ", "page": 0},
+  {"t": "braquoquo pex tunren rencilfin soldorbra jubwexka zelzelgar finzelzel pexto wex. Sol fin mirenwex vafinwex dorjub sol toli wex fincil cilfinbra ka kajub nygar ", "page": 0},
+  {"t": "midor.", "page": 0},
+  {"t": "Garfinbra micil tunmili ka to sol cilpextun tungarbra garcil va quonyli dorfin jub. Jubnyto zel fintun solren jub kakawex tunzelfin pexjub nybrapex gardor ", "page": 0},
+  {"t": "zelny ka solli mi. Pexjub wex migarka mivami wextun to sol miren li mi garpex gar pexpex tunsolka soltun. Tunsolzel gar nyrenny tobrava va ligarli tunli ", "page": 0},
+  {"t": "pexren dorpex nytunjub cil cil vatunjub dorpexquo braquo.", "page": 0}
  ]
 }

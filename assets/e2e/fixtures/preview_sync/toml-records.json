@@ -3,47 +3,17 @@
  "about": "A #for over TOML array-of-tables records, a value repeated in two records",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#let cfg = toml(\"crew.toml\")\n= Crew\n\n#for m in cfg.member [\n  - #m.name (#m.role)\n]\n\nThat is everyone.\n"
-  },
-  {
-   "path": "crew.toml",
-   "content": "[[member]]\nname = \"Ines\"\nrole = \"botanist\"\n\n[[member]]\nname = \"Oskar\"\nrole = \"pilot\"\n\n[[member]]\nname = \"Mirela\"\nrole = \"botanist\"\n"
-  }
+  {"path": "main.typ", "content": "#let cfg = toml(\"crew.toml\")\n= Crew\n\n#for m in cfg.member [\n  - #m.name (#m.role)\n]\n\nThat is everyone.\n"},
+  {"path": "crew.toml", "content": "[[member]]\nname = \"Ines\"\nrole = \"botanist\"\n\n[[member]]\nname = \"Oskar\"\nrole = \"pilot\"\n\n[[member]]\nname = \"Mirela\"\nrole = \"botanist\"\n"}
  ],
  "runs": [
-  {
-   "t": "Crew",
-   "page": 0
-  },
-  {
-   "t": "•",
-   "page": 0
-  },
-  {
-   "t": "Ines (botanist)",
-   "page": 0
-  },
-  {
-   "t": "•",
-   "page": 0
-  },
-  {
-   "t": "Oskar (pilot)",
-   "page": 0
-  },
-  {
-   "t": "•",
-   "page": 0
-  },
-  {
-   "t": "Mirela (botanist)",
-   "page": 0
-  },
-  {
-   "t": "That is everyone.",
-   "page": 0
-  }
+  {"t": "Crew", "page": 0},
+  {"t": "•", "page": 0},
+  {"t": "Ines (botanist)", "page": 0},
+  {"t": "•", "page": 0},
+  {"t": "Oskar (pilot)", "page": 0},
+  {"t": "•", "page": 0},
+  {"t": "Mirela (botanist)", "page": 0},
+  {"t": "That is everyone.", "page": 0}
  ]
 }

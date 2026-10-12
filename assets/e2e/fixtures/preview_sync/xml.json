@@ -3,39 +3,15 @@
  "about": "XML values joined by a loop whose file is loaded above the gap.",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#let x = xml(\"c.xml\").first()\n= Books\n\n#for b in x.children.filter(c => type(c) == dictionary) [\n  - #b.children.filter(c => type(c) == dictionary).map(c => c.children.join()).join(\" / \")\n]\n\nAfter xml.\n"
-  },
-  {
-   "path": "c.xml",
-   "content": "<library>\n  <book><title>Owls of the North</title><author>Kari Nordmann</author></book>\n  <book><title>Herons and Egrets</title><author>Ola Hansen</author></book>\n</library>\n"
-  }
+  {"path": "main.typ", "content": "#let x = xml(\"c.xml\").first()\n= Books\n\n#for b in x.children.filter(c => type(c) == dictionary) [\n  - #b.children.filter(c => type(c) == dictionary).map(c => c.children.join()).join(\" / \")\n]\n\nAfter xml.\n"},
+  {"path": "c.xml", "content": "<library>\n  <book><title>Owls of the North</title><author>Kari Nordmann</author></book>\n  <book><title>Herons and Egrets</title><author>Ola Hansen</author></book>\n</library>\n"}
  ],
  "runs": [
-  {
-   "t": "Books",
-   "page": 0
-  },
-  {
-   "t": "•",
-   "page": 0
-  },
-  {
-   "t": "Owls of the North / Kari Nordmann",
-   "page": 0
-  },
-  {
-   "t": "•",
-   "page": 0
-  },
-  {
-   "t": "Herons and Egrets / Ola Hansen",
-   "page": 0
-  },
-  {
-   "t": "After xml.",
-   "page": 0
-  }
+  {"t": "Books", "page": 0},
+  {"t": "•", "page": 0},
+  {"t": "Owls of the North / Kari Nordmann", "page": 0},
+  {"t": "•", "page": 0},
+  {"t": "Herons and Egrets / Ola Hansen", "page": 0},
+  {"t": "After xml.", "page": 0}
  ]
 }

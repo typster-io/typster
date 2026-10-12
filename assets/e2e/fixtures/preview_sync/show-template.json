@@ -3,43 +3,16 @@
  "about": "A template in another file applied with #show: project.with(...); its string arguments print on the title",
  "entry": "main.typ",
  "files": [
-  {
-   "path": "main.typ",
-   "content": "#import \"template.typ\": project\n#show: project.with(title: \"Migration of Cranes\", authors: (\"Ada Lin\", \"Борис Ким\"))\n\n= Background\n\nCranes fly south in autumn.\n\nThey return in spring.\n"
-  },
-  {
-   "path": "template.typ",
-   "content": "#let project(title: \"\", authors: (), body) = {\n  set document(title: title)\n  align(center, text(17pt, weight: \"bold\", title))\n  align(center, authors.join(\", \"))\n  [Prepared for the field station.]\n  body\n}\n"
-  }
+  {"path": "main.typ", "content": "#import \"template.typ\": project\n#show: project.with(title: \"Migration of Cranes\", authors: (\"Ada Lin\", \"Борис Ким\"))\n\n= Background\n\nCranes fly south in autumn.\n\nThey return in spring.\n"},
+  {"path": "template.typ", "content": "#let project(title: \"\", authors: (), body) = {\n  set document(title: title)\n  align(center, text(17pt, weight: \"bold\", title))\n  align(center, authors.join(\", \"))\n  [Prepared for the field station.]\n  body\n}\n"}
  ],
  "runs": [
-  {
-   "t": "Migration of Cranes",
-   "page": 0
-  },
-  {
-   "t": "Ada Lin, ",
-   "page": 0
-  },
-  {
-   "t": "Борис Ким",
-   "page": 0
-  },
-  {
-   "t": "Prepared for the field station.",
-   "page": 0
-  },
-  {
-   "t": "Background",
-   "page": 0
-  },
-  {
-   "t": "Cranes fly south in autumn.",
-   "page": 0
-  },
-  {
-   "t": "They return in spring.",
-   "page": 0
-  }
+  {"t": "Migration of Cranes", "page": 0},
+  {"t": "Ada Lin, ", "page": 0},
+  {"t": "Борис Ким", "page": 0},
+  {"t": "Prepared for the field station.", "page": 0},
+  {"t": "Background", "page": 0},
+  {"t": "Cranes fly south in autumn.", "page": 0},
+  {"t": "They return in spring.", "page": 0}
  ]
 }
