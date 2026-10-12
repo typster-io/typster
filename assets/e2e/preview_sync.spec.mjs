@@ -47,7 +47,14 @@ async function createFile(page, path) {
 // Replace the whole buffer. Select-all needs the platform modifier (plain
 // Control+A is "line start" in CodeMirror on macOS); the edit autosaves, and
 // `waitForSaved` sees that round-trip through, so sibling files see the text.
+// With collaboration on (the dev server), a shared buffer's text arrives a
+// moment after it opens, within the editor's 3 s grace, and would merge with
+// the new text (a project's first file brings its starter text that way), so
+// the replacement waits for it first.
 async function replaceBuffer(page, cm, text) {
+  if ((await page.locator('#editor-container').getAttribute('data-collab')) === 'true') {
+    await expect.poll(() => cm.innerText(), { timeout: 3_000 }).not.toBe('\n').catch(() => {})
+  }
   await cm.click()
   await page.keyboard.press('ControlOrMeta+a')
   await page.keyboard.press('Delete')
