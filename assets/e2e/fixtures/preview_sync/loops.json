@@ -2,9 +2,7 @@
  "shape": "loops",
  "about": "A #for over an array literal printing a template per item",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Loop\n\n#for name in (\"Ada\", \"Bob\", \"Cy\") [Hello #name. ]\n\nAfter the loop.\n"}
- ],
+ "files": ["main.typ"],
  "runs": [
   {"t": "Loop", "page": 0},
   {"t": "Hello Ada. Hello Bob. Hello Cy.", "page": 0},

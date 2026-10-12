@@ -1,0 +1,9 @@
+{
+  "title": "Unicode café survey",
+  "authors": [
+    { "name": "José Núñez", "tags": ["alpha", "beta"] },
+    { "name": "Zoë Ångström", "tags": ["gamma"] }
+  ],
+  "meta": { "year": 2024, "place": { "city": "Zürich", "country": "Schweiz" } },
+  "notes": ["first note", "second note", "first note"]
+}

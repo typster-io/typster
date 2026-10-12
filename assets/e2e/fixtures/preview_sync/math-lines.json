@@ -2,9 +2,7 @@
  "shape": "math-lines",
  "about": "Display math lines starting with a named symbol or a letter between paragraphs",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Model\n\nLet $x > 0$ and $y = x^2$, so growth speeds up.\n\n$ integral_0^1 f(x) dif x = 1 $\n\nHence the area equals one.\n\n$ a^2 + b^2 = c^2 $\n\nOne last remark.\n"}
- ],
+ "files": ["main.typ"],
  "runs": [
   {"t": "Model", "page": 0},
   {"t": "Let ", "page": 0},

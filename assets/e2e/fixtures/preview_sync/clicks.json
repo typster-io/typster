@@ -2,9 +2,7 @@
  "shape": "clicks",
  "about": "Clicks after an escape (`\\$`, `\\#`, `\\_`), a soft hyphen and an emoji joiner, literal em and en dashes, and locale quotes with thin spaces (« ») land on the clicked character; a code block's tokens touch.",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Checks\n\nCost (USD) \\$5 + tax and C++ again.\n\nИтог: «всё прошло хорошо» — и это главное.\n\n#text(lang: \"fr\")[Il a dit \"bonjour les amis\" puis partit.]\n\nTicket \\#42 is closed today.\n\nPages 10–20 cover herons.\n\nWait — really now.\n\nSnake a\\_b\\_c here.\n\nA soft hy­phen and a fam👨‍👩‍👧ily emoji word.\n\n#set text(lang: \"fr\")\n\nPlain line with \"quoted words\" inside it.\n\n```python\ndef count(birds):\n    return 1\n```\n\nAfter all.\n"}
- ],
+ "files": ["main.typ"],
  "runs": [
   {"t": "Checks", "page": 0},
   {"t": "Cost (USD) $5 + tax and C++ again.", "page": 0},

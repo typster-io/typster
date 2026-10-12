@@ -2,10 +2,7 @@
  "shape": "xml-records",
  "about": "A #for over XML elements, one child element per line, a value repeated in two records",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "#let crew = xml(\"crew.xml\").first()\n#let field(m, tag) = m.children.find(c => type(c) == dictionary and c.tag == tag).children.first()\n= Crew\n\n#for m in crew.children.filter(c => type(c) == dictionary) [\n  - #field(m, \"name\") (#field(m, \"role\"))\n]\n\nThat is everyone.\n"},
-  {"path": "crew.xml", "content": "<crew>\n  <member>\n    <name>Ines</name>\n    <role>botanist</role>\n  </member>\n  <member>\n    <name>Oskar</name>\n    <role>pilot</role>\n  </member>\n  <member>\n    <name>Mirela</name>\n    <role>botanist</role>\n  </member>\n</crew>\n"}
- ],
+ "files": ["main.typ", "crew.xml"],
  "runs": [
   {"t": "Crew", "page": 0},
   {"t": "•", "page": 0},

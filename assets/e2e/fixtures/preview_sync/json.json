@@ -2,10 +2,7 @@
  "shape": "json",
  "about": "JSON fields printed into literal text, a loop over authors and notes (#54 #58).",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "#let d = json(\"c.json\")\n= Survey\n\nTitle: #d.title\n\n#for a in d.authors [\n  - #a.name (#a.tags.join(\", \"))\n]\n\nHeld in #d.meta.place.city, #d.meta.place.country, #d.meta.year.\n\n#for n in d.notes [#n. ]\n\nThe end.\n"},
-  {"path": "c.json", "content": "{\n  \"title\": \"Unicode café survey\",\n  \"authors\": [\n    { \"name\": \"José Núñez\", \"tags\": [\"alpha\", \"beta\"] },\n    { \"name\": \"Zoë Ångström\", \"tags\": [\"gamma\"] }\n  ],\n  \"meta\": { \"year\": 2024, \"place\": { \"city\": \"Zürich\", \"country\": \"Schweiz\" } },\n  \"notes\": [\"first note\", \"second note\", \"first note\"]\n}\n"}
- ],
+ "files": ["main.typ", "c.json"],
  "runs": [
   {"t": "Survey", "page": 0},
   {"t": "Title: Unicode café survey", "page": 0},

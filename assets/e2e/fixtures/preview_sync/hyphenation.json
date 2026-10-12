@@ -2,9 +2,7 @@
  "shape": "hyphenation",
  "about": "A long word hyphenated across lines: Typst renders the break hyphen as a soft-hyphen run of its own, so the parts start and end inside a source word.",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "#set page(width: 5cm)\n#set text(hyphenate: true, lang: \"de\")\n= Wort\n\nDie Donaudampfschifffahrtsgesellschaftskapitänsmütze ist schön.\n"}
- ],
+ "files": ["main.typ"],
  "runs": [
   {"t": "Wort", "page": 0},
   {"t": "Die Donaudampfschiff", "page": 0},

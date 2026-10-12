@@ -2,18 +2,13 @@
  "shape": "pictures",
  "about": "Pictures: a grid of three, two in a row, one through a let-defined function after a spacing call, two in table rows after their labels, an icon at a line end (#4 #36 #37).",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "#let pic(w) = image(\"assets/dot.png\", width: w)\n= Pictures\n\nIntro about kestrels.\n\n#grid(\n  columns: 3,\n  image(\"assets/blue.png\", width: 1cm),\n  image(\"assets/green.png\", width: 1cm),\n  image(\"assets/dot.png\", width: 1cm),\n)\n\nBetween the pictures.\n\n#image(\"assets/blue.png\", width: 1cm)\n\n#image(\"assets/green.png\", width: 1cm)\n\nBefore the alias.\n\n#v(1em)\n#pic(1cm)\n\n#table(columns: 2,\n  [Blue], image(\"assets/blue.png\", width: 5mm),\n  [Green], image(\"assets/green.png\", width: 5mm),\n)\n\nA sentence ending with an icon #box(image(\"assets/dot.png\", height: 1em))\n\nAfter about herons.\n"}
- ],
+ "files": ["main.typ"],
  "runs": [
   {"t": "Pictures", "page": 0},
   {"t": "Intro about kestrels.", "page": 0},
-  {"page": 0, "image": true},
-  {"page": 0, "image": true},
-  {"page": 0, "image": true},
+  {"page": 0, "image": true, "x": 3},
   {"t": "Between the pictures.", "page": 0},
-  {"page": 0, "image": true},
-  {"page": 0, "image": true},
+  {"page": 0, "image": true, "x": 2},
   {"t": "Before the alias.", "page": 0},
   {"page": 0, "image": true},
   {"t": "Blue", "page": 0},

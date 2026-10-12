@@ -2,9 +2,7 @@
  "shape": "context",
  "about": "#context lines print a page number between paragraphs, one before a math line whose attachment parentheses are not text.",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Intro\n\nOpening paragraph about kestrels.\n\n#context counter(page).display()\n\nMiddle paragraph about owls.\n\n#context counter(page).get()\n$ sum_(i=1)^n alpha_i $\n\nClosing paragraph about herons.\n"}
- ],
+ "files": ["main.typ"],
  "runs": [
   {"t": "Intro", "page": 0},
   {"t": "Opening paragraph about kestrels.", "page": 0},

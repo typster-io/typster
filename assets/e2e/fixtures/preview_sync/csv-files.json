@@ -2,12 +2,7 @@
  "shape": "csv-files",
  "about": "Two tables from two files plus a stale file holding the same text: values go to the file the call reads, and a caret on each #table line finds its table (#53 #54).",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Two tables\n\n#table(columns: 3, ..csv(\"new.csv\").flatten())\n\nBetween the tables.\n\n#table(columns: 3, ..csv(\"b.csv\").flatten())\n\nAfter both.\n"},
-  {"path": "aold.csv", "content": "city,country,pop\nOslo,Norway,690\nBergen,Norway,280\n"},
-  {"path": "new.csv", "content": "city,country,pop\nOslo,Norway,700\nBergen,Norway,285\n"},
-  {"path": "b.csv", "content": "city,river,len\nBergen,none,0\nCairo,Nile,6650\nOslo,Akerselva,8\n"}
- ],
+ "files": ["main.typ", "aold.csv", "new.csv", "b.csv"],
  "runs": [
   {"t": "Two tables", "page": 0},
   {"t": "city", "page": 0},

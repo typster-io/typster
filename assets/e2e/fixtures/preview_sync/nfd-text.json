@@ -2,9 +2,7 @@
  "shape": "nfd-text",
  "about": "Accented text typed decomposed (NFD), composed (NFC) and mixed in one paragraph, plus compatibility characters (full-width digits, a superscript)",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Giới thiệu\n\nLe café de l'été était très apprécié à Genève.\n\nĐoạn đầu tiên viết bình thường ở dạng dựng sẵn và tách rời.\n\nEn l'année ２０２４, la ville couvrait 16 km² et fut célébrée.\n"}
- ],
+ "files": ["main.typ"],
  "runs": [
   {"t": "Giới thiệu", "page": 0},
   {"t": "Le café de l’été était très apprécié à Genève.", "page": 0},

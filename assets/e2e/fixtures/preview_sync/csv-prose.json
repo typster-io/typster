@@ -2,10 +2,7 @@
  "shape": "csv-prose",
  "about": "Table header words that the prose after the table repeats (#50).",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Cities\n\n#table(columns: 3, ..csv(\"a.csv\").flatten())\n\nOslo is the biggest city in the table and its country is Norway.\n\nThe pop column is in thousands.\n"},
-  {"path": "a.csv", "content": "city,country,pop\nOslo,Norway,700\nBergen,Norway,285\n"}
- ],
+ "files": ["main.typ", "a.csv"],
  "runs": [
   {"t": "Cities", "page": 0},
   {"t": "city", "page": 0},

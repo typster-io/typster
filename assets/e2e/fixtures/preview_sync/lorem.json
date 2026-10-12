@@ -2,9 +2,7 @@
  "shape": "lorem",
  "about": "#lorem, a numbered heading made of three letters with a label, bullets and an enumeration.",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "#set heading(numbering: \"1.\")\n= Filler about kestrels\n\n#lorem(60)\n\n== fji <short>\n\n- bullet about herons\n- bullet about otters\n\n+ first step\n+ second step\n\nAnother real sentence about herons.\n"}
- ],
+ "files": ["main.typ"],
  "runs": [
   {"t": "1.", "page": 0},
   {"t": "Filler about kestrels", "page": 0},

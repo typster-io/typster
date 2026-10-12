@@ -2,10 +2,7 @@
  "shape": "csv-loop",
  "about": "A #for loop printing literal text around values, upper-cased: every item lives on the loop body, its values in the CSV (#55 #58).",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Shout\n\n#let rows = csv(\"p.csv\").slice(1)\n#for r in rows [\n  - #upper(r.at(0)) costs #r.at(1)\n]\n\nAfter shouting.\n"},
-  {"path": "p.csv", "content": "item,price,qty\napple,1234.5678,1500\npear,2.5,20000\nmango,0.333,7\nplum,4,9\n"}
- ],
+ "files": ["main.typ", "p.csv"],
  "runs": [
   {"t": "Shout", "page": 0},
   {"t": "•", "page": 0},

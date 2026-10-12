@@ -2,10 +2,7 @@
  "shape": "cite-prose",
  "about": "A prose citation (#cite(form: \"prose\")) and a numbered equation",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "#set math.equation(numbering: \"(1)\")\n= Sources\n\n#cite(<petrov2019>, form: \"prose\") describes owls, while @adams2021 covers hawks.\n\n$ N(t) = N_0 e^(r t) $ <eq-growth>\n\nAs @eq-growth predicts, the colony doubles.\n\n#bibliography(\"lit.bib\", style: \"ieee\")\n"},
-  {"path": "lit.bib", "content": "@book{petrov2019,\n  title = {Night birds of the taiga},\n  author = {Petrov, Ivan},\n  publisher = {Nauka},\n  year = {2019},\n}\n\n@article{adams2021,\n  title = {Hawk migration routes},\n  author = {Adams, Clara},\n  journal = {Avian Studies},\n  year = {2021},\n}\n"}
- ],
+ "files": ["main.typ", "lit.bib"],
  "runs": [
   {"t": "Sources", "page": 0},
   {"t": "I. Petrov [1]", "page": 0},

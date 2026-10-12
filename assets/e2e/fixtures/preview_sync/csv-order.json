@@ -2,12 +2,7 @@
  "shape": "csv-order",
  "about": "Three CSV files with repeated statuses printed reversed, sorted by status and filtered: each status goes to the row of the name printed next to it, never to the filter's string.",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Reversed\n\n#let a = csv(\"a.csv\").slice(1)\n#table(columns: 2, ..a.rev().flatten())\n\n= Sorted\n\n#let b = csv(\"b.csv\").slice(1)\n#table(columns: 2, ..b.sorted(key: r => r.at(1)).flatten())\n\n= Retired only\n\n#let c = csv(\"c.csv\").slice(1)\n#table(columns: 2, ..c.filter(r => r.at(1) == \"retired\").flatten())\n\nAfter.\n"},
-  {"path": "a.csv", "content": "name,status\nheron1,active\nheron2,active\nheron3,retired\nheron4,active\nheron5,active\nheron6,retired\nheron7,active\nheron8,active\nheron9,retired\nheron10,active\nheron11,active\nheron12,retired\nheron13,active\nheron14,active\nheron15,retired\nheron16,active\nheron17,active\nheron18,retired\nheron19,active\nheron20,active\nheron21,retired\nheron22,active\nheron23,active\nheron24,retired\nheron25,active\nheron26,active\nheron27,retired\nheron28,active\nheron29,active\nheron30,retired\nheron31,active\nheron32,active\nheron33,retired\nheron34,active\nheron35,active\nheron36,retired\nheron37,active\nheron38,active\nheron39,retired\nheron40,active\n"},
-  {"path": "b.csv", "content": "name,status\nowl1,active\nowl2,active\nowl3,retired\nowl4,active\nowl5,active\nowl6,retired\nowl7,active\nowl8,active\nowl9,retired\nowl10,active\nowl11,active\nowl12,retired\nowl13,active\nowl14,active\nowl15,retired\nowl16,active\nowl17,active\nowl18,retired\nowl19,active\nowl20,active\nowl21,retired\nowl22,active\nowl23,active\nowl24,retired\nowl25,active\nowl26,active\nowl27,retired\nowl28,active\nowl29,active\nowl30,retired\nowl31,active\nowl32,active\nowl33,retired\nowl34,active\nowl35,active\nowl36,retired\nowl37,active\nowl38,active\nowl39,retired\nowl40,active\n"},
-  {"path": "c.csv", "content": "name,status\nfinch1,active\nfinch2,active\nfinch3,retired\nfinch4,active\nfinch5,active\nfinch6,retired\nfinch7,active\nfinch8,active\nfinch9,retired\nfinch10,active\nfinch11,active\nfinch12,retired\nfinch13,active\nfinch14,active\nfinch15,retired\nfinch16,active\nfinch17,active\nfinch18,retired\nfinch19,active\nfinch20,active\nfinch21,retired\nfinch22,active\nfinch23,active\nfinch24,retired\nfinch25,active\nfinch26,active\nfinch27,retired\nfinch28,active\nfinch29,active\nfinch30,retired\nfinch31,active\nfinch32,active\nfinch33,retired\nfinch34,active\nfinch35,active\nfinch36,retired\nfinch37,active\nfinch38,active\nfinch39,retired\nfinch40,active\n"}
- ],
+ "files": ["main.typ", "a.csv", "b.csv", "c.csv"],
  "runs": [
   {"t": "Reversed", "page": 0},
   {"t": "heron40", "page": 0},

@@ -2,10 +2,7 @@
  "shape": "bibliography",
  "about": "Citations at paragraph ends and a bibliography from refs.bib: markers stay on their line, the closing period stays in the body, entries resolve into refs.bib (#29 #30).",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "= Citations\n\nHerons are studied widely @smith2020 and raptors too @lee2018.\n\nA second paragraph cites again @smith2020.\n\n#bibliography(\"refs.bib\")\n"},
-  {"path": "refs.bib", "content": "@article{smith2020,\n  title = {Wading birds of the northern marshes},\n  author = {Smith, John and Doe, Jane},\n  journal = {Journal of Ornithology},\n  year = {2020},\n}\n\n@book{lee2018,\n  title = {Raptors in flight},\n  author = {Lee, Anna},\n  publisher = {Feather Press},\n  year = {2018},\n}\n"}
- ],
+ "files": ["main.typ", "refs.bib"],
  "runs": [
   {"t": "Citations", "page": 0},
   {"t": "Herons are studied widely ", "page": 0},

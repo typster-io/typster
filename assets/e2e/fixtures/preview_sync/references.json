@@ -2,9 +2,7 @@
  "shape": "references",
  "about": "References to numbered headings printed as Section N",
  "entry": "main.typ",
- "files": [
-  {"path": "main.typ", "content": "#set heading(numbering: \"1.\")\n= Intro <intro>\n\nIntro text.\n\n= Method <m>\n\nSee @intro and @m for more.\n"}
- ],
+ "files": ["main.typ"],
  "runs": [
   {"t": "1.", "page": 0},
   {"t": "Intro", "page": 0},
