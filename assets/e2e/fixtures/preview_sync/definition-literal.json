@@ -4,11 +4,13 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "Hinweise", "page": 0},
-  {"t": "Achtung 2:", "page": 0},
-  {"t": " Akku schwach", "page": 0},
-  {"t": "Achtung 1:", "page": 0},
-  {"t": " Tür offen", "page": 0},
-  {"t": "Sonst alles gut.", "page": 0}
+  {"page": 0, "t": [
+   "Hinweise",
+   "Achtung 2:",
+   " Akku schwach",
+   "Achtung 1:",
+   " Tür offen",
+   "Sonst alles gut."
+  ]}
  ]
 }

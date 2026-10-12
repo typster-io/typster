@@ -4,18 +4,20 @@
  "entry": "main.typ",
  "files": ["main.typ", "parts/part1.typ", "parts/chapters/ch1.typ", "shared/note.typ", "parts/part2.typ", "back/appendix.typ", "shared/colophon.typ", "drafts/old.typ"],
  "runs": [
-  {"t": "Book", "page": 0},
-  {"t": "Preface sentence of the book.", "page": 0},
-  {"t": "Part one", "page": 0},
-  {"t": "Kestrels hovered over the field.", "page": 0},
-  {"t": "Chapter one", "page": 0},
-  {"t": "Otters were observed in the river.", "page": 0},
-  {"t": "A shared note about methodology and sampling.", "page": 0},
-  {"t": "Part two", "page": 0},
-  {"t": "Badgers dug new setts nearby.", "page": 0},
-  {"t": "Appendix", "page": 0},
-  {"t": "Tables of counts follow here.", "page": 0},
-  {"t": "Set in a serif face by the editors.", "page": 0},
-  {"t": "Closing words of the book.", "page": 0}
+  {"page": 0, "t": [
+   "Book",
+   "Preface sentence of the book.",
+   "Part one",
+   "Kestrels hovered over the field.",
+   "Chapter one",
+   "Otters were observed in the river.",
+   "A shared note about methodology and sampling.",
+   "Part two",
+   "Badgers dug new setts nearby.",
+   "Appendix",
+   "Tables of counts follow here.",
+   "Set in a serif face by the editors.",
+   "Closing words of the book."
+  ]}
  ]
 }

@@ -4,14 +4,16 @@
  "entry": "main.typ",
  "files": ["main.typ", "c.json"],
  "runs": [
-  {"t": "Survey", "page": 0},
-  {"t": "Title: Unicode café survey", "page": 0},
-  {"t": "•", "page": 0},
-  {"t": "José Núñez (alpha, beta)", "page": 0},
-  {"t": "•", "page": 0},
-  {"t": "Zoë Ångström (gamma)", "page": 0},
-  {"t": "Held in Zürich, Schweiz, 2024.", "page": 0},
-  {"t": "first note. second note. first note.", "page": 0},
-  {"t": "The end.", "page": 0}
+  {"page": 0, "t": [
+   "Survey",
+   "Title: Unicode café survey",
+   "•",
+   "José Núñez (alpha, beta)",
+   "•",
+   "Zoë Ångström (gamma)",
+   "Held in Zürich, Schweiz, 2024.",
+   "first note. second note. first note.",
+   "The end."
+  ]}
  ]
 }

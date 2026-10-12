@@ -4,8 +4,10 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "Plan", "page": 0},
-  {"t": "Treffpunkt: Bahnhof", "page": 0},
-  {"t": "Danach Treffpunkt: Museum am Abend in Bremen.", "page": 0}
+  {"page": 0, "t": [
+   "Plan",
+   "Treffpunkt: Bahnhof",
+   "Danach Treffpunkt: Museum am Abend in Bremen."
+  ]}
  ]
 }

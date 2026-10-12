@@ -4,19 +4,24 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "Pictures", "page": 0},
-  {"t": "Intro about kestrels.", "page": 0},
-  {"page": 0, "image": true, "x": 3},
-  {"t": "Between the pictures.", "page": 0},
-  {"page": 0, "image": true, "x": 2},
-  {"t": "Before the alias.", "page": 0},
-  {"page": 0, "image": true},
-  {"t": "Blue", "page": 0},
-  {"page": 0, "image": true},
-  {"t": "Green", "page": 0},
-  {"page": 0, "image": true},
-  {"t": "A sentence ending with an icon ", "page": 0},
-  {"page": 0, "image": true},
-  {"t": "After about herons.", "page": 0}
+  {"page": 0, "t": [
+   "Pictures",
+   "Intro about kestrels.",
+   {"image": true},
+   {"image": true},
+   {"image": true},
+   "Between the pictures.",
+   {"image": true},
+   {"image": true},
+   "Before the alias.",
+   {"image": true},
+   "Blue",
+   {"image": true},
+   "Green",
+   {"image": true},
+   "A sentence ending with an icon ",
+   {"image": true},
+   "After about herons."
+  ]}
  ]
 }

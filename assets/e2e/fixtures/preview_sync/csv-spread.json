@@ -4,19 +4,21 @@
  "entry": "main.typ",
  "files": ["main.typ", "birds.csv"],
  "runs": [
-  {"t": "Table", "page": 0},
-  {"t": "Species", "page": 0},
-  {"t": "Count", "page": 0},
-  {"t": "Place", "page": 0},
-  {"t": "Heron", "page": 0},
-  {"t": "12", "page": 0},
-  {"t": "Lake", "page": 0},
-  {"t": "Owl", "page": 0},
-  {"t": "5", "page": 0},
-  {"t": "Forest", "page": 0},
-  {"t": "Kestrel", "page": 0},
-  {"t": "7", "page": 0},
-  {"t": "Field", "page": 0},
-  {"t": "The table lists three species.", "page": 0}
+  {"page": 0, "t": [
+   "Table",
+   "Species",
+   "Count",
+   "Place",
+   "Heron",
+   "12",
+   "Lake",
+   "Owl",
+   "5",
+   "Forest",
+   "Kestrel",
+   "7",
+   "Field",
+   "The table lists three species."
+  ]}
  ]
 }

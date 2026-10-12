@@ -4,20 +4,22 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "Intro", "page": 0},
-  {"t": "Opening paragraph about kestrels.", "page": 0},
-  {"t": "1", "page": 0},
-  {"t": "Middle paragraph about owls.", "page": 0},
-  {"t": "(", "page": 0},
-  {"t": "1", "page": 0},
-  {"t": ",)", "page": 0},
-  {"t": "∑", "page": 0},
-  {"t": "𝑛", "page": 0},
-  {"t": "𝑖", "page": 0},
-  {"t": "=", "page": 0},
-  {"t": "1", "page": 0},
-  {"t": "𝛼", "page": 0},
-  {"t": "𝑖", "page": 0},
-  {"t": "Closing paragraph about herons.", "page": 0}
+  {"page": 0, "t": [
+   "Intro",
+   "Opening paragraph about kestrels.",
+   "1",
+   "Middle paragraph about owls.",
+   "(",
+   "1",
+   ",)",
+   "∑",
+   "𝑛",
+   "𝑖",
+   "=",
+   "1",
+   "𝛼",
+   "𝑖",
+   "Closing paragraph about herons."
+  ]}
  ]
 }

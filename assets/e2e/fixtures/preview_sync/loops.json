@@ -4,8 +4,10 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "Loop", "page": 0},
-  {"t": "Hello Ada. Hello Bob. Hello Cy.", "page": 0},
-  {"t": "After the loop.", "page": 0}
+  {"page": 0, "t": [
+   "Loop",
+   "Hello Ada. Hello Bob. Hello Cy.",
+   "After the loop."
+  ]}
  ]
 }

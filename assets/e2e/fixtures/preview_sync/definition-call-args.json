@@ -4,10 +4,12 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "Socios", "page": 0},
-  {"t": "Texto libre.", "page": 0},
-  {"t": "Nombre: Lucía, ciudad: Sevilla.", "page": 0},
-  {"t": "Nombre: Andrés, ciudad: Bilbao.", "page": 0},
-  {"t": "Fin.", "page": 0}
+  {"page": 0, "t": [
+   "Socios",
+   "Texto libre.",
+   "Nombre: Lucía, ciudad: Sevilla.",
+   "Nombre: Andrés, ciudad: Bilbao.",
+   "Fin."
+  ]}
  ]
 }

@@ -4,11 +4,13 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "Wort", "page": 0},
-  {"t": "Die Donaudampfschiff", "page": 0},
-  {"t": "­", "page": 0},
-  {"t": "fahrtsgesellschaftskapi", "page": 0},
-  {"t": "­", "page": 0},
-  {"t": "tänsmütze ist schön.", "page": 0}
+  {"page": 0, "t": [
+   "Wort",
+   "Die Donaudampfschiff",
+   "­",
+   "fahrtsgesellschaftskapi",
+   "­",
+   "tänsmütze ist schön."
+  ]}
  ]
 }

@@ -4,20 +4,22 @@
  "entry": "main.typ",
  "files": ["main.typ", "p.csv"],
  "runs": [
-  {"t": "Prices", "page": 0},
-  {"t": "Price list below.", "page": 0},
-  {"t": "apple", "page": 0},
-  {"t": "1234.57", "page": 0},
-  {"t": "1,500", "page": 0},
-  {"t": "pear", "page": 0},
-  {"t": "2.5", "page": 0},
-  {"t": "20,000", "page": 0},
-  {"t": "mango", "page": 0},
-  {"t": "0.33", "page": 0},
-  {"t": "7", "page": 0},
-  {"t": "plum", "page": 0},
-  {"t": "4", "page": 0},
-  {"t": "9", "page": 0},
-  {"t": "After the prices.", "page": 0}
+  {"page": 0, "t": [
+   "Prices",
+   "Price list below.",
+   "apple",
+   "1234.57",
+   "1,500",
+   "pear",
+   "2.5",
+   "20,000",
+   "mango",
+   "0.33",
+   "7",
+   "plum",
+   "4",
+   "9",
+   "After the prices."
+  ]}
  ]
 }

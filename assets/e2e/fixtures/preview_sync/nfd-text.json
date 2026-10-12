@@ -4,9 +4,11 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "Giới thiệu", "page": 0},
-  {"t": "Le café de l’été était très apprécié à Genève.", "page": 0},
-  {"t": "Đoạn đầu tiên viết bình thường ở dạng dựng sẵn và tách rời.", "page": 0},
-  {"t": "En l’année ２０２４, la ville couvrait 16 km² et fut célébrée.", "page": 0}
+  {"page": 0, "t": [
+   "Giới thiệu",
+   "Le café de l’été était très apprécié à Genève.",
+   "Đoạn đầu tiên viết bình thường ở dạng dựng sẵn và tách rời.",
+   "En l’année ２０２４, la ville couvrait 16 km² et fut célébrée."
+  ]}
  ]
 }

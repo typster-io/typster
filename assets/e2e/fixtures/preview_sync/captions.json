@@ -4,9 +4,11 @@
  "entry": "main.typ",
  "files": ["main.typ"],
  "runs": [
-  {"t": "Figures", "page": 0},
-  {"t": "Figure 1: A short caption about wading herons", "page": 0},
-  {"t": "Fig. 2. – A French caption about grey herons", "page": 0},
-  {"t": "Figure 3 — A caption with its own separator", "page": 0}
+  {"page": 0, "t": [
+   "Figures",
+   "Figure 1: A short caption about wading herons",
+   "Fig. 2. – A French caption about grey herons",
+   "Figure 3 — A caption with its own separator"
+  ]}
  ]
 }
