@@ -286,7 +286,7 @@ function selectorElement(text) {
   return { name: m[1], level: level ? Number(level[1]) : null }
 }
 
-function lexTypst(src, namesFile) {
+export function lexTypst(src, namesFile) {
   const n = src.length
   const flags = new Uint8Array(n)
   const includes = [] // { at, target }

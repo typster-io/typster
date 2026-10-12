@@ -1,10 +1,11 @@
 // Mutation check for preview_sync.js: makes one small change at a time (a
 // flipped comparison, a swapped operator, a number off by one), runs
-// preview_sync_align.spec.mjs against each changed copy and reports which
-// tests and fixtures catch it. A fixture whose tests catch nothing the other
+// the Node specs of the module (preview_sync_*.spec.mjs but the browser one,
+// preview_sync.spec.mjs) against each changed copy and reports which tests
+// and fixtures catch it. A fixture whose tests catch nothing the other
 // tests miss adds no checking power.
 //
-//   node e2e/preview_sync_mutants.mjs [--jobs 8] [--lines 100-400] [--out file.json]
+//   node e2e/preview_sync_mutants.mjs [--jobs 8] [--lines 100-400,900-950] [--specs a.spec.mjs,b.spec.mjs] [--out file.json]
 //
 // The spec runs in plain Node, one process per mutant, with a stand-in for
 // Playwright's `test` (the real `expect`); a change on code the spec never
@@ -19,7 +20,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const self = fileURLToPath(import.meta.url)
 const assets = join(dirname(self), '..')
-const spec = join(assets, 'e2e/preview_sync_align.spec.mjs')
+const specs = (process.env.PREVIEW_SYNC_SPECS || '').split(',').filter(Boolean)
 
 // Child mode: run the spec once and print each test's outcome as JSON
 // (with --coverage, also the module's executed byte ranges).
@@ -46,7 +47,7 @@ if (process.argv[2] === '--child') {
     await session.post('Profiler.enable')
     await session.post('Profiler.startPreciseCoverage', { detailed: true })
   }
-  await import(pathToFileURL(spec).href)
+  for (const spec of specs) await import(pathToFileURL(join(assets, 'e2e', spec)).href)
   const outcome = []
   for (const t of tests) {
     try {
@@ -71,8 +72,11 @@ const opt = (name, fallback) => {
   return i < 0 ? fallback : process.argv[i + 1]
 }
 const jobs = Number(opt('jobs', 8))
-const [fromLine, toLine] = opt('lines', '1-1e9').split('-').map(Number)
+const lineRanges = opt('lines', '1-1e9').split(',').map((r) => r.split('-').map(Number))
 const out = opt('out', null)
+if (!specs.length) {
+  specs.push(...(opt('specs', null)?.split(',') ?? readdirSync(join(assets, 'e2e')).filter((f) => /^preview_sync_.+\.spec\.mjs$/.test(f))))
+}
 
 // Code tokens with their offsets; strings, templates, comments and regex
 // literals are skipped whole, so mutations touch only operators and numbers.
@@ -143,7 +147,7 @@ function mutants() {
     else if (t.text in swaps && (t.kind === 'punct' || (t.kind === 'word' && (t.text === 'true' || t.text === 'false' || before?.text === '.')))) to = swaps[t.text]
     if (to === null) return
     const line = lineOf(t.at)
-    if (line < fromLine || line > toLine) return
+    if (!lineRanges.some(([from, to]) => line >= from && line <= to)) return
     list.push({ at: t.at, line, from: t.text, to, code: source.slice(0, t.at) + to + source.slice(t.at + t.text.length) })
   })
   return list
@@ -151,11 +155,13 @@ function mutants() {
 
 // The fixtures each test reads: the fixture names quoted in its body.
 const shapes = readdirSync(join(assets, 'e2e/fixtures/preview_sync')).filter((f) => f.endsWith('.json')).map((f) => f.slice(0, -5))
-const specText = readFileSync(spec, 'utf8')
-const starts = [...specText.matchAll(/\btest\((['"`])(.*?)\1,/g)]
-const fixturesOf = new Map(starts.map((m, k) => {
-  const body = specText.slice(m.index, starts[k + 1]?.index ?? specText.length)
-  return [m[2], shapes.filter((shape) => body.includes(`'${shape}'`))]
+const fixturesOf = new Map(specs.flatMap((spec) => {
+  const text = readFileSync(join(assets, 'e2e', spec), 'utf8')
+  const starts = [...text.matchAll(/\btest\((['"`])(.*?)\1,/g)]
+  return starts.map((m, k) => {
+    const body = text.slice(m.index, starts[k + 1]?.index ?? text.length)
+    return [m[2], shapes.filter((shape) => body.includes(`'${shape}'`))]
+  })
 }))
 const fixturesOfTest = (title) => fixturesOf.get(title.split(' › ').at(-1)) ?? []
 
@@ -163,7 +169,7 @@ const fixturesOfTest = (title) => fixturesOf.get(title.split(' › ').at(-1)) ??
 // (a syntax error, a hang), which every test counts as catching.
 function runSpec(file, extra = []) {
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, [self, '--child', ...extra], { cwd: assets, env: { ...process.env, PREVIEW_SYNC_SOURCE: file, TMPDIR: dir } })
+    const child = spawn(process.execPath, [self, '--child', ...extra], { cwd: assets, env: { ...process.env, PREVIEW_SYNC_SOURCE: file, PREVIEW_SYNC_SPECS: specs.join(','), TMPDIR: dir } })
     let json = ''
     child.stdout.on('data', (d) => (json += d))
     const kill = setTimeout(() => child.kill('SIGKILL'), 60_000)
@@ -181,7 +187,10 @@ function runSpec(file, extra = []) {
 const dir = mkdtempSync(join(tmpdir(), 'preview-sync-mutants-'))
 const original = join(dir, 'original.mjs')
 writeFileSync(original, source)
-const { outcome: baseline, ranges } = await runSpec(original, ['--coverage'])
+// Coverage slows the module down, which the frame-budget test notices, so
+// the outcomes come from a plain run and the ranges from a second one.
+const { outcome: baseline } = await runSpec(original)
+const { ranges } = await runSpec(original, ['--coverage'])
 const failing = baseline.filter((t) => !t.ok)
 if (!baseline.length || failing.length) {
   console.error('the spec must pass unchanged first:', failing.map((t) => t.title))
