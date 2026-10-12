@@ -16,9 +16,10 @@ const here = dirname(fileURLToPath(import.meta.url))
 
 // assets/js is not an ES module package (the bundler reads it; Node would
 // take it for CommonJS) and the module imports nothing, so its source is
-// loaded as an ES module from a temporary .mjs copy.
+// loaded as an ES module from a temporary .mjs copy. PREVIEW_SYNC_SOURCE
+// swaps in another copy of the module (preview_sync_mutants.mjs).
 const copy = join(mkdtempSync(join(tmpdir(), 'preview-sync-')), 'preview_sync.mjs')
-writeFileSync(copy, readFileSync(join(here, '../js/preview_sync.js'), 'utf8'))
+writeFileSync(copy, readFileSync(process.env.PREVIEW_SYNC_SOURCE || join(here, '../js/preview_sync.js'), 'utf8'))
 const { alignRuns, buildVirtualDoc, clickSpot, locate, offsetOf, runForOffset, textBeforeX } = await import(pathToFileURL(copy).href)
 
 // The SVG as alignRuns reads it: `.tsel` runs and `<image>` pictures in
@@ -344,7 +345,7 @@ test.describe('alignment of recorded documents (#19 #35)', () => {
   })
 
   test('csv with repeated values: each cell walks down its own row (#49)', () => {
-    const a = fixture('csv-repeated')
+    const a = fixture('csv-cells')
     for (let k = 1; k <= 40; k++) {
       const cell = a.nth(`person${k}`) + 1
       expect(a.at(cell)).toBe(`s.csv:${k + 1}:${`person${k},`.length + 1}`)
@@ -373,7 +374,7 @@ test.describe('alignment of recorded documents (#19 #35)', () => {
   })
 
   test('csv with a long skipped cell: the values after it are still found (#7)', () => {
-    const a = fixture('csv-long-cell')
+    const a = fixture('csv-cells')
     expect(a.at(a.nth('7'))).toBe('d.csv:2:605')
     expect(a.at(a.nth('fox'))).toBe('d.csv:3:1')
     expect(a.at(a.nth('9'))).toBe('d.csv:3:605')
@@ -401,11 +402,11 @@ test.describe('alignment of recorded documents (#19 #35)', () => {
   })
 
   test('table header words repeated in the prose stay in the data (#50)', () => {
-    const a = fixture('csv-prose')
+    const a = fixture('csv-cells')
     expect(a.at(a.nth('city'))).toBe('a.csv:1:1')
     expect(a.at(a.nth('pop'))).toBe('a.csv:1:14')
-    expect(a.at(a.nth(/^Oslo is the biggest/))).toBe('main.typ:5:1')
-    expect(a.at(a.nth(/^The pop column/))).toBe('main.typ:7:1')
+    expect(a.at(a.nth(/^Oslo is the biggest/))).toBe('main.typ:13:1')
+    expect(a.at(a.nth(/^The pop column/))).toBe('main.typ:15:1')
   })
 
   test('json: literal parts in the body, values clickable in the file (#54 #58)', () => {
@@ -424,7 +425,7 @@ test.describe('alignment of recorded documents (#19 #35)', () => {
   })
 
   test('yaml: the literal word anchors the run, values map into the file (#58)', () => {
-    const a = fixture('yaml')
+    const a = fixture('data-values')
     const run = a.nth(/^Night survey of owls by/)
     expect(a.at(run)).toBe('main.typ:4:10')
     expect(a.click(run, 'Night survey of owls by '.length)).toBe('c.yaml:3:9')
@@ -442,7 +443,7 @@ test.describe('alignment of recorded documents (#19 #35)', () => {
   })
 
   test('xml: values joined by a loop over a file loaded above it', () => {
-    const a = fixture('xml')
+    const a = fixture('data-values')
     const owls = a.nth(/^Owls of the North/)
     expect(a.at(owls)).toBe('c.xml:2:16')
     expect(a.click(owls, 'Owls of the North / '.length)).toBe('c.xml:2:49')
@@ -579,7 +580,7 @@ test.describe('round two defects', () => {
     const json = fixture('json')
     expect(json.caret('c.json', 2, 3)).toBe(json.nth(/^Title:/))
     expect(json.caret('c.json', 7, 3)).toBe(json.nth(/^Held in/))
-    const yaml = fixture('yaml')
+    const yaml = fixture('data-values')
     expect(yaml.caret('c.yaml', 1, 1)).toBe(yaml.nth(/^Night survey of owls by/))
   })
 

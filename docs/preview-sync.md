@@ -434,4 +434,13 @@ unsaved buffers.
   index, and each `<image>` as an image run. `node
   assets/e2e/preview_sync_fixtures.mjs` rewrites fixtures in their stable
   layout; a pre-commit hook runs it.
+- `node assets/e2e/preview_sync_mutants.mjs` is a mutation check: it changes
+  one operator or number of `preview_sync.js` at a time, runs the align spec
+  on each copy in plain Node and prints, per fixture, how many changes its
+  tests catch and how many only its tests catch. A fixture whose tests catch
+  nothing of their own and whose code paths other fixtures also run can be
+  merged into another. `--lines a-b` limits it to part of the module; the
+  whole run takes about 45 minutes on 8 jobs. The 120-page frame-budget test
+  times the module, so the count moves by a few dozen with the machine's load;
+  compare runs without the changes only it catches.
 - `assets/e2e/preview_sync.spec.mjs` drives the editor (authenticated).
