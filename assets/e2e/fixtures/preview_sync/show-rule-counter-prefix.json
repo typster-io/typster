@@ -1,0 +1,9 @@
+{
+ "shape": "show-rule-counter-prefix",
+ "about": "A heading rule printing a literal, the heading counter and more literal before the body",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Kapitel 1: Eins", "Absatz eins.", "Kapitel 2: Zwei", "Absatz zwei."]}
+ ]
+}

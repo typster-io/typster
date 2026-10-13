@@ -1,0 +1,9 @@
+{
+ "shape": "show-rule-element",
+ "about": "A heading rule adding (Draft), and a paragraph printing a let-bound value followed by the same literal",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Intro (Draft)", "Some intro words.", "Report (Draft)", "Closing words here."]}
+ ]
+}

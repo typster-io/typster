@@ -1,0 +1,9 @@
+{
+ "shape": "clicks",
+ "about": "Clicks after an escape (`\\$`, `\\#`, `\\_`), a soft hyphen and an emoji joiner, literal em and en dashes, and locale quotes with thin spaces (« ») land on the clicked character; a code block's tokens touch.",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Checks", "Cost (USD) $5 + tax and C++ again.", "Итог: «всё прошло хорошо» — и это главное.", "Il a dit « bonjour les amis » puis partit.", "Ticket #42 is closed today.", "Pages 10–20 cover herons.", "Wait — really now.", "Snake a_b_c here.", "A soft hy­phen and a fam👨‍👩‍👧ily emoji word.", "Plain line with « quoted words » inside it.", "def", " ", "count", "(", "birds", ")", ":", "    ", "return", " ", "1", "After all."]}
+ ]
+}

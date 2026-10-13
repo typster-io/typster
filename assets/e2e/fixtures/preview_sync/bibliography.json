@@ -1,0 +1,9 @@
+{
+ "shape": "bibliography",
+ "about": "Citations at paragraph ends and a bibliography from refs.bib: markers stay on their line, the closing period stays in the body, entries resolve into refs.bib (#29 #30).",
+ "entry": "main.typ",
+ "files": ["main.typ", "refs.bib"],
+ "runs": [
+  {"page": 0, "t": ["Citations", "Herons are studied widely ", "[1]", " and raptors too ", "[2]", ".", "A second paragraph cites again ", "[1]", ".", "Bibliography", "[1]", "J. Smith and J. Doe, “Wading birds of the northern marshes,” ", "Journal of Ornithology", ", 2020.", "[2]", "A. Lee, ", "Raptors in flight", ". Feather Press, 2018."]}
+ ]
+}

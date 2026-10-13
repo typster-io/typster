@@ -1,0 +1,9 @@
+{
+ "shape": "pictures",
+ "about": "Pictures: a grid of three, two in a row, one through a let-defined function after a spacing call, two in table rows after their labels, an icon at a line end (#4 #36 #37).",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Pictures", "Intro about kestrels.", {"image": true}, {"image": true}, {"image": true}, "Between the pictures.", {"image": true}, {"image": true}, "Before the alias.", {"image": true}, "Blue", {"image": true}, "Green", {"image": true}, "A sentence ending with an icon ", {"image": true}, "After about herons."]}
+ ]
+}

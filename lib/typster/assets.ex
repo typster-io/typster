@@ -156,15 +156,18 @@ defmodule Typster.Assets do
   @doc """
   What the client-side preview needs to know about a project's assets.
 
-  Every asset is listed with its kind; fonts additionally carry a `url` the
-  preview worker fetches to register the bytes with the compiler. The caller
-  supplies `font_url`, a function from asset to URL, so each view points at
-  its own same-origin route (`TypsterWeb.AssetController`) — fetching from
-  object storage directly would hinge on the bucket's CORS setup. Without a
-  builder, fonts are listed but not registrable.
+  Every asset is listed with its kind and a `url` the preview worker fetches:
+  fonts are registered with the compiler, and every other asset is mapped at
+  its reference path, since any file may be read by a document (`image` takes
+  PDFs and SVGs, `csv`, `json` and `read` take data files) and Typst, not an
+  extension list, decides what it can use. The caller supplies `asset_url`, a
+  function from asset to URL, so each view points at its own same-origin route
+  (`TypsterWeb.AssetController`) — fetching from object storage directly would
+  hinge on the bucket's CORS setup. Without a builder, assets are listed but
+  not fetchable.
   """
   @spec preview_manifest([Asset.t()], (Asset.t() -> String.t() | nil)) :: [map()]
-  def preview_manifest(assets, font_url \\ fn _asset -> nil end) do
+  def preview_manifest(assets, asset_url \\ fn _asset -> nil end) do
     Enum.map(assets, fn %Asset{} = asset ->
       kind = kind(asset)
 
@@ -176,9 +179,8 @@ defmodule Typster.Assets do
         kind: Atom.to_string(kind)
       }
 
-      with :font <- kind, url when is_binary(url) <- font_url.(asset) do
-        Map.put(entry, :url, url)
-      else
+      case asset_url.(asset) do
+        url when is_binary(url) -> Map.put(entry, :url, url)
         _ -> entry
       end
     end)

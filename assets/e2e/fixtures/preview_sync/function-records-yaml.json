@@ -1,0 +1,9 @@
+{
+ "shape": "function-records-yaml",
+ "about": "Records printed through a local function in another field order than the YAML file, a value repeated across records, and literal text before an inline call",
+ "entry": "main.typ",
+ "files": ["main.typ", "folk.yaml"],
+ "runs": [
+  {"page": 0, "t": ["Deltagare", "Astrid bor i Uppsala och är 34 år.", "Björn bor i Malmö och är 41 år.", "Cecilia bor i Uppsala och är 34 år.", "Totalt 3 personer deltog."]}
+ ]
+}

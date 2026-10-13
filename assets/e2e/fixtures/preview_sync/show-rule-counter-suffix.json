@@ -1,0 +1,9 @@
+{
+ "shape": "show-rule-counter-suffix",
+ "about": "A level-1 heading rule printing the heading counter before the body and a literal suffix after it",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["1. Anfang (Teil)", "Erster Absatz hier.", "2. Mitte (Teil)", "Zweiter Absatz hier.", "2.1.", "Unterpunkt", "Dritter Absatz."]}
+ ]
+}

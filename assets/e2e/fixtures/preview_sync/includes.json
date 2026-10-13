@@ -1,0 +1,9 @@
+{
+ "shape": "includes",
+ "about": "Includes in every form: a plain one into a subfolder that includes relatively (../), a parenthesized one, one through a let-bound name, an absolute one inside a code block, and a commented-out draft that must not be spliced (#2 #9 #18).",
+ "entry": "main.typ",
+ "files": ["main.typ", "parts/part1.typ", "parts/chapters/ch1.typ", "shared/note.typ", "parts/part2.typ", "back/appendix.typ", "shared/colophon.typ", "drafts/old.typ"],
+ "runs": [
+  {"page": 0, "t": ["Book", "Preface sentence of the book.", "Part one", "Kestrels hovered over the field.", "Chapter one", "Otters were observed in the river.", "A shared note about methodology and sampling.", "Part two", "Badgers dug new setts nearby.", "Appendix", "Tables of counts follow here.", "Set in a serif face by the editors.", "Closing words of the book."]}
+ ]
+}

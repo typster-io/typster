@@ -1,0 +1,9 @@
+{
+ "shape": "yaml-reversed",
+ "about": "A #for over YAML records written one field per line, printed in another order than the file's",
+ "entry": "main.typ",
+ "files": ["main.typ", "crew.yaml"],
+ "runs": [
+  {"page": 0, "t": ["Crew", "1.", "botanist — Ines", "2.", "pilot — Oskar", "3.", "botanist — Mirela", "That is everyone."]}
+ ]
+}

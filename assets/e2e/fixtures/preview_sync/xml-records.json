@@ -1,0 +1,9 @@
+{
+ "shape": "xml-records",
+ "about": "A #for over XML elements, one child element per line, a value repeated in two records",
+ "entry": "main.typ",
+ "files": ["main.typ", "crew.xml"],
+ "runs": [
+  {"page": 0, "t": ["Crew", "•", "Ines (botanist)", "•", "Oskar (pilot)", "•", "Mirela (botanist)", "That is everyone."]}
+ ]
+}

@@ -1,0 +1,9 @@
+{
+ "shape": "yaml-records",
+ "about": "A #for over YAML records written one field per line, a value repeated in two records, printed as enum items",
+ "entry": "main.typ",
+ "files": ["main.typ", "crew.yaml"],
+ "runs": [
+  {"page": 0, "t": ["Crew", "1.", "Ines — botanist", "2.", "Oskar — pilot", "3.", "Mirela — botanist", "That is everyone."]}
+ ]
+}

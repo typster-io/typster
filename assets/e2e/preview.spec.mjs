@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { uniqueProjectName, projectRow } from './unique_project.mjs'
 
 test.setTimeout(60_000)
 
 async function createProjectAndOpenEditor(page, name) {
+  name = uniqueProjectName(name)
   await page.goto('/projects')
   await page.waitForFunction(() => window.liveSocket?.isConnected?.(), null, { timeout: 10_000 })
   await page.locator('#new-project-button').click()
@@ -10,7 +12,7 @@ async function createProjectAndOpenEditor(page, name) {
   await page.locator('.ts-dialog input[name="name"]').fill(name)
   await page.locator('.ts-dialog button[type="submit"]').click()
   await expect(page.locator('.ts-dialog')).not.toBeVisible()
-  const row = page.locator('.ts-list__row').filter({ hasText: name })
+  const row = projectRow(page, name)
   await expect(row).toBeVisible()
   await row.getByRole('link', { name: 'Open' }).click()
   await expect(page).toHaveURL(/\/projects\/.+\/edit/)

@@ -1,0 +1,9 @@
+{
+ "shape": "tables",
+ "about": "Short table cells (one to three characters) behind a long options line, and a row-spanning cell that renders a later cell first (#3 #34).",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Tables", "Id", "Yes", "No", "A1", "12", "3", "Owl", "7", "Forest", "Kestrel", "30", "Closing paragraph about herons."]}
+ ]
+}

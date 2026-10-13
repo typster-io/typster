@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { uniqueProjectName, projectRow } from './unique_project.mjs'
 
 // Custom CodeMirror find & replace panel (.ts-cm-search). Verifies the panel
 // opens from the toolbar, the live match count reflects the query (and the case
@@ -6,6 +7,7 @@ import { test, expect } from '@playwright/test'
 // Escape closes it.
 
 async function createProjectAndOpenEditor(page, name) {
+  name = uniqueProjectName(name)
   await page.goto('/projects')
   await page.waitForFunction(() => window.liveSocket?.isConnected?.(), null, { timeout: 10_000 })
   await page.locator('#new-project-button').click()
@@ -14,7 +16,7 @@ async function createProjectAndOpenEditor(page, name) {
   await page.locator('.ts-dialog button[type="submit"]').click()
   await expect(page.locator('.ts-dialog')).not.toBeVisible()
 
-  const row = page.locator('.ts-list__row').filter({ hasText: name })
+  const row = projectRow(page, name)
   await expect(row).toBeVisible()
   await row.getByRole('link', { name: 'Open' }).click()
   await expect(page).toHaveURL(/\/projects\/.+\/edit/)

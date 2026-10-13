@@ -1,0 +1,13 @@
+titolo = "Diario di viaggio"
+[guida]
+nome = "Marco Bellini"
+telefono = "+39 055 123"
+[[tappe]]
+citta = "Firenze"
+notti = 2
+[[tappe]]
+citta = "Siena"
+notti = 1
+[[tappe]]
+citta = "Lucca"
+notti = 2

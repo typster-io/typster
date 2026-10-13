@@ -1,5 +1,9 @@
 import { initEditor, updateEditorContent, destroyEditor } from "./editor"
 import { initTypstWorker, destroyTypstWorker, compileTypst } from "./typst_worker"
+import { installPreviewSync, syncPreviewToCursor, relocate } from "./preview_sync"
+
+// How long the caret must rest before the preview follows it (#149).
+const PREVIEW_SYNC_DELAY = 250
 
 function parseContent(content) {
   return content || ""
@@ -12,6 +16,15 @@ function parseJsonDataset(value, fallback) {
   } catch (_error) {
     return fallback
   }
+}
+
+const cleanPath = (path) => String(path || "").replace(/^\/+/, "")
+
+// The sources other than the open buffer, in a form two lists compare by:
+// the buffer's own entry lags behind its keystrokes, the others are what the
+// compiler reads from the project.
+function siblingSources(sources, active) {
+  return JSON.stringify((sources || []).filter((src) => cleanPath(src.path) !== cleanPath(active)))
 }
 
 function editorOptions(element) {
@@ -78,11 +91,23 @@ export const OutlineList = {
 export const CodeMirror = {
   editorCallbacks() {
     return {
-      onCursor: (line, col) => {
+      onCursor: (line, col, viaEdit) => {
         const el = document.getElementById("status-cursor")
         if (el) el.textContent = `Ln ${line}, Col ${col}`
         this.lastCursorLine = line
         updateCrumbSymbol(this.lastOutline, line)
+        // Follow a resting caret in the preview. Edits and the caret move a
+        // preview click just caused are skipped: the first would drag the
+        // preview while typing, the second would answer a click with a scroll.
+        clearTimeout(this.previewSyncTimer)
+        if (viaEdit) return
+        if (this.suppressPreviewSync) {
+          this.suppressPreviewSync = false
+          return
+        }
+        this.previewSyncTimer = setTimeout(() => {
+          syncPreviewToCursor({ file: this.mainPath, line, col })
+        }, PREVIEW_SYNC_DELAY)
       },
       onOutline: (items) => {
         this.lastOutline = items
@@ -95,13 +120,15 @@ export const CodeMirror = {
   setupCommandHandler() {
     this.commandHandler = (event) => {
       if (!this.editorInstance) return
-      const { cmd, line } = event.detail || {}
+      const { cmd, line, col, file, source, basis } = event.detail || {}
       if (cmd === "compile") {
         this.editorInstance.compile()
       } else if (cmd === "download") {
         this.editorInstance.download()
       } else if (cmd === "search") {
         this.editorInstance.openSearch()
+      } else if (cmd === "goto") {
+        this.gotoLocation({ file, line, col, source, basis })
       } else if (cmd) {
         this.editorInstance.runCommand(cmd, { line })
       }
@@ -126,6 +153,72 @@ export const CodeMirror = {
     window.addEventListener("typst:diagnostics", this.diagnosticsHandler)
   },
 
+  // Move the caret to `line`/`col`, in another project file when `file` names
+  // one: the server is asked to open it and the move completes once its
+  // buffer has mounted (the preview click path, #149). Each request carries
+  // a sequence number the server echoes, so only the reply to the latest
+  // request switches buffers and runs its move.
+  gotoLocation({ file, line, col, source, basis }) {
+    // A caret-follow still waiting on its delay belongs to the caret before
+    // this goto; firing after a click it would scroll the preview away from
+    // the spot just clicked.
+    clearTimeout(this.previewSyncTimer)
+    const target = file ? cleanPath(file) : null
+    const goto = { line, col, source, basis }
+    // While a request is unanswered the server is about to switch to its
+    // file, even when this goto targets the buffer shown now; only a new
+    // request then makes this goto the last word.
+    if (!this.pendingGoto && (!target || target === cleanPath(this.mainPath))) {
+      this.runGoto(goto)
+      return
+    }
+    // A read-only view (a shared project) has no file switching to offer.
+    if (this.readonly) return
+    // Switching buffers destroys this editor; a save still waiting on its
+    // debounce would be lost, so push it ahead of the switch.
+    this.editorInstance.flushAutosave()
+    this.gotoSeq = (this.gotoSeq || 0) + 1
+    this.pendingGoto = { ...goto, path: target || cleanPath(this.mainPath), seq: this.gotoSeq }
+    this.pushEvent("open_path", { path: this.pendingGoto.path, seq: this.gotoSeq })
+  },
+
+  // Move the caret in the active buffer. The caret move a preview click
+  // causes must not scroll the preview back to where the click came from:
+  // skip exactly that one cursor callback (armed only here, where a goto
+  // really runs, so a jump that goes nowhere leaves nothing armed).
+  runGoto({ line, col, source, basis }) {
+    // The location was found in the text the preview was compiled from; the
+    // buffer may be newer (a save from another session, keystrokes since the
+    // compile), so find the same spot in what the buffer holds now.
+    if (basis != null && this.editorInstance.editor) {
+      ;({ line, col } = relocate(basis, this.editorInstance.editor.state.doc.toString(), line, col))
+    }
+    if (source === "preview") {
+      this.suppressPreviewSync = true
+      clearTimeout(this.suppressTimer)
+      this.suppressTimer = setTimeout(() => {
+        this.suppressPreviewSync = false
+      }, 1000)
+    }
+    this.editorInstance.runCommand("goto", { line, col })
+  },
+
+  // The file the preview compiles: a deliberate selection (tree, tab, a new
+  // file) of a Typst file makes it the document; a jump from the preview, a
+  // closed tab, a deleted file, or opening a data file (CSV, BibTeX, a note)
+  // keep the current one as long as it is a Typst file that still exists.
+  chooseEntry(reason, sources) {
+    const clean = (p) => String(p || "").replace(/^\/+/, "")
+    const current = clean(this.entryPath)
+    const keepable =
+      current &&
+      /\.typ$/i.test(current) &&
+      (current === clean(this.mainPath) || sources.some((src) => clean(src.path) === current))
+    const chosen = reason === "select" || reason === "create"
+    if (!keepable || (chosen && /\.typ$/i.test(clean(this.mainPath)))) return this.mainPath
+    return this.entryPath
+  },
+
   mounted() {
     const container = this.el
     const rawContent = this.el.dataset.content || ""
@@ -135,6 +228,11 @@ export const CodeMirror = {
     // Track the open file's path so worker diagnostics (now labelled by real
     // path) can be matched back to this editor.
     this.mainPath = options.project.mainPath || "main.typ"
+    // The file the preview compiles. It follows the file the user opens, but
+    // a jump from the preview into an `#include`d file leaves it alone, so the
+    // preview keeps showing the document rather than the chapter on its own.
+    this.entryPath = this.mainPath
+    this.readonly = options.readonly
     this.collab = options.collab
     // The element is `phx-update="ignore"`, so `data-project-assets` is frozen
     // at mount. The server pushes `assets_updated` on every upload/delete;
@@ -157,9 +255,17 @@ export const CodeMirror = {
       )
     }
 
-    this.handleEvent("content_updated", ({ content }) => {
+    this.handleEvent("content_updated", ({ content, seq }) => {
+      // The text of a buffer a newer goto superseded (see `file_changed`).
+      if (seq != null && seq !== this.gotoSeq) return
       // When collab is on, the Yjs doc owns the buffer; writing here too
-      // double-inserts (and compounds across reloads).
+      // double-inserts (and compounds across reloads). After a same-buffer
+      // re-open whose unsaved keystrokes were just pushed, the server's copy
+      // in this event is older than the buffer: skip it.
+      if (this.skipNextContentUpdate) {
+        this.skipNextContentUpdate = false
+        return
+      }
       if (this.editorInstance && !this.collab) {
         updateEditorContent(this.editorInstance, content)
       }
@@ -177,7 +283,11 @@ export const CodeMirror = {
       }
     })
 
-    this.handleEvent("file_changed", ({ file_id, content, language, path }) => {
+    this.handleEvent("file_changed", ({ file_id, content, language, path, reason, seq }) => {
+      // The reply to a goto a newer one superseded. The server answers in
+      // order, so the newer reply is still on its way: switching here would
+      // show a file the user already left and run a move they replaced.
+      if (seq != null && seq !== this.gotoSeq) return
       const newFileId = file_id || null
       const newContent = parseContent(content || "")
       const options = { ...editorOptions(this.el), ...this.editorCallbacks() }
@@ -187,14 +297,27 @@ export const CodeMirror = {
       options.project.mainPath = path || options.project.mainPath
       if (this.projectAssets) options.project.assets = this.projectAssets
       this.mainPath = options.project.mainPath || "main.typ"
-      this.currentOptions = options
+      // Only the reply to the latest goto runs it. Any other change (a
+      // selection, a closed or deleted file) was handled by the server before
+      // that request, so a pending goto stays armed for its own reply.
+      const pending = this.pendingGoto
+      const viaPreview = !!pending && seq != null && seq === pending.seq
+      const entryBefore = this.entryPath
+      const siblingsBefore = this.currentOptions && siblingSources(this.currentOptions.project.sources, this.mainPath)
+      this.entryPath = this.chooseEntry(reason || (viaPreview ? "jump" : "select"), options.project.sources)
+      options.project.entryPath = this.entryPath
 
       this.el.style.display = newFileId ? "" : "none"
 
       if (this.previousFileId !== newFileId) {
+        this.currentOptions = options
         this.previousFileId = newFileId
         this.cleanupThemeHandlers()
         if (this.editorInstance) {
+          // A save still waiting on its debounce belongs to the buffer being
+          // torn down; the server stores it even though it is no longer
+          // the current file.
+          this.editorInstance.flushAutosave()
           destroyEditor(this.editorInstance)
           this.editorInstance = null
         }
@@ -209,12 +332,62 @@ export const CodeMirror = {
           this.setupThemeHandlers()
         }
       } else if (this.editorInstance) {
-        updateEditorContent(this.editorInstance, newContent)
+        // Same buffer: the editor keeps its options object, so refresh it in
+        // place. Keystrokes still waiting on their save are newer than the
+        // content the server sent; push them instead of taking the server's
+        // copy. Re-opening the active file from the tree makes it the
+        // previewed document again, and the server re-reads the project's
+        // files on every open (another session may have saved one): either
+        // needs a compile. The sources observer cannot tell, since the
+        // options it compares against are refreshed right here.
+        const siblingsChanged = siblingsBefore !== siblingSources(options.project.sources, this.mainPath)
+        Object.assign(this.currentOptions.project, options.project)
+        if (this.editorInstance.flushAutosave()) this.skipNextContentUpdate = true
+        else updateEditorContent(this.editorInstance, newContent)
         if (language && this.editorInstance.updateLanguage) {
           this.editorInstance.updateLanguage(language)
         }
+        if (this.entryPath !== entryBefore || siblingsChanged) this.editorInstance.compile()
+      }
+
+      if (viaPreview) this.pendingGoto = null
+      if (viaPreview && this.editorInstance) {
+        // A collaborative buffer fills in asynchronously; wait for its text.
+        const instance = this.editorInstance
+        instance.ready.then(() => {
+          if (this.editorInstance === instance) this.runGoto(pending)
+        })
       }
     })
+
+    // The open buffer was moved in the tree: its text stays, only the path
+    // the compiler maps it at changes (and the previewed document's name,
+    // when it was that file).
+    this.handleEvent("file_moved", ({ path }) => {
+      if (!path || !this.currentOptions) return
+      const wasEntry = this.entryPath === this.mainPath
+      this.mainPath = path
+      this.currentOptions.project.mainPath = path
+      if (wasEntry) this.entryPath = path
+      this.currentOptions.project.entryPath = this.entryPath
+    })
+
+    // The server re-renders `data-project-sources` on every change to the
+    // project's files (a save, a new, moved or deleted file), and LiveView
+    // merges data attributes even on this ignored element. Keep the compile
+    // options current, and if the previewed document vanished, or a sibling
+    // the document reads changed, compile again.
+    this.sourcesObserver = new MutationObserver(() => {
+      if (!this.currentOptions || !this.editorInstance) return
+      const sources = parseJsonDataset(this.el.dataset.projectSources, [])
+      const changed = siblingSources(sources, this.mainPath) !== siblingSources(this.currentOptions.project.sources, this.mainPath)
+      this.currentOptions.project.sources = sources
+      const entryBefore = this.entryPath
+      this.entryPath = this.chooseEntry("refresh", sources)
+      this.currentOptions.project.entryPath = this.entryPath
+      if (changed || this.entryPath !== entryBefore) this.editorInstance.compile()
+    })
+    this.sourcesObserver.observe(this.el, { attributes: true, attributeFilter: ["data-project-sources"] })
 
     this.themeChangeHandler = () => {
       if (this.editorInstance && this.editorInstance.updateTheme) {
@@ -284,6 +457,9 @@ export const CodeMirror = {
 
   destroyed() {
     this.cleanupThemeHandlers()
+    clearTimeout(this.previewSyncTimer)
+    clearTimeout(this.suppressTimer)
+    if (this.sourcesObserver) this.sourcesObserver.disconnect()
     if (this.commandHandler) {
       window.removeEventListener("phx:editor-command", this.commandHandler)
       this.commandHandler = null
@@ -302,6 +478,7 @@ export const CodeMirror = {
 export const Preview = {
   mounted() {
     initTypstWorker(this)
+    this.uninstallSync = installPreviewSync(this.el)
 
     const editorContainer = document.getElementById("editor-container")
     if (editorContainer) {
@@ -322,6 +499,7 @@ export const Preview = {
   },
 
   destroyed() {
+    if (this.uninstallSync) this.uninstallSync()
     destroyTypstWorker()
   }
 }

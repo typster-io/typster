@@ -314,11 +314,13 @@ function insertSnippet(view, snippet, placeholder) {
   view.focus()
 }
 
-function gotoLine(view, lineNumber) {
+function gotoLine(view, lineNumber, column) {
   const total = view.state.doc.lines
   const n = Math.min(Math.max(parseInt(lineNumber, 10) || 1, 1), total)
   const line = view.state.doc.line(n)
-  view.dispatch({ selection: { anchor: line.from }, scrollIntoView: true })
+  const col = Math.max(parseInt(column, 10) || 1, 1) - 1
+  const anchor = Math.min(line.from + col, line.to)
+  view.dispatch({ selection: { anchor }, scrollIntoView: true })
   view.focus()
 }
 
@@ -340,7 +342,7 @@ function runEditorCommand(view, language, cmd, arg = {}) {
       insertSnippet(view, m[cmd].snippet, m[cmd].placeholder)
       break
     case "goto":
-      gotoLine(view, arg.line)
+      gotoLine(view, arg.line, arg.col)
       break
     default:
       break
@@ -424,6 +426,14 @@ export function initEditor(container, initialContent, socket, fileId, options = 
   // language must follow — otherwise the compile/outline gates go stale and a
   // non-Typst file (e.g. .csv) would be compiled as Typst.
   let language = options.language || "typst"
+  // The buffer compiles when it is Typst, or when the preview's entry file is
+  // Typst and this buffer merely feeds it (a CSV opened by a preview jump).
+  const compiles = () => {
+    if (language === "typst") return true
+    const project = options.project || {}
+    const entry = project.entryPath
+    return !!entry && entry !== project.mainPath && /\.typ$/i.test(entry)
+  }
   const onCursor = typeof options.onCursor === "function" ? options.onCursor : null
   const onOutline = typeof options.onOutline === "function" ? options.onOutline : null
 
@@ -437,10 +447,24 @@ export function initEditor(container, initialContent, socket, fileId, options = 
     }
   }
 
+  // Resolves once the buffer holds its text: immediately for a plain file,
+  // on the first document change for a collaborative one (Yjs fills it in
+  // after mount), or after a grace period if nothing arrives.
+  let markReady = null
+  const ready = new Promise((resolve) => {
+    markReady = resolve
+  })
+
   const updateListener = EditorView.updateListener.of((update) => {
+    if (update.docChanged && markReady) {
+      markReady()
+      markReady = null
+    }
     if (onCursor && (update.docChanged || update.selectionSet)) {
       const { line, col } = cursorPosition(update.state)
-      onCursor(line, col)
+      // The third argument says whether the caret moved because the text
+      // changed: typing must not drag the preview around, moving the caret may.
+      onCursor(line, col, update.docChanged)
     }
 
     if (update.docChanged) {
@@ -458,7 +482,7 @@ export function initEditor(container, initialContent, socket, fileId, options = 
         }, 500)
       }
 
-      if (language === "typst") {
+      if (compiles()) {
         clearTimeout(compileTimer)
         const delay = compileDelay()
         if (delay >= 0) {
@@ -513,6 +537,18 @@ export function initEditor(container, initialContent, socket, fileId, options = 
     parent: container
   })
 
+  if (!collab && markReady) {
+    markReady()
+    markReady = null
+  } else if (markReady) {
+    setTimeout(() => {
+      if (markReady) {
+        markReady()
+        markReady = null
+      }
+    }, 3000)
+  }
+
   if (language === "typst") {
     registerTypstView(editor)
   }
@@ -521,10 +557,11 @@ export function initEditor(container, initialContent, socket, fileId, options = 
     compileTypst(initialContent, options.project || {})
   }
 
-  // Seed cursor + outline from the initial document.
+  // Seed cursor + outline from the initial document. The seed is flagged like
+  // an edit: it is not a caret move the preview should follow.
   if (onCursor) {
     const { line, col } = cursorPosition(editor.state)
-    onCursor(line, col)
+    onCursor(line, col, true)
   }
   emitOutline(initialContent || "")
 
@@ -554,14 +591,26 @@ export function initEditor(container, initialContent, socket, fileId, options = 
       editor.dispatch({ effects: setDiagData.of(cm) })
     },
     compile: () => {
-      // Only Typst files compile; the worker treats the active buffer as main.typ.
-      if (language === "typst") compileTypst(editor.state.doc.toString(), options.project || {})
+      // The worker maps the buffer at its own path and compiles the entry file.
+      if (compiles()) compileTypst(editor.state.doc.toString(), options.project || {})
     },
     download: () => {
-      if (language === "typst") {
-        downloadTypstPdf(editor.state.doc.toString(), options.project || {}, container.dataset.fileName)
+      if (compiles()) {
+        // The PDF is the previewed document, so it takes that file's name.
+        const project = options.project || {}
+        downloadTypstPdf(editor.state.doc.toString(), project, project.entryPath || container.dataset.fileName)
       }
     },
+    // Push a save that is still waiting on its debounce (before the buffer is
+    // torn down for a switch, which would otherwise lose it).
+    flushAutosave: () => {
+      if (!autosaveTimer) return false
+      clearTimeout(autosaveTimer)
+      autosaveTimer = null
+      if (fileId && socket) socket.pushEvent("autosave", { file_id: fileId, content: editor.state.doc.toString() })
+      return true
+    },
+    ready,
     destroy: () => {
       if (autosaveTimer) clearTimeout(autosaveTimer)
       if (compileTimer) clearTimeout(compileTimer)

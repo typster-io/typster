@@ -788,7 +788,11 @@
               class="ts-btn ts-btn--ghost ts-btn--sm"
               phx-click={
                 JS.dispatch("phx:editor-command",
-                  detail: %{cmd: "goto", line: first_error_line(@diagnostics)}
+                  detail: %{
+                    cmd: "goto",
+                    line: first_error_line(@diagnostics),
+                    file: first_error_file(@diagnostics)
+                  }
                 )
               }
             >
@@ -845,7 +849,9 @@
               class="ts-problem"
               phx-click={
                 d.line &&
-                  JS.dispatch("phx:editor-command", detail: %{cmd: "goto", line: d.line})
+                  JS.dispatch("phx:editor-command",
+                    detail: %{cmd: "goto", line: d.line, file: d.file}
+                  )
               }
             >
               <span class={["ts-problem__dot", "ts-problem__dot--#{d.severity}"]}></span>

@@ -1,0 +1,10 @@
+{
+ "shape": "page-footer-only",
+ "about": "A context page footer printing the page number, with no header",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Intro", "Paragraph 1 describes the riverbank at length so the page fills and breaks.", "Paragraph 2 describes the riverbank at length so the page fills and breaks.", "Paragraph 3 describes the riverbank at length so the page fills and breaks.", "Paragraph 4 describes the riverbank at length so the page fills and breaks.", "Paragraph 5 describes the riverbank at length so the page fills and breaks.", "Paragraph 6 describes the riverbank at length so the page fills and breaks.", "Paragraph 7 describes the riverbank at length so the page fills and breaks.", "Paragraph 8 describes the riverbank at length so the page fills and breaks.", "Page 1 of 3"]},
+  {"page": 1, "t": ["Paragraph 9 describes the riverbank at length so the page fills and breaks.", "Page 2 of 3"]}
+ ]
+}

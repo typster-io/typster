@@ -1,0 +1,9 @@
+{
+ "shape": "outline",
+ "about": "An #outline() before the body: long headings, two sections both titled Notes, numbering; outline entries are copies of the body headings and must not drag the body (#0 #27 #51).",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Contents", "1.", "A rather long heading title about herons in marshes ", [".", 48], " ⁠1", "1.1.", "Notes ", [".", 94], " ⁠1", "2.", "Another fairly long heading title about kestrels too ", [".", 49], " ⁠1", "2.1.", "Notes ", [".", 94], " ⁠1", "1.", "A rather long heading title about herons in marshes", "Herons stand still in shallow water for a long time.", "1.1.", "Notes", "Short.", "2.", "Another fairly long heading title about kestrels too", "Kestrels hover above the verges of the motorway.", "2.1.", "Notes", "Also short."]}
+ ]
+}

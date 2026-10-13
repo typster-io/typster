@@ -1,0 +1,9 @@
+{
+ "shape": "csv-files",
+ "about": "Two tables from two files plus a stale file holding the same text: values go to the file the call reads, and a caret on each #table line finds its table (#53 #54).",
+ "entry": "main.typ",
+ "files": ["main.typ", "aold.csv", "new.csv", "b.csv"],
+ "runs": [
+  {"page": 0, "t": ["Two tables", "city", "country", "pop", "Oslo", "Norway", "700", "Bergen", "Norway", "285", "Between the tables.", "city", "river", "len", "Bergen", "none", "0", "Cairo", "Nile", "6650", "Oslo", "Akerselva", "8", "After both."]}
+ ]
+}

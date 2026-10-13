@@ -1,0 +1,9 @@
+{
+ "shape": "loops",
+ "about": "A #for over an array literal printing a template per item",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Loop", "Hello Ada. Hello Bob. Hello Cy.", "After the loop."]}
+ ]
+}

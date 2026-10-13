@@ -1,0 +1,9 @@
+{
+ "shape": "captions",
+ "about": "Figure captions behind generated labels in English, French (\"Fig. 1. –\") and with a custom separator; the word caption must not match the caption: argument (#6).",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Figures", "Figure 1: A short caption about wading herons", "Fig. 2. – A French caption about grey herons", "Figure 3 — A caption with its own separator"]}
+ ]
+}

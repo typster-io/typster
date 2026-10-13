@@ -1,0 +1,9 @@
+{
+ "shape": "csv-raw",
+ "about": "A CSV printed raw after #lorem (brackets and cells go to the data file), then again after a one-letter heading (#12 #14).",
+ "entry": "main.typ",
+ "files": ["main.typ", "birds.csv"],
+ "runs": [
+  {"page": 0, "t": ["Data", "Lorem ipsum dolor sit amet, consectetur adipiscing elit.", "(", "  ", "(", "\"bird\"", ",", " ", "\"habitat\"", ")", ",", "  ", "(", "\"heron\"", ",", " ", "\"a long-legged wading bird of marshes\"", ")", ",", ")", "D", "(", "  ", "(", "\"bird\"", ",", " ", "\"habitat\"", ")", ",", "  ", "(", "\"heron\"", ",", " ", "\"a long-legged wading bird of marshes\"", ")", ",", ")", "After the arrays."]}
+ ]
+}

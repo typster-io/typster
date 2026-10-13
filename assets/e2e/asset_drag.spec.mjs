@@ -41,10 +41,15 @@ async function openFile(page, name) {
 }
 
 // Empties the editor, drops `source` into it and expects exactly `snippet`.
+// The clearing is checked and retried: a compile error the previous drop
+// caused (a stub PDF) may be reported while the keys are pressed.
 async function expectDrop(page, cm, source, snippet) {
-  await cm.click()
-  await page.keyboard.press("ControlOrMeta+a")
-  await page.keyboard.press("Backspace")
+  await expect(async () => {
+    await cm.click()
+    await page.keyboard.press("ControlOrMeta+a")
+    await page.keyboard.press("Delete")
+    await expect(cm.locator(".cm-line")).toHaveText([""], { timeout: 1_000 })
+  }).toPass({ timeout: 15_000 })
   await source.dragTo(cm.locator(".cm-line").first())
   await expect(cm.locator(".cm-line")).toHaveText([snippet])
 }

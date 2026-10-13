@@ -1,0 +1,9 @@
+{
+ "shape": "read",
+ "about": "A text file read and shown twice, once as raw (#54).",
+ "entry": "main.typ",
+ "files": ["main.typ", "notes.txt"],
+ "runs": [
+  {"page": 0, "t": ["Notes", "First paragraph of the plain text notes file.", "It continues on a second line.", "A second paragraph about herons.", "After the notes.", "First paragraph of the plain text notes file.", "It continues on a second line.", "A second paragraph about herons.", "The end."]}
+ ]
+}
