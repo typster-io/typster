@@ -34,7 +34,7 @@ COPY assets ./assets
 RUN mix assets.deploy
 RUN mix release
 
-FROM alpine:3.23.4 AS runner
+FROM alpine:3.24.3 AS runner
 
 RUN apk add --no-cache \
     openssl \
