@@ -38,7 +38,7 @@ services:
       S3_ENDPOINT: "${S3_ENDPOINT:-http://rustfs:9000}"
 
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     volumes:
       - postgres-data:/var/lib/postgresql/data
