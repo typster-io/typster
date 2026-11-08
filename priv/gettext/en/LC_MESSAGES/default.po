@@ -1332,7 +1332,7 @@ msgstr "Contact"
 #: lib/typster_web/controllers/page_html/home.html.heex:356
 #, elixir-autogen, elixir-format
 msgid "landing.foot.copyright"
-msgstr "© 2026 Typster. AGPL-3.0 licensed."
+msgstr "© 2026 Typster. Source-available under the Typster NC-SA License."
 
 #: lib/typster_web/controllers/page_html/home.html.heex:341
 #, elixir-autogen, elixir-format
@@ -1387,7 +1387,7 @@ msgstr "Status"
 #: lib/typster_web/controllers/page_html/home.html.heex:329
 #, elixir-autogen, elixir-format
 msgid "landing.foot.tagline"
-msgstr "The Typst editor for writing that lands.<br />Made by the open-source community."
+msgstr "The Typst editor for writing that lands.<br />Made in the open. Public code."
 
 #: lib/typster_web/controllers/page_html/home.html.heex:343
 #, elixir-autogen, elixir-format

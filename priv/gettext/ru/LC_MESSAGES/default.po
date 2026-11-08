@@ -1338,7 +1338,7 @@ msgstr "Контакты"
 #: lib/typster_web/controllers/page_html/home.html.heex:356
 #, elixir-autogen, elixir-format
 msgid "landing.foot.copyright"
-msgstr "© 2026 Typster. Лицензия AGPL-3.0."
+msgstr "© 2026 Typster. Исходный код доступен по лицензии Typster NC-SA."
 
 #: lib/typster_web/controllers/page_html/home.html.heex:341
 #, elixir-autogen, elixir-format
@@ -1393,7 +1393,7 @@ msgstr "Статус"
 #: lib/typster_web/controllers/page_html/home.html.heex:329
 #, elixir-autogen, elixir-format
 msgid "landing.foot.tagline"
-msgstr "Редактор Typst для текстов, которые попадают в цель.<br />Сделано сообществом открытого кода."
+msgstr "Редактор Typst для текстов, которые попадают в цель.<br />Делается у всех на виду. Публичный код."
 
 #: lib/typster_web/controllers/page_html/home.html.heex:343
 #, elixir-autogen, elixir-format
