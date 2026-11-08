@@ -12,7 +12,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "../LICENSE",
   "description": "",
   "workspaces": [
     "../deps/*"
