@@ -1,0 +1,9 @@
+{
+ "shape": "json",
+ "about": "JSON fields printed into literal text, a loop over authors and notes (#54 #58).",
+ "entry": "main.typ",
+ "files": ["main.typ", "c.json"],
+ "runs": [
+  {"page": 0, "t": ["Survey", "Title: Unicode café survey", "•", "José Núñez (alpha, beta)", "•", "Zoë Ångström (gamma)", "Held in Zürich, Schweiz, 2024.", "first note. second note. first note.", "The end."]}
+ ]
+}

@@ -171,6 +171,225 @@ defmodule TypsterWeb.EditorLiveTest do
     assert view |> element(".ts-tab.is-active .ts-tab__label") |> render() =~ "main.typ"
   end
 
+  describe "preview-to-source sync (open_path)" do
+    test "opens the file at the clicked path and hands its buffer to the editor",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ", content: "#include \"chapters/intro.typ\""})
+      intro = file_fixture(project, user, %{path: "chapters/intro.typ", content: "= Intro"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "open_path", %{"path" => "chapters/intro.typ"})
+
+      assert view |> element(".ts-tab.is-active .ts-tab__label") |> render() =~ "intro.typ"
+      assert_push_event(view, "file_changed", %{file_id: file_id, path: "chapters/intro.typ"})
+      assert file_id == intro.id
+      assert_push_event(view, "content_updated", %{content: "= Intro"})
+    end
+
+    test "a leading slash is tolerated, as the compiler reports paths rooted",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      file_fixture(project, user, %{path: "notes.typ"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "open_path", %{"path" => "/notes.typ"})
+
+      assert_push_event(view, "file_changed", %{path: "notes.typ"})
+    end
+
+    test "an unknown path leaves the editor where it is",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "open_path", %{"path" => "missing.typ"})
+
+      assert view |> element(".ts-tab.is-active .ts-tab__label") |> render() =~ "main.typ"
+      refute_push_event(view, "file_changed", %{})
+    end
+
+    test "a malformed payload is ignored instead of crashing the view",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "open_path", %{"path" => %{"nested" => true}})
+      render_hook(view, "open_path", %{})
+
+      assert Process.alive?(view.pid)
+      refute_push_event(view, "file_changed", %{})
+    end
+
+    test "the opened file is re-read, so another session's save is not overwritten",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      intro = file_fixture(project, user, %{path: "chapters/intro.typ", content: "= Intro v1"})
+      view = open_editor(conn, project)
+
+      scope = Typster.Accounts.Scope.for_user(user)
+      {:ok, _} = Typster.Files.update_file_content(scope, intro, "= Intro v2")
+
+      render_hook(view, "open_path", %{"path" => "chapters/intro.typ"})
+
+      assert_push_event(view, "content_updated", %{content: "= Intro v2"})
+    end
+
+    test "the reply echoes the request's sequence number",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      file_fixture(project, user, %{path: "notes.typ", content: "= Notes"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "open_path", %{"path" => "notes.typ", "seq" => 7})
+
+      assert_push_event(view, "file_changed", %{path: "notes.typ", reason: "jump", seq: 7})
+      assert_push_event(view, "content_updated", %{content: "= Notes", seq: 7})
+    end
+
+    test "a non-editable file in the tree is a no-op",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      file_fixture(project, user, %{path: "doc.pdf", content: ""})
+      view = open_editor(conn, project)
+
+      render_hook(view, "open_path", %{"path" => "doc.pdf", "seq" => 1})
+
+      assert view |> element(".ts-tab.is-active .ts-tab__label") |> render() =~ "main.typ"
+      refute_push_event(view, "file_changed", %{})
+    end
+
+    test "another session's save reaches the project sources the client compiles from",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ", content: "#include \"ch1.typ\""})
+      ch1 = file_fixture(project, user, %{path: "ch1.typ", content: "Otters."})
+      view = open_editor(conn, project)
+
+      scope = Typster.Accounts.Scope.for_user(user)
+      {:ok, _} = Typster.Files.update_file_content(scope, ch1, "Badgers.\n\nOtters.")
+
+      render_hook(view, "open_path", %{"path" => "ch1.typ", "seq" => 1})
+      assert project_sources(view)["ch1.typ"] == "Badgers.\n\nOtters."
+
+      # Selecting from the tree re-reads them too.
+      {:ok, _} = Typster.Files.update_file_content(scope, ch1, "Beavers.")
+      view |> element("#select-file-#{ch1.id}") |> render_click()
+
+      assert project_sources(view)["ch1.typ"] == "Beavers."
+    end
+
+    test "a path deleted since mount is a no-op",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      intro = file_fixture(project, user, %{path: "chapters/intro.typ"})
+      view = open_editor(conn, project)
+
+      scope = Typster.Accounts.Scope.for_user(user)
+      {:ok, _} = Typster.Files.delete_file(scope, intro)
+
+      render_hook(view, "open_path", %{"path" => "chapters/intro.typ"})
+
+      assert view |> element(".ts-tab.is-active .ts-tab__label") |> render() =~ "main.typ"
+      refute_push_event(view, "file_changed", %{})
+    end
+  end
+
+  describe "why the buffer changed (file_changed reason)" do
+    test "selecting, creating, closing and deleting each name their reason",
+         %{conn: conn, user: user, project: project} do
+      main = file_fixture(project, user, %{path: "main.typ"})
+      notes = file_fixture(project, user, %{path: "notes.typ"})
+      view = open_editor(conn, project)
+
+      view
+      |> element("[phx-click='select_file'][phx-value-file-id='#{notes.id}']")
+      |> render_click()
+
+      assert_push_event(view, "file_changed", %{path: "notes.typ", reason: "select"})
+
+      render_hook(view, "close_tab", %{"id" => notes.id})
+      assert_push_event(view, "file_changed", %{path: "main.typ", reason: "close"})
+
+      render_hook(view, "create_file", %{"path" => "extra.typ", "content" => "= Extra"})
+      assert_push_event(view, "file_changed", %{path: "extra.typ", reason: "create"})
+
+      extra = Enum.find(file_tree(user, project), &(&1.path == "extra.typ"))
+      render_hook(view, "delete_file", %{"id" => extra.id})
+      assert_push_event(view, "file_changed", %{file_id: file_id, reason: "delete"})
+      assert file_id == main.id
+    end
+
+    test "moving the open file tells the client its new path",
+         %{conn: conn, user: user, project: project} do
+      main = file_fixture(project, user, %{path: "main.typ"})
+      file_fixture(project, user, %{path: "chapters/ch1.typ"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "move_file", %{"id" => main.id, "dir" => "chapters"})
+
+      assert_push_event(view, "file_moved", %{file_id: file_id, path: "chapters/main.typ"})
+      assert file_id == main.id
+    end
+
+    test "moving another file leaves the open buffer's path alone",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      other = file_fixture(project, user, %{path: "notes.typ"})
+      file_fixture(project, user, %{path: "chapters/ch1.typ"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "move_file", %{"id" => other.id, "dir" => "chapters"})
+
+      refute_push_event(view, "file_moved", %{})
+    end
+  end
+
+  describe "autosave of a buffer that is no longer current" do
+    test "is stored and refreshes the project sources without touching the active buffer",
+         %{conn: conn, user: user, project: project} do
+      main = file_fixture(project, user, %{path: "main.typ", content: "= Main"})
+      other = file_fixture(project, user, %{path: "notes.typ", content: "= Notes"})
+      view = open_editor(conn, project)
+
+      # Switch to notes.typ, then the flushed save for main.typ arrives.
+      render_hook(view, "open_path", %{"path" => "notes.typ"})
+      render_hook(view, "autosave", %{"file_id" => main.id, "content" => "= Main edited"})
+
+      scope = Typster.Accounts.Scope.for_user(user)
+      assert Typster.Files.get_file!(scope, main.id).content == "= Main edited"
+      assert Typster.Files.get_file!(scope, other.id).content == "= Notes"
+      assert view |> element(".ts-tab.is-active .ts-tab__label") |> render() =~ "notes.typ"
+    end
+
+    test "a malformed or unknown file id marks the save failed and keeps the view",
+         %{conn: conn, user: user, project: project} do
+      main = file_fixture(project, user, %{path: "main.typ", content: "= Main"})
+      view = open_editor(conn, project)
+
+      for file_id <- ["not-a-uuid", Ecto.UUID.generate()] do
+        render_hook(view, "autosave", %{"file_id" => file_id, "content" => "= Lost"})
+
+        assert Process.alive?(view.pid)
+        assert has_element?(view, "#save-status.ts-savestat--error")
+      end
+
+      scope = Typster.Accounts.Scope.for_user(user)
+      assert Typster.Files.get_file!(scope, main.id).content == "= Main"
+    end
+
+    test "a file of another project is rejected",
+         %{conn: conn, user: user, project: project} do
+      file_fixture(project, user, %{path: "main.typ"})
+      foreign_project = project_fixture(user, %{name: "Elsewhere"})
+      foreign = file_fixture(foreign_project, user, %{path: "main.typ", content: "= Keep"})
+      view = open_editor(conn, project)
+
+      render_hook(view, "autosave", %{"file_id" => foreign.id, "content" => "= Clobbered"})
+
+      scope = Typster.Accounts.Scope.for_user(user)
+      assert Typster.Files.get_file!(scope, foreign.id).content == "= Keep"
+    end
+  end
+
   test "new file is seeded into the folder of the active file",
        %{conn: conn, user: user, project: project} do
     file_fixture(project, user, %{path: "sections/intro.typ"})
@@ -288,6 +507,35 @@ defmodule TypsterWeb.EditorLiveTest do
     view |> element(".ts-drawer__tab", "Problems") |> render_click()
     assert has_element?(view, ".ts-problem__loc", "15 : 23")
     assert has_element?(view, ".ts-problem__msg", "expected comma")
+  end
+
+  test "a problem in another file sends its file with the goto",
+       %{conn: conn, user: user, project: project} do
+    file_fixture(project, user, %{path: "main.typ", content: "#include \"ch1.typ\""})
+    file_fixture(project, user, %{path: "ch1.typ"})
+    view = open_editor(conn, project)
+
+    render_hook(view, "preview_error", %{
+      "message" => "unknown variable: foo",
+      "errors" => 1,
+      "warnings" => 0,
+      "diagnostics" => [
+        %{
+          "severity" => "error",
+          "message" => "unknown variable: foo",
+          "location" => %{"file" => "/ch1.typ", "line" => 3, "col" => 2}
+        }
+      ]
+    })
+
+    view |> element(".ts-statusbar__btn") |> render_click()
+    view |> element(".ts-drawer__tab", "Problems") |> render_click()
+
+    for selector <- [".ts-problem", ".ts-drawer button[phx-click*='goto']:not(.ts-problem)"] do
+      [[_, %{"detail" => detail}]] = view |> element(selector) |> phx_click_ops()
+      assert %{"cmd" => "goto", "line" => 3} = detail
+      assert String.trim_leading(detail["file"], "/") == "ch1.typ"
+    end
   end
 
   test "a successful compile records a log entry in the drawer",
@@ -473,6 +721,31 @@ defmodule TypsterWeb.EditorLiveTest do
 
     assert path_exists?(user, project, "main.typ")
     assert path_exists?(user, project, "chapters/main.typ")
+  end
+
+  defp file_tree(user, project) do
+    Typster.Files.get_file_tree(Typster.Accounts.Scope.for_user(user), project.id)
+  end
+
+  # The sources the client compiles from, by path, as rendered on the editor.
+  defp project_sources(view) do
+    view
+    |> element("#editor-container")
+    |> render()
+    |> LazyHTML.from_fragment()
+    |> LazyHTML.attribute("data-project-sources")
+    |> hd()
+    |> Jason.decode!()
+    |> Map.new(&{&1["path"], &1["content"]})
+  end
+
+  defp phx_click_ops(element) do
+    element
+    |> render()
+    |> LazyHTML.from_fragment()
+    |> LazyHTML.attribute("phx-click")
+    |> hd()
+    |> Jason.decode!()
   end
 
   defp path_exists?(user, project, path) do

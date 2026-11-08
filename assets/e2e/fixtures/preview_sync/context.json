@@ -1,0 +1,9 @@
+{
+ "shape": "context",
+ "about": "#context lines print a page number between paragraphs, one before a math line whose attachment parentheses are not text.",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Intro", "Opening paragraph about kestrels.", "1", "Middle paragraph about owls.", "(", "1", ",)", "∑", "𝑛", "𝑖", "=", "1", "𝛼", "𝑖", "Closing paragraph about herons."]}
+ ]
+}

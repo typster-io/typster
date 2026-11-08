@@ -1,0 +1,9 @@
+{
+ "shape": "math",
+ "about": "Inline and display math after a block comment and a spacing call: glyphs land on their own characters, a closing parenthesis on its own equation (#8 #33).",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Math", "The formula ", "𝑥", "2", "+", "𝑦", "2", "=", "𝑧", "2", " is old.", "area", "=", "𝜋", "𝑟", "2", "∑", "𝑛", "𝑖", "=", "1", "𝑖", "=", "𝑛", "(", "𝑛", "+", "1", ")", "2", "After math paragraph."]}
+ ]
+}

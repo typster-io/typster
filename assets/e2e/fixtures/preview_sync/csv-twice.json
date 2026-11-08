@@ -1,0 +1,9 @@
+{
+ "shape": "csv-twice",
+ "about": "The same CSV printed twice: the second copy walks the rows again (#52).",
+ "entry": "main.typ",
+ "files": ["main.typ", "s.csv"],
+ "runs": [
+  {"page": 0, "t": ["Twice", "name", "status", "alpha", "active", "bravo", "retired", "charlie", "active", "delta", "retired", "echo", "active", "The same table again.", "name", "status", "alpha", "active", "bravo", "retired", "charlie", "active", "delta", "retired", "echo", "active", "After twice."]}
+ ]
+}

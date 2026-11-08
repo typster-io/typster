@@ -1,0 +1,9 @@
+{
+ "shape": "csv-spread",
+ "about": "A table spreading a CSV's flattened rows from a #let",
+ "entry": "main.typ",
+ "files": ["main.typ", "birds.csv"],
+ "runs": [
+  {"page": 0, "t": ["Table", "Species", "Count", "Place", "Heron", "12", "Lake", "Owl", "5", "Forest", "Kestrel", "7", "Field", "The table lists three species."]}
+ ]
+}

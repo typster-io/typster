@@ -1,0 +1,9 @@
+{
+ "shape": "show-rule-pieces",
+ "about": "Show rules printing literal text around what they show (words generated from a seed): a suffix on level-1 headings, a prefix on level-2 headings, a suffix on strong text and on figure captions",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Debivumi (Repa)", "Vedeca letupu ", "focace (meno)", " nona.", "Fehe: Tehu", "Veni gafeviva (gocekobu)", "Huvime (Repa)", "Fehe: Dipapo", "Zunimo ", "nicucuso (meno)", "."]}
+ ]
+}

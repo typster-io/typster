@@ -1,0 +1,10 @@
+title: Night survey of owls
+owner:
+  name: Märta Lind
+items:
+  - label: barn owl
+    qty: 3
+  - label: tawny owl
+    qty: 12
+  - label: barn owl chicks
+    qty: 5

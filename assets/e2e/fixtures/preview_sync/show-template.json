@@ -1,0 +1,9 @@
+{
+ "shape": "show-template",
+ "about": "A template in another file applied with #show: project.with(...); its string arguments print on the title",
+ "entry": "main.typ",
+ "files": ["main.typ", "template.typ"],
+ "runs": [
+  {"page": 0, "t": ["Migration of Cranes", "Ada Lin, ", "Борис Ким", "Prepared for the field station.", "Background", "Cranes fly south in autumn.", "They return in spring."]}
+ ]
+}

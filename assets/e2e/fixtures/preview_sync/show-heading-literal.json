@@ -1,0 +1,9 @@
+{
+ "shape": "show-heading-literal",
+ "about": "A heading shown through a show rule that adds literal text, and a show rule replacing a word",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Ascent (Chapter)", "We walked 5 ", "miles", " along the river.", "Descent (Chapter)", "Then 3 ", "miles", " downhill."]}
+ ]
+}

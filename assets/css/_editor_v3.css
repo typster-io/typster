@@ -76,8 +76,11 @@
 }
 
 /* ── 2 · Selection quick-action bubble (a CM tooltip) ─────────────────────────
-   Lives inside .cm-tooltip; the doubled class beats CM's runtime-injected
-   .cm-tooltip base theme regardless of stylesheet injection order. */
+   The bubble *is* the tooltip element (CM adds .cm-tooltip to the node the
+   tooltip creates), so the selector names that pairing under .cm-editor: three
+   classes beat CM's runtime-injected `.ͼ1 .cm-tooltip` base theme regardless
+   of stylesheet order, in both themes. */
+.cm-editor .cm-tooltip.cm-qa,
 .cm-tooltip.cm-tooltip .cm-qa,
 .cm-qa {
   display: inline-flex;

@@ -1,0 +1,9 @@
+{
+ "shape": "key-method",
+ "about": "A user function named at printing its string argument, beside a dictionary read with the .at method",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Plan", "Treffpunkt: Bahnhof", "Danach Treffpunkt: Museum am Abend in Bremen."]}
+ ]
+}

@@ -1,0 +1,9 @@
+{
+ "shape": "definition-call-args",
+ "about": "A one-line function definition printing literal text around the string and content arguments its calls write",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Socios", "Texto libre.", "Nombre: Lucía, ciudad: Sevilla.", "Nombre: Andrés, ciudad: Bilbao.", "Fin."]}
+ ]
+}

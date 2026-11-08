@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { uniqueProjectName, projectRow } from './unique_project.mjs'
 
 // Creates a project via the projects page dialog and opens its editor.
 // Returns after the editor URL is confirmed.
 async function createProjectAndOpenEditor(page, name) {
+  name = uniqueProjectName(name)
   await page.goto('/projects')
   await page.waitForFunction(() => window.liveSocket?.isConnected?.(), null, { timeout: 10_000 })
   await page.locator('#new-project-button').click()
@@ -14,7 +16,7 @@ async function createProjectAndOpenEditor(page, name) {
   await expect(page.locator('.ts-dialog')).not.toBeVisible()
 
   // Find the newly created project row and open it
-  const row = page.locator('.ts-list__row').filter({ hasText: name })
+  const row = projectRow(page, name)
   await expect(row).toBeVisible()
   await row.getByRole('link', { name: 'Open' }).click()
 

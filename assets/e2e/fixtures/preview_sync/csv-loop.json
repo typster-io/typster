@@ -1,0 +1,9 @@
+{
+ "shape": "csv-loop",
+ "about": "A #for loop printing literal text around values, upper-cased: every item lives on the loop body, its values in the CSV (#55 #58).",
+ "entry": "main.typ",
+ "files": ["main.typ", "p.csv"],
+ "runs": [
+  {"page": 0, "t": ["Shout", "•", "APPLE costs 1234.5678", "•", "PEAR costs 2.5", "•", "MANGO costs 0.333", "•", "PLUM costs 4", "After shouting."]}
+ ]
+}

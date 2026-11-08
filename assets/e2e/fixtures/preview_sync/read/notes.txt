@@ -1,0 +1,4 @@
+First paragraph of the plain text notes file.
+It continues on a second line.
+
+A second paragraph about herons.

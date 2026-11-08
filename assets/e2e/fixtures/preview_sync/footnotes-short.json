@@ -1,0 +1,10 @@
+{
+ "shape": "footnotes-short",
+ "about": "Footnotes whose bodies are short or repeated (Note k., Ibid.), over two pages",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Feet", "Paragraph 1 about marsh birds and their nests.", "1", "Paragraph 2 about marsh birds and their nests.", "2", "Paragraph 3 about herons standing still in the reeds.", "3", "Paragraph 4 about herons standing still in the reeds.", "4", "Paragraph 5 about kestrels hovering over the field.", "5", "1", "Note 1.", "2", "Note 2.", "3", "See Smith, p. 4.", "4", "Ibid.", "5", "Ibid."]},
+  {"page": 1, "t": ["Paragraph 6 about kestrels hovering over the field.", ["6", 2], "Note 6."]}
+ ]
+}

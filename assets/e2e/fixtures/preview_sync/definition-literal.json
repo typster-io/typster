@@ -1,0 +1,9 @@
+{
+ "shape": "definition-literal",
+ "about": "A function whose definition prints literal text around its arguments, called twice",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Hinweise", "Achtung 2:", " Akku schwach", "Achtung 1:", " Tür offen", "Sonst alles gut."]}
+ ]
+}

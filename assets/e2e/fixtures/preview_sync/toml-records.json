@@ -1,0 +1,9 @@
+{
+ "shape": "toml-records",
+ "about": "A #for over TOML array-of-tables records, a value repeated in two records",
+ "entry": "main.typ",
+ "files": ["main.typ", "crew.toml"],
+ "runs": [
+  {"page": 0, "t": ["Crew", "•", "Ines (botanist)", "•", "Oskar (pilot)", "•", "Mirela (botanist)", "That is everyone."]}
+ ]
+}

@@ -1,0 +1,10 @@
+{
+ "shape": "page-footer",
+ "about": "A header and a context footer with the page number on every page of a three-page body",
+ "entry": "main.typ",
+ "files": ["main.typ"],
+ "runs": [
+  {"page": 0, "t": ["Shore report", "Draft", "Introduction", "Paragraph 1 records the counts along the shore in enough words that the page fills and breaks.", "Paragraph 2 records the counts along the shore in enough words that the page fills and breaks.", "Paragraph 3 records the counts along the shore in enough words that the page fills and breaks.", "Paragraph 4 records the counts along the shore in enough words that the page fills and breaks.", "Paragraph 5 records the counts along the shore in enough words that the page fills and breaks.", "Paragraph 6 records the counts along the shore in enough words that the page fills and breaks.", "Paragraph 7 records the counts along the shore in enough words that the page fills and breaks.", "Paragraph 8 records the counts along the shore in enough words that the page fills and breaks.", "Page 1 of 3"]},
+  {"page": 1, "t": ["Shore report", "Draft", "Paragraph 9 records the counts along the shore in enough words that the page fills and breaks.", "Page 2 of 3"]}
+ ]
+}
