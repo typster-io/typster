@@ -1,6 +1,6 @@
 services:
   rustfs:
-    image: rustfs/rustfs:1.0.1
+    image: rustfs/rustfs:1.0.4
     expose:
       - "9000"
       - "9001"

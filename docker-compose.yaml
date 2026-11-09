@@ -17,7 +17,7 @@ services:
       retries: 5
 
   rustfs:
-    image: rustfs/rustfs:1.0.1
+    image: rustfs/rustfs:1.0.4
     container_name: typster_rustfs
     ports:
       - "9000:9000"
