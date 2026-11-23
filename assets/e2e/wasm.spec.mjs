@@ -61,7 +61,7 @@ test.describe('Typst WASM compilation pipeline', () => {
     await cmContent.click()
 
     // Select all default content and replace with a minimal typst document
-    await page.keyboard.press('Control+a')
+    await page.keyboard.press('ControlOrMeta+a')
     await page.keyboard.type('= Hello\n\nWorld')
 
     // Wait for save cycle

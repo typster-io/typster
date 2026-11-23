@@ -489,7 +489,7 @@ test.describe('Preview ↔ source sync', () => {
     // Caret on the paragraph after, then back on the #image line: the flash
     // lands on the picture.
     await cm.click()
-    await page.keyboard.press('Control+End')
+    await page.keyboard.press('ControlOrMeta+End')
     await page.keyboard.press('ArrowUp')
     await page.waitForTimeout(400)
     await page.keyboard.press('ArrowUp')
@@ -627,7 +627,7 @@ test.describe('Preview ↔ source sync', () => {
     await page.locator('.ts-tab.is-active .ts-tab__close').click()
     await expect(page.locator('.ts-formatbar__hint')).toContainText('data.csv')
     await page.locator('#editor-container .cm-content').click()
-    await page.keyboard.press('Control+End')
+    await page.keyboard.press('ControlOrMeta+End')
     await page.keyboard.insertText('stoat,runs\n')
     await expect(page.locator('#save-status')).toHaveClass(/ts-savestat--saved/, { timeout: 15_000 })
     // main.typ prints the CSV, so the new row shows up in the document; the
@@ -664,7 +664,7 @@ test.describe('Preview ↔ source sync', () => {
     await expect(run(page, 'wombats')).toBeVisible({ timeout: 30_000 })
 
     await cm.click()
-    await page.keyboard.press('Control+End')
+    await page.keyboard.press('ControlOrMeta+End')
     await page.keyboard.press('ArrowUp')
 
     const pane = page.locator('#preview-container')
@@ -687,7 +687,7 @@ test.describe('Preview ↔ source sync', () => {
 
     // Move the caret (no edit) to the last paragraph.
     await cm.click()
-    await page.keyboard.press('Control+End')
+    await page.keyboard.press('ControlOrMeta+End')
     await page.keyboard.press('ArrowUp')
 
     await expect(page.locator('#preview-container .ts-preview__flash')).toBeAttached({ timeout: 5_000 })
@@ -808,7 +808,7 @@ test.describe('Preview ↔ source sync', () => {
     await run(page, 'kestrels').click()
     await expect(page.locator('.ts-tab.is-active .ts-tab__label')).toContainText('main.typ')
     await page.locator('#editor-container .cm-content').click()
-    await page.keyboard.press('Control+End')
+    await page.keyboard.press('ControlOrMeta+End')
     await page.keyboard.insertText('\nClosing words about lynxes.\n')
     await expect(run(page, 'lynxes')).toBeVisible({ timeout: 30_000 })
     await expect(run(page, 'badgers')).toBeVisible()
@@ -1386,7 +1386,7 @@ test.describe('Preview ↔ source sync', () => {
 
     // The next compile no longer finds the file, as on a fresh page.
     await cm.click()
-    await page.keyboard.press('Control+End')
+    await page.keyboard.press('ControlOrMeta+End')
     await page.keyboard.insertText('More text about lynxes.\n')
     await expect(page.locator('#preview-error')).toBeVisible({ timeout: 30_000 })
     await expect(page.locator('#preview-error')).toContainText('failed to load file')
@@ -1423,7 +1423,7 @@ test.describe('Preview ↔ source sync', () => {
 
     // The next compile reads the new file, not the bytes kept for the old.
     await cm.click()
-    await page.keyboard.press('Control+End')
+    await page.keyboard.press('ControlOrMeta+End')
     await page.keyboard.insertText('\nAfter about lynxes.\n')
     await expect(run(page, 'lynxes')).toBeVisible({ timeout: 30_000 })
     await expect.poll(href, { timeout: 10_000 }).toContain(green.toString('base64'))
