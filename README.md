@@ -39,8 +39,6 @@ Typst is a modern LaTeX alternative — a markup-based language for producing be
 
 ## Quick start
 
-If you already have a PostgreSQL 16 volume, [migrate it before starting the updated stack](CONTRIBUTING.md#upgrade-a-postgresql-16-volume).
-
 The fastest way to run Typster is with Docker. Everything runs in containers — no toolchain setup needed.
 
 ```bash

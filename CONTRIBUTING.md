@@ -58,43 +58,6 @@ pixi run setup      # install deps, create and migrate db, build assets
 pixi run runserver  # start the phoenix server
 ```
 
-### Upgrade a PostgreSQL 16 volume
-
-Run these commands for each existing Compose project. For a Dev Container, use its original project name and Compose file (for example, `docker compose -p typster_devcontainer -f .devcontainer/docker-compose.yaml`) throughout. Close any host Phoenix server or other database writer first.
-
-1. With the **old** Compose file, stop the app and take a private cluster dump. Keep this shell open for the restore.
-
-   ```sh
-   docker compose stop app
-   docker compose up -d --wait db
-   umask 077
-   backup_dir=$(mktemp -d)
-   docker compose exec -T db pg_dumpall -U postgres > "$backup_dir/cluster.sql" &&
-     docker compose stop db
-   ```
-
-2. Switch to the updated branch. On the **first** upgrade, start a temporary database in the new, empty 19 volume. Initializing with only the default databases lets the dump recreate the original databases, including `typster_dev`. The dump restores the settings and password of the existing bootstrap role.
-
-   ```sh
-   restore_db=$(docker compose run -d --no-deps -e POSTGRES_DB=postgres db)
-   for i in $(seq 1 60); do
-     docker exec "$restore_db" pg_isready -h 127.0.0.1 -U postgres && break
-     sleep 1
-   done
-   awk '!skipped && $0 == "CREATE ROLE postgres;" { skipped=1; next } { print }' "$backup_dir/cluster.sql" > "$backup_dir/restore.sql"
-   docker exec -i "$restore_db" psql -Xq -v ON_ERROR_STOP=1 -U postgres -d postgres < "$backup_dir/restore.sql"
-   ```
-
-3. After a successful restore, compare database names and application row counts with the source before allowing writes. Switch to the regular Compose service and run any pending Ecto migrations from the project environment.
-
-   ```sh
-   docker stop "$restore_db" && docker rm "$restore_db"
-   docker compose up -d --wait db
-   mix ecto.migrate
-   ```
-
-The original PostgreSQL 16 volume is retained. To roll back before accepting writes, stop the 19 services, switch to the old Compose file and run `docker compose up -d db`. After writes resume on 19, reconcile those changes before rolling back.
-
 ### Without Pixi (manual)
 
 If you'd rather manage the toolchain yourself, install the following:
