@@ -237,24 +237,17 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('assets/bun.lock') }}
           restore-keys: ${{ runner.os }}-playwright-
 
+      # mix deps.get must run before bun install: assets/package.json declares
+      # `"workspaces": ["../deps/*"]` and pulls phoenix / phoenix_html /
+      # phoenix_live_view via `workspace:*`. Without populated `deps/` the
+      # workspace resolution diverges from bun.lock and `--frozen-lockfile`
+      # fails with "lockfile had changes".
       - name: Install deps
         run: pixi run mix deps.get
 
       - name: Install Bun deps
         working-directory: assets
         run: pixi run bun install --frozen-lockfile
-
-      - name: Check Phoenix browser clients match Hex
-        run: |
-          node --input-type=module <<'NODE'
-          import { readFileSync } from "node:fs";
-          const version = path => JSON.parse(readFileSync(path, "utf8")).version;
-          for (const pkg of ["phoenix", "phoenix_html", "phoenix_live_view"]) {
-            if (version(`assets/node_modules/${pkg}/package.json`) !== version(`deps/${pkg}/package.json`)) {
-              throw new Error(`Align ${pkg} in assets/package.json with mix.lock`);
-            }
-          }
-          NODE
 
       - name: Build assets
         run: pixi run mix assets.build
