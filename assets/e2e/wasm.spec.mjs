@@ -62,7 +62,7 @@ test.describe('Typst WASM compilation pipeline', () => {
 
     // Select all default content and replace with a minimal typst document
     await page.keyboard.press('ControlOrMeta+a')
-    await page.keyboard.type('= Hello\n\nWorld')
+    await page.keyboard.insertText('#assert(sys.version >= version(0, 15, 1))\n\nCompiler ready.')
 
     // Wait for save cycle
     await expect(page.locator('#save-status')).toHaveClass(/ts-savestat--saved/, { timeout: 15_000 })
@@ -72,7 +72,7 @@ test.describe('Typst WASM compilation pipeline', () => {
 
     // The SVG canvas element (or rendered output) must appear in the preview pane
     const previewScroll = page.locator('#preview-container')
-    await expect(previewScroll.locator('svg, canvas')).toBeVisible({ timeout: 30_000 })
+    await expect(previewScroll.locator('.tsel').filter({ hasText: 'Compiler ready.' })).toBeVisible({ timeout: 30_000 })
 
     expect(wasmErrors).toEqual([])
   })
