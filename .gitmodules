@@ -1,3 +1,6 @@
 [submodule "pro"]
 	path = vendor/pro
 	url = git@github.com:typster-io/typster-pro.git
+[submodule "anthropic-skills"]
+	path = .agents/anthropic-skills
+	url = https://github.com/anthropics/skills.git

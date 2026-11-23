@@ -8,6 +8,7 @@ version = "0.1.0"
 [tasks]
 runserver = { cmd = "mix phx.server", description = "Run the Elixir server" }
 setup = { cmd = "mix setup", description = "Setup the Elixir project" }
+setup-skills = { cmd = "sh .agents/setup-skills.sh", description = "Install agent skills from the pinned Anthropic submodule" }
 test-e2e-theme = { cmd = "bun run --cwd assets test:e2e:theme", description = "Run theme stability browser tests" }
 
 [dependencies]
