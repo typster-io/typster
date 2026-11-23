@@ -6,9 +6,9 @@ Production points at AWS S3 or a compatible endpoint via `S3_ENDPOINT`,
 
 ## Local and CI backend: RustFS
 
-- Image: `rustfs/rustfs:1.0.1` (Apache-2.0, Docker Hub). `docker-compose.yaml`
+- Image: `rustfs/rustfs:1.0.6` (Apache-2.0, Docker Hub). `docker-compose.yaml`
   and `.devcontainer/docker-compose.yaml` run it as the `rustfs` service; CI
-  starts the same image pinned by digest in the `tests` job.
+  starts the same image pinned by digest in the Elixir and browser test jobs.
 - S3 API on port 9000, console on 9001 at `/rustfs/console/`.
 - Default credentials `rustfsadmin` / `rustfsadmin`, overridable with the same
   `AWS_*` variables the app reads. The bucket is created on first upload.
@@ -23,4 +23,4 @@ anonymously from Docker Hub or quay.io, and the Bitnami legacy build is frozen
 `put_bucket`, `put_object`, `put_object_copy` (project forks),
 `delete_object`, `presigned_url` (GET). A missing bucket must answer
 `404 NoSuchBucket` so `Typster.Assets` can create it and retry. All of these
-were checked against RustFS 1.0.1 with the AWS CLI and the fork test suite.
+were checked against RustFS 1.0.6 with the AWS CLI and the fork test suite.

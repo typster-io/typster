@@ -7,6 +7,8 @@
 # General application configuration
 import Config
 
+config :ex_aws, http_client: ExAws.Request.Req
+
 config :typster, :scopes,
   user: [
     default: true,

@@ -353,7 +353,7 @@ and flash it. Works across `#include`d files. Issue: typster-io/typster#149.
 
 ## Why text alignment, not spans
 
-The bundled typst.ts (0.8.0-rc3) exposes no span resolver to JavaScript: the
+The bundled typst.ts (0.8.0-rc4) exposes no span resolver to JavaScript: the
 renderer's `source_span` reads page source mappings that the incremental
 server no longer packs into the artifact, and the web compiler has no
 `resolve_span`. Text alignment needs nothing from the compiler and follows

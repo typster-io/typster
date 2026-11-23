@@ -90,7 +90,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
+        image: postgres:19.0-alpine3.24
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -172,7 +172,7 @@ jobs:
         run: |
           docker run -d --name rustfs -p 9000:9000 \
             -e RUSTFS_ACCESS_KEY=rustfsadmin -e RUSTFS_SECRET_KEY=rustfsadmin \
-            rustfs/rustfs:1.0.1@sha256:1803faef57627e2d9c2e7d89d655d712ddded5389040054987163043fecb6a3c
+            rustfs/rustfs:1.0.6@sha256:ee717072290bec9b11abfc0365f8310b00df1cd9b3639943edae47bdef05044a
           for i in $(seq 1 30); do
             curl -fs http://localhost:9000/health && exit 0
             sleep 1
@@ -196,7 +196,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
+        image: postgres:19.0-alpine3.24
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -237,17 +237,24 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('assets/bun.lock') }}
           restore-keys: ${{ runner.os }}-playwright-
 
-      # mix deps.get must run before bun install: assets/package.json declares
-      # `"workspaces": ["../deps/*"]` and pulls phoenix / phoenix_html /
-      # phoenix_live_view via `workspace:*`. Without populated `deps/` the
-      # workspace resolution diverges from bun.lock and `--frozen-lockfile`
-      # fails with "lockfile had changes".
       - name: Install deps
         run: pixi run mix deps.get
 
       - name: Install Bun deps
         working-directory: assets
         run: pixi run bun install --frozen-lockfile
+
+      - name: Check Phoenix browser clients match Hex
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from "node:fs";
+          const version = path => JSON.parse(readFileSync(path, "utf8")).version;
+          for (const pkg of ["phoenix", "phoenix_html", "phoenix_live_view"]) {
+            if (version(`assets/node_modules/${pkg}/package.json`) !== version(`deps/${pkg}/package.json`)) {
+              throw new Error(`Align ${pkg} in assets/package.json with mix.lock`);
+            }
+          }
+          NODE
 
       - name: Build assets
         run: pixi run mix assets.build
@@ -264,7 +271,7 @@ jobs:
         run: |
           docker run -d --name rustfs -p 9000:9000 \
             -e RUSTFS_ACCESS_KEY=rustfsadmin -e RUSTFS_SECRET_KEY=rustfsadmin \
-            rustfs/rustfs:1.0.1@sha256:1803faef57627e2d9c2e7d89d655d712ddded5389040054987163043fecb6a3c
+            rustfs/rustfs:1.0.6@sha256:ee717072290bec9b11abfc0365f8310b00df1cd9b3639943edae47bdef05044a
           for i in $(seq 1 30); do
             curl -fs http://localhost:9000/health && exit 0
             sleep 1

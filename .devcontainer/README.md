@@ -20,7 +20,7 @@ This directory contains the configuration for developing Typster in a Dev Contai
 
 - **Elixir 1.19** - Latest Elixir version
 - **Node.js & npm** - For asset compilation
-- **PostgreSQL 16** - Database service (accessible at `db:5432` from the container)
+- **PostgreSQL 19** - Database service (accessible at `db:5432` from the container)
 - **VS Code Extensions**:
   - ElixirLS (Elixir language server)
   - Phoenix Framework support

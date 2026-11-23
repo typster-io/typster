@@ -36,7 +36,7 @@ test.describe('Preview pane', () => {
     const cm = await createFileAndOpenEditor(page)
 
     await cm.click()
-    await page.keyboard.press('Control+a')
+    await page.keyboard.press('ControlOrMeta+a')
     await page.keyboard.type('= Hello\n\nWorld')
 
     await expect(page.locator('#preview-container svg')).toBeVisible({ timeout: 30_000 })
@@ -48,7 +48,7 @@ test.describe('Preview pane', () => {
     const cm = await createFileAndOpenEditor(page)
 
     await cm.click()
-    await page.keyboard.press('Control+a')
+    await page.keyboard.press('ControlOrMeta+a')
     // Code and markup do not count; the heading and the sentence do: 1 + 7 = 8.
     await page.keyboard.type('#set text(size: 12pt)\n= Title\n\nHello wonderful world, here are seven words.')
 
@@ -62,7 +62,7 @@ test.describe('Preview pane', () => {
     const cm = await createFileAndOpenEditor(page)
 
     await cm.click()
-    await page.keyboard.press('Control+a')
+    await page.keyboard.press('ControlOrMeta+a')
     await page.keyboard.type('= Persistence\n\nFirst save.')
 
     // Wait for the first full save cycle
@@ -90,7 +90,7 @@ test.describe('Preview pane', () => {
     const cm = await createFileAndOpenEditor(page)
 
     await cm.click()
-    await page.keyboard.press('Control+a')
+    await page.keyboard.press('ControlOrMeta+a')
     // #import of a non-existent file is a reliable compile-time error
     await page.keyboard.type('#import "does-not-exist.typ": *')
 
@@ -105,13 +105,13 @@ test.describe('Preview pane', () => {
 
     // First: invalid content → error
     await cm.click()
-    await page.keyboard.press('Control+a')
+    await page.keyboard.press('ControlOrMeta+a')
     await page.keyboard.type('#import "does-not-exist.typ": *')
     await expect(page.locator('#preview-container #preview-error')).toBeVisible({ timeout: 30_000 })
 
     // Then: replace with valid content → SVG, error gone
     await cm.click()
-    await page.keyboard.press('Control+a')
+    await page.keyboard.press('ControlOrMeta+a')
     await page.keyboard.type('= Recovered\n\nAll good.')
     await expect(page.locator('#preview-container svg')).toBeVisible({ timeout: 30_000 })
     await expect(page.locator('#preview-container #preview-error')).not.toBeVisible()
