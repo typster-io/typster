@@ -393,7 +393,7 @@ And **never** do this:
 ## Typster project context
 
 - Typster is a Phoenix 1.8 + LiveView 1.1 app on Elixir 1.19 and Erlang/OTP 28
-- Core stack: PostgreSQL 16 through Ecto, RustFS (S3-compatible) object storage, Oban background jobs, Bun-managed frontend assets, Tailwind CSS, salad_ui, CodeMirror, Playwright E2E tests, Pixi, prek, and Docker Compose
+- Core stack: PostgreSQL 19 through Ecto, RustFS (S3-compatible) object storage, Oban background jobs, Bun-managed frontend assets, Tailwind CSS, salad_ui, CodeMirror, Playwright E2E tests, Pixi, prek, and Docker Compose
 - Project overview lives in [README.md](README.md). Contributor workflow lives in [CONTRIBUTING.md](CONTRIBUTING.md). Design guidance lives in [docs/landing-style.md](docs/landing-style.md) and [docs/landing-redesign-guide.md](docs/landing-redesign-guide.md)
 - Main code layout:
   - `lib/typster/` contains business logic contexts such as Accounts, Projects, Files, Assets, and Revisions

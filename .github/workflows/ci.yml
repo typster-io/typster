@@ -90,7 +90,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
+        image: postgres:19.0-alpine3.24
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -172,7 +172,7 @@ jobs:
         run: |
           docker run -d --name rustfs -p 9000:9000 \
             -e RUSTFS_ACCESS_KEY=rustfsadmin -e RUSTFS_SECRET_KEY=rustfsadmin \
-            rustfs/rustfs:1.0.1@sha256:1803faef57627e2d9c2e7d89d655d712ddded5389040054987163043fecb6a3c
+            rustfs/rustfs:1.0.6@sha256:ee717072290bec9b11abfc0365f8310b00df1cd9b3639943edae47bdef05044a
           for i in $(seq 1 30); do
             curl -fs http://localhost:9000/health && exit 0
             sleep 1
@@ -196,7 +196,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
+        image: postgres:19.0-alpine3.24
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -271,7 +271,7 @@ jobs:
         run: |
           docker run -d --name rustfs -p 9000:9000 \
             -e RUSTFS_ACCESS_KEY=rustfsadmin -e RUSTFS_SECRET_KEY=rustfsadmin \
-            rustfs/rustfs:1.0.1@sha256:1803faef57627e2d9c2e7d89d655d712ddded5389040054987163043fecb6a3c
+            rustfs/rustfs:1.0.6@sha256:ee717072290bec9b11abfc0365f8310b00df1cd9b3639943edae47bdef05044a
           for i in $(seq 1 30); do
             curl -fs http://localhost:9000/health && exit 0
             sleep 1

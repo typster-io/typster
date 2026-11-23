@@ -9,7 +9,7 @@
 [![License: Typster NC-SA 1.0](https://img.shields.io/badge/license-Typster%20NC--SA%201.0-blue)](./LICENSE)
 [![Pixi](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/prefix-dev/pixi/main/assets/badge/v0.json)](https://pixi.sh)
 [![Dev Containers](https://img.shields.io/badge/dev_containers-supported-0078D4?logo=docker)](https://containers.dev)
-[![Phoenix LiveView](https://img.shields.io/badge/Phoenix_LiveView-1.1.33-FD4F00?logo=phoenixframework)](https://hexdocs.pm/phoenix_live_view)
+[![Phoenix LiveView](https://img.shields.io/badge/Phoenix_LiveView-1.1.34-FD4F00?logo=phoenixframework)](https://hexdocs.pm/phoenix_live_view)
 
 **The [Typst](https://typst.app) editor for writing that ships.**
 
@@ -29,7 +29,7 @@ Typst is a modern LaTeX alternative — a markup-based language for producing be
 |---|---|
 | Backend | Elixir 1.19 + Phoenix 1.8 + LiveView 1.1 on BEAM (Erlang/OTP 28) |
 | Frontend | Bun 1.3 · Tailwind CSS · salad_ui components |
-| Database | PostgreSQL 16 (Ecto) |
+| Database | PostgreSQL 19 (Ecto) |
 | Object storage | RustFS (S3-compatible) |
 | Background jobs | Oban 2.24 |
 | Testing | ExUnit · Playwright (browser E2E) |
@@ -38,6 +38,8 @@ Typst is a modern LaTeX alternative — a markup-based language for producing be
 ---
 
 ## Quick start
+
+If you already have a PostgreSQL 16 volume, [migrate it before starting the updated stack](CONTRIBUTING.md#upgrade-a-postgresql-16-volume).
 
 The fastest way to run Typster is with Docker. Everything runs in containers — no toolchain setup needed.
 

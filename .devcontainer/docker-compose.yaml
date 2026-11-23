@@ -1,6 +1,6 @@
 services:
   rustfs:
-    image: rustfs/rustfs:1.0.1
+    image: rustfs/rustfs:1.0.6
     expose:
       - "9000"
       - "9001"
@@ -38,10 +38,10 @@ services:
       S3_ENDPOINT: "${S3_ENDPOINT:-http://rustfs:9000}"
 
   db:
-    image: postgres:16-alpine
+    image: postgres:19.0-alpine3.24
     restart: unless-stopped
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data-19:/var/lib/postgresql
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -55,5 +55,5 @@ services:
       retries: 5
 
 volumes:
-  postgres-data:
+  postgres-data-19:
   rustfs_data:
